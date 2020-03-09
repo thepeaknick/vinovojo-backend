@@ -1,10 +1,13 @@
-<?php 
+<?php
 
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Http\Parser\QueryString;
+use LaravelFCM\Request\Request;
 
 class Happening extends BaseModel {
 
@@ -17,7 +20,7 @@ class Happening extends BaseModel {
     // ];
 
     protected $fillable = [
-        'name', 'description', 'start', 'end', 'location', 'lat', 'lng', 'link'
+        'name', 'description', 'start', 'end', 'location', 'lat', 'lng', 'link', 'active'
     ];
 
     protected $appends = [
@@ -59,7 +62,10 @@ class Happening extends BaseModel {
     //      -- CRUD override --
 
     public static function list($lang, $sorting = 'desc', $getQuery = false) {
-        $q = parent::list($lang, $sorting, true)
+        parent::$listSort='events.start';
+        // parent::$sorting='asc';
+        // $q = parent::list($lang, $sorting, true);
+        $q = parent::list($lang, $sorting, true,'')
                     ->join('text_fields as nameTransliteration', function ($q) use ($lang) {
                             $q->on('nameTransliteration.object_id', '=', 'events.id');
                             $q->where('nameTransliteration.object_type', (new static)->flag);
@@ -72,18 +78,21 @@ class Happening extends BaseModel {
                             $q->where('textTransliteration.name', 'description');
                             $q->where('textTransliteration.language_id', $lang);
                     });
+        // var_dump($q instanceof \Illuminate\Database\Eloquent\Builder);
+
+        // var_dump($q->toSql());
+        // die();
 
         // $q->latest('start');
-
         return ($getQuery) ? $q : $q->paginate(10);
     }
 
     public function postCreation($req = null) {
-        if ( $req->hasFile('cover') ) 
+        if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
         return true;
-    } 
+    }
 
 
     public function update($req = [], $options = []) {
@@ -94,6 +103,20 @@ class Happening extends BaseModel {
             $this->storeCover($req->cover);
 
         return response(null, 204);
+    }
+
+    public static function searchSorted($id=0)
+    {
+        $all=DB::table('events')->select()->orderBy( static::$listSort , 'desc' )->get();
+
+        // dd($all);
+        if( count( $all ) && $id)
+        {
+            return new \App\Happening((array)$all[$id-1]);
+        }else{
+            return $all;
+        }
+        return null;
     }
 
 }

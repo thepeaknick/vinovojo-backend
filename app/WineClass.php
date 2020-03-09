@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App;
 
@@ -22,11 +22,13 @@ class WineClass extends BaseModel {
         'pivot', 'transliterations'
     ];
 
+    protected $appends= ['name'];
+
     public static $listData = ['wine_classes.id as id'];
 
 
 
-    // 		-- Relationships-- 
+    // 		-- Relationships--
 
     public function wines() {
     	return $this->belongsToMany('App\Wine', 'classes_wines', 'class_id', 'wine_id');
@@ -40,7 +42,12 @@ class WineClass extends BaseModel {
     	return 4;
     }
 
+    public static $language= 1;
 
+    public function translate()
+    {
+        return $this->belongsTo('App\TextField','id','object_id')->where('object_type','=',(new static)->flag);
+    }
 
     //      -- CRUD overrire --
 
@@ -66,12 +73,20 @@ class WineClass extends BaseModel {
         $q->addSelect('descTrans.value as description');
 
         return ( $getQuery ) ? $q : $q->paginate(10);
-        
+
+    }
+
+    public function getNameAttribute()
+    {
+        $translation= $this->translate()->where('text_fields.name','name')->where('text_fields.language_id',1)->first();
+        if($translation!==null)
+            return $translation->value;
+        else return null;
     }
 
 
     //      -- CRUD complements --
 
-    
+
 
 }

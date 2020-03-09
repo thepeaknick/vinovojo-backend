@@ -26,10 +26,10 @@
 //     \Illuminate\Support\Facades\Artisan::call('migrate');
 
 //     $output = str_replace(
-//     	"\n", 
+//     	"\n",
 //     	"<br>",
 //         \Illuminate\Support\Facades\Artisan::output()
-//     ); 
+//     );
 
 //     print_r($output);
 
@@ -40,7 +40,7 @@
 //     \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
 
 //     $output = str_replace(
-//         "\n", 
+//         "\n",
 //         "<br>",
 //         \Illuminate\Support\Facades\Artisan::output()
 //     );
@@ -57,6 +57,9 @@ $router->get('mobile/sync', 'BaseController@syncWithMobile');
 
 $router->post('login', 'AuthenticateController@login');
 
+$router->post('/',function(){
+    return response()->json(['message'=>'Not found page'],200);
+});
 $router->group(['middleware' => 'auth'], function() use ($router) {
 
 
@@ -88,7 +91,7 @@ $router->group(['middleware' => 'auth'], function() use ($router) {
 
 
 	//		-- Winery --
-	
+
 	$router->get('my/wineries', 'WineryController@userWinery');
 
 	$router->get('my/wines', 'WineController@userWines');
@@ -97,7 +100,7 @@ $router->group(['middleware' => 'auth'], function() use ($router) {
 
 	$router->get('my/wines/dropdown', 'WineController@userWinesDropdown');
 
-	
+    $router->post('my/winery/filter', 'WineryController@filterUserWineries');
 
 
 });
@@ -112,10 +115,18 @@ $router->group(['middleware' => 'mobileAuth'], function() use ($router) {
 
 	$router->get('winery/comments/{wineryId}/mobile', 'SocialController@wineryComments');
 
+    $router->get('winery/comments','SocialController@wineryCommentsAll');
+
 	$router->get('wine/comments/{wineId}/mobile', 'SocialController@wineComments');
+
+	$router->get('wine/comments','SocialController@wineCommentsAll');
 
 
 });
+
+$router->get('wine/filter/initialize/mobile', 'WineController@initalizeFilterMobile');
+
+$router->get('winery/filter/initialize/mobile', 'WineryController@initializeFilterMobile');
 
 
 
@@ -143,7 +154,7 @@ $router->get('feed/homepage', 'FeedController@adminHomepage');
 
 
 
-//		-- Event -- 
+//		-- Event --
 
 $router->get('event/month/{year}/{month}', 'EventController@eventsInMonth');
 
@@ -195,9 +206,13 @@ $router->get('winery/filter/initialize', 'WineryController@initializeFilter');
 
 $router->post('winery/filter', 'WineryController@filter');
 
+$router->post('winery/filter/nopagination', 'WineryController@filterWithoutPagination');
+
 $router->get('winery/searched', 'WineryController@searchedForWineries');
 
 $router->get('get/winery/nopagination', 'WineryController@ovoJeSamoZaAcu'); // Za Acu
+
+$router->get('get/winery/all','WineryController@loadAllWinaries');
 
 	// -- Gallery --
 
@@ -239,13 +254,15 @@ $router->post('patch/{resource}/{id}', 'BaseController@patch');
 
 $router->delete('delete/{resource}/{id}', 'BaseController@delete');
 
+//$router->post('user/password/change/{id}', 'UserController@patchPassword');
+
 	// -- Language --
 
 $router->delete('delete/language/{resource}/{resourceId}/{languageId}', 'BaseController@deleteResourceLanguage');
 
 $router->post('add/language/{resource}/{resourceId}', 'BaseController@addLanguageToResource');
 
-	// -- Miscellaneous -- 
+	// -- Miscellaneous --
 
 $router->post('search/{resource}', 'BaseController@search');
 
@@ -271,9 +288,13 @@ $router->post('social/register/google', 'SocialController@registerWithGoogle');
 
 $router->get('social/image/{id}', ['uses' => 'SocialController@loadUserImage', 'as' => 'profile_pic']);
 
-$router->get('user/{type}', 'UserController@filterUsers');
-
 $router->get('user/{type}/dropdown', 'UserController@filterUsersDropdown');
+
+$router->get('user/{type}','UserController@filterUsers');
+
+$router->get('user/{type}/{order}', 'UserController@filterUsers');
+
+
 
 
 
@@ -296,3 +317,42 @@ $router->post('push/critical', 'SocialController@criticalNotification');
 $router->post('route/auto', 'PathController@generatePath');
 
 $router->post('poi/range', 'PathController@inRange');
+
+
+//      --StartScreen(Ads) route--
+
+$router->post('startScreen/create','AdvertisingController@store');
+
+$router->get('startScreen/all','AdvertisingController@all');
+
+$router->post('startScreen/patch/{id}','AdvertisingController@patchAds');
+
+$router->get('startScreen/all/mobile','AdvertisingController@patchAdsMobile');
+
+$router->get('startScreen/{section}','AdvertisingController@loadBySection');
+
+$router->get('startScreen/{section}/mobile','AdvertisingController@loadBySection');
+
+$router->delete('startScreen/delete/{id}','AdvertisingController@deleteAds');
+
+$router->get('startScreen/image/{id}','ImageController@loadAdImage');
+
+
+//      --Wine recommended/highlighted route--
+
+$router->post('highlight/createOrPatch','HighlightController@change');
+
+$router->post('highlight/view','HighlightController@show');
+
+//$router->get('highlight/test','HighlightController@insertNeccessaryData');
+
+$router->get('highlight/all','HighlightController@all');
+
+//      --Settings route--
+$router->post('settings/createOrPatch','SettingsController@makeOrEdit');
+
+$router->get('getSettingGoogle','SettingsController@getAll');
+
+
+$router->get('test','TestController@index');
+$router->post('testImage','TestController@saveImage');

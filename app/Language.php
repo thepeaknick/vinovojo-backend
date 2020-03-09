@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App;
 
@@ -22,7 +22,7 @@ class Language extends BaseModel {
         'name' => 'string|required',
         'code' => 'string|required',
 
-        
+
     ];
 
     public static $transliteratesLists = false;
@@ -50,7 +50,7 @@ class Language extends BaseModel {
 
 
     //      -- Mutators --
-    
+
     // public function setNewsFragmentSecondaryTabAttribute($value) {
     //     if (!is_string($value))
     //         $value = implode($value, '#');
@@ -65,7 +65,7 @@ class Language extends BaseModel {
 
 
 
-    //      --  Relationships -- 
+    //      --  Relationships --
 
     public function fields() {
         return $this->hasMany('\App\TextField')->where( 'object_type', (new static)->flag )->where( 'language_id', $this->id );
@@ -81,7 +81,7 @@ class Language extends BaseModel {
 
 
 
-    //      -- CRUD override -- 
+    //      -- CRUD override --
 
     public function postCreation($r = null) {
         foreach ($r->mobile as $field => $value) {
@@ -148,7 +148,7 @@ class Language extends BaseModel {
 
 
 
-    //      -- Validation -- 
+    //      -- Validation --
 
     public function validatesBeforeCreation() {
         foreach ($this->fieldValidation as $field => $validation)
@@ -421,6 +421,7 @@ class Language extends BaseModel {
         'SIDEBAR_SETTINGS_WINE_SORT_TITLE' => 'required|string',
         'SIDEBAR_SETTINGS_LANGUAGE_TITLE' => 'required|string',
         'SIDEBAR_SETTINGS_CLASSIFICATION_TITLE' => 'required|string',
+        'SIDEBAR_ADVERTISING_TITLE' => 'required|string',
         'CONTROL_BOARD_WINERY_CARD_TITLE' => 'required|string',
         'CONTROL_BOARD_WINE_CARD_TITLE' => 'required|string',
         'CONTROL_BOARD_USER_CARD_TITLE' => 'required|string',
@@ -974,6 +975,7 @@ class Language extends BaseModel {
         'REGIONS_ALERT_MSG_NOT_ALLOWED_DELETE_REGIONS' => 'required|string',
         'REGIONS_ALERT_MSG_NOT_ALLOWED_DELETE_REONS' => 'required|string',
         'REGIONS_ALERT_MSG_DELETE_UNSUCCESS' => 'required|string',
+        'USERS_DROPDOWN_5_ELEMENT'=>'required|string',
         'WINE_CATEGORIES_CARD_NAME' => 'required|string',
         'WINE_CATEGORIES_TABLE_NAME' => 'required|string',
         'WINE_CATEGORIES_TABLE_ACTIONS' => 'required|string',
@@ -1130,8 +1132,52 @@ class Language extends BaseModel {
         'SWAL_DELETE_LANG_SUCCESS_TITLE' => 'required|string',
         'SWAL_DELETE_LANG_SUCCESS_TEXT' => 'required|string',
         'SWAL_DELETE_LANG_UNSUCCESS' => 'required|string',
+        'SIDEBAR_ADVERTISING_TITLE' => 'required|string',
+        'SIDEBAR_ADVERTISING_SUBMENU_1' => 'required|string',
+        'SIDEBAR_ADVERTISING_SUBMENU_2' => 'required|string',
+        'SIDEBAR_ADVERTISING_SUBMENU_3' => 'required|string',
+        'SIDEBAR_ADVERTISING_SUBMENU_3' => 'required|string',
+        'SIDEBAR_ADVERTISING_SUBMENU_4' => 'required|string',
+        'ADVERTISING_ADD_EVENT'=>'required|string',
+        'ADS_IMAGE'=>'required|string',
+        'ADS_TITLE'=>'required|string',
+        'ADS_START_DATE'=>'required|string',
+        'ADS_END_DATE'=>'required|string',
+        'ADS_ACTIVE'=>'required|string',
+        'ADS_EDIT'=>'required|string',
+        'ADS_DELETE'=>'required|string',
+        'ADS_SECTION'=>'required|string',
+        'ADS_REPEATING'=>'required|string',
+        'ADS_ADD_IMAGE'=>'required|string',
+        'ADS_WINERY_NAME'=>'required|string',
+        'ADS_WINERY_SEARCH'=>'required|string',
+        'ADS_WINERY_LANGUAGE'=>'required|string',
+        'ADS_WINERY_NAME'=>'required|string',
+        "ADS_WINERY_ADDRESS"=>'required|string',
+        "ADS_WINERY_REGION"=>'required|string',
+        "ADS_WINERY_OPTIONS"=>'required|string',
+        "ADS_WINERY_RECOMMENDED"=>'required|string',
+        "ADS_WINERY_HIGHLIGHTED"=>'required|string',
+        "ADS_WINERY_NOT_RECOMMENDED"=>'required|string',
+        "ADS_WINERY_NOT_HIGHLIGHTED"=>'required|string',
+        "ADS_ELEMENTS_PER_PAGE"=>'required|string',
+        "ADS_WINE_NAME"=>'required|string',
+        "ADS_WINE_SEARCH"=>'required|string',
+        "ADS_WINE_LANGUAGE"=>'required|string',
+        'ADS_WINE_YEAR'=>'required|string',
+        'ADS_WINE_WINERY_NAME'=>'required|string',
+        'ADS_WINE_OPTIONS'=>'required|string',
+        'ADS_GOOGLE'=>'required|string',
+        'WINERY_ADD_MONDAY'=> 'required|string',
+        'WINERY_ADD_TUESDAY'=> 'required|string',
+        'WINERY_ADD_WEDNESDAY'=> 'required|string',
+        'WINERY_ADD_THURSDAY'=> 'required|string',
+        'WINERY_ADD_FRIDAY'=> 'required|string',
+        'WINERY_ADD_SATURDAY'=> 'required|string',
+        'WINERY_ADD_SUNDAY'=> 'required|string',
+     'CHANGE_PASSWORD_INPUT'=>'required|string',
     ];
 
-    
+
 
 }

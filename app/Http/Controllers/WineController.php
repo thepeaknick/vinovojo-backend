@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers;
 
@@ -16,6 +16,30 @@ class WineController extends Controller {
 		$languageId = $r->header('Accept-Language');
 
 		$wines = Wine::list($languageId, 'asc', true)->where('category_id', $categoryId)->get();
+        foreach ($wines as $wine){
+            if($wine instanceof \App\Wine && !empty($wine->area_id))
+                $areas= \App\Area::where('id',$wine->area_id)->first();
+
+            $areas= \App\Area::with('parent')->where('areas.id','=',$wine->area_id)
+                ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($languageId) {
+                    $query->select('transliteration.name as name');
+                    $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
+                    $query->where('transliteration.object_type', (new \App\Area)->flag);
+                    $query->where('transliteration.name', 'name');
+                    $query->where('transliteration.language_id', $languageId);
+                    return $query;
+                })->first();
+            if(!empty($areas)){
+                $areas->name= $areas->value;
+                $areas->parent= $areas->parent->parent;
+                $wine->areas=$areas;
+            }else {
+                $wine->areas=null;
+            }
+        }
+//            dd($wine);
+//            dd($wine);
+                $wine->rate_count=\DB::table('rates')->where('object_id','=',$wine->id)->where('object_type','=','2')->where('status','=','approved')->where('rates.rate','!=','null')->get()->count();
 
 		$paginated = $wines->paginate(10);
 		return response()->json($paginated, 200);
@@ -23,19 +47,43 @@ class WineController extends Controller {
 
 	public function wineryWines($wineryId, $categoryId, Request $r) {
 		$languageId = $r->header('Accept-Language');
-
+//dd($wineryId,$categoryId);
 		$wines = Wine::list($languageId, 'asc', true)->where('category_id', $categoryId)
-								 ->where('winery_id', $wineryId);
+								 ->where('winery_id', $wineryId)->get();
+
+
+        foreach ($wines as $wine){
+            if($wine instanceof \App\Wine && !empty($wine->area_id))
+                $areas= \App\Area::where('id',$wine->area_id)->first();
+
+            $areas= \App\Area::with('parent')->where('areas.id','=',$wine->area_id)
+                ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($languageId) {
+                    $query->select('transliteration.name as name');
+                    $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
+                    $query->where('transliteration.object_type', (new \App\Area)->flag);
+                    $query->where('transliteration.name', 'name');
+                    $query->where('transliteration.language_id', $languageId);
+                    return $query;
+                })->first();
+            if(!empty($areas)){
+                $areas->name= $areas->value;
+                $areas->parent= $areas->parent->parent;
+                $wine->areas=$areas;
+            }else {
+                $wine->areas=null;
+            }
+            $wine->rate_count=\DB::table('rates')->where('object_id','=',$wine->id)->where('object_type','=','2')->where('status','=','approved')->where('rates.rate','!=','null')->get()->count();
+        }
 
 		return response()->json($wines->paginate(10), 200);
 	}
 
 	public function loadWineComments($wineId) {
 		$wine = Wine::where('id', $wineId)->first();
-
+		// dd($wine);
 		$wine->comments->load('user');
 
-		if (!$wine) 
+		if (!$wine)
 			return response()->json(['error' => 'Wine not found'], 404);
 
 		$rates = $wine->comments()->with('user')->where('status', 'approved')->paginate(10);
@@ -45,12 +93,10 @@ class WineController extends Controller {
 	}
 
 	public function loadWineCommentsForAdmin($wineId) {
-		$wine = Wine::where('id', $wineId)->first();
-
-		if (!$wine) 
+        $wine = Wine::where('id', $wineId)->first();
+		if (!$wine)
 			return response()->json(['error' => 'Wine not found'], 404);
-
-		$rates = $wine->rates()->with('user')->paginate();
+        $rates = $wine->rates()->with('user')->paginate();
 
 		return response()->json($rates, 200);
 
@@ -64,11 +110,59 @@ class WineController extends Controller {
 		$areas = \App\Area::dropdown($langId);
 
 		$wines = Wine::select('harvest_year', 'alcohol')->get();
-		$years = $wines->pluck('harvest_year');
-		$alcohol = $wines->pluck('alcohol');
+		$yearss = ($wines->pluck('harvest_year')->unique()->toArray());
+        $years=[];
+        foreach($yearss as $year){
+            $years[]=$year;
+        }
+		$alcoholl = (array)($wines->pluck('alcohol')->unique()->toArray());
+		$alcohol=[];
+		foreach ($alcoholl as $alc) {
+            $alcohol[] = $alc;
+        }
 
 		return response()->json( compact('wineries', 'categories', 'years', 'alcohol', 'classes', 'areas'), 200 );
 	}
+
+	public function initalizeFilterMobile(Request $r)
+    {
+        $langId = $r->header('Accept-Language');
+        $wineries = \App\Winery::dropdown($langId);
+        $categories = \App\Category::dropdown($langId);
+        $classes = \App\WineClass::dropdown($langId);
+//        $areas = \App\Area::dropdown($langId);
+
+        $wines = Wine::select('harvest_year', 'alcohol')->get();
+        $yearss = ($wines->pluck('harvest_year')->unique()->toArray());
+        $years=[];
+        foreach($yearss as $year){
+            $years[]=$year;
+        }
+        $alcoholl = (array)($wines->pluck('alcohol')->unique()->toArray());
+        $alcohol=[];
+        foreach ($alcoholl as $alc) {
+            $alcohol[] = $alc;
+        }
+
+        $areas= \App\Area::with('parent')
+            ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($langId) {
+                $query->select('transliteration.name as name');
+                $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
+                $query->where('transliteration.object_type', (new \App\Area)->flag);
+                $query->where('transliteration.name', 'name');
+                $query->where('transliteration.language_id', $langId);
+//                        $query->select('transliteration.name','name');
+                return $query;
+            })->get();
+        foreach ($areas as $area){
+            $area->name= $area->value;
+            if($area !==null && $area->parent !==null) {
+                $area->parent= $area->parent->parent;
+            }
+        }
+
+        return response()->json( compact('wineries', 'categories', 'years', 'alcohol', 'classes', 'areas'), 200 );
+    }
 
 	public function filter(Request $r, $paginate = true) {
 		$lang = $r->header('Accept-Language');
@@ -78,8 +172,7 @@ class WineController extends Controller {
 		else
 			$sort = 'asc';
 
-		$q = Wine::list($lang, $sort, true);
-
+        $q = Wine::list($lang, $sort, true);
 		if ( $r->has('min_rate') )
 			$q->having( app('db')->raw('avg(rates.rate)'), '>', $r->min_rate);
 
@@ -95,18 +188,83 @@ class WineController extends Controller {
 		if ( $r->has('recommended') )
 			$q->where('wines.recommended', $r->recommended);
 
-		if ( $r->has('category_id') )
-			$q->where('wines.category_id', $r->category_id);
+//		$q->with('category');
+		if ( $r->has('category_id') ) {
+		    $q->where('wines.category_id','=',$r->category_id);
+//		    $q->addSelect('wines.category_id as category_id');
+//            $q->where('wines.category_id', $r->category_id);
+        }
 
-		if ( $r->has('class_id') )
-			$q->where('wines.classification_id', $r->class_id);
+//		if ( $r->has('class_id') )
+//			$q->where('wines.classification_id', $r->class_id);
+        if($r->has('class_id')) {
+            $q->join('classes_wines as classes_w',function($join) use($r) {
+                $join->on('wines.id','=','classes_w.wine_id');
+                $join->where('classes_w.class_id',$r->class_id);
+            });
+        }
+        $q->with('classes');
 
-		if ( $r->has('area_id') )
-			$q->where('wines.area_id', $r->area_id);
+        if($r->has('search'))
+            $q->where('wines.name','like','%'.$r->search.'%');
+
+        if ( $r->has('area_id') )
+        {
+            $area_ids=[];
+            $query="
+            SELECT
+                a.id as a_id,
+                p_a.id as p_id,
+                pp_a.id as pp_id
+            FROM areas a
+            INNER JOIN areas p_a
+                ON a.parent_id=p_a.id
+            INNER JOIN areas pp_a
+                ON p_a.parent_id= pp_a.id
+            WHERE a.id= $r->area_id
+            OR p_a.id= $r->area_id
+            OR pp_a.id= $r->area_id
+        ";
+            $areas=\DB::select(\DB::raw($query));
+            foreach ($areas as $area) {
+                if(is_int($area->a_id))
+                    $area_ids[]= $area->a_id;
+                if(is_int($area->p_id))
+                    $area_ids[]= $area->p_id;
+                if(is_int($area->pp_id))
+                    $area_ids[]= $area->pp_id;
+            }
+            $q->whereIn('wines.area_id', array_unique($area_ids));
+        }
+
+
 
 		$q->orderBy('harvest_year', 'asc');
-		
-		return ($paginate) ? $q->paginate(10) : $q->get();
+
+		$data= $q->get();
+		foreach($data as $wine) {
+            if($wine instanceof \App\Wine && !empty($wine->area_id))
+                $areas= \App\Area::where('id',$wine->area_id)->first();
+
+            $areas= \App\Area::with('parent')->where('areas.id','=',$wine->area_id)
+                ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($lang) {
+                    $query->select('transliteration.name as name');
+                    $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
+                    $query->where('transliteration.object_type', (new \App\Area)->flag);
+                    $query->where('transliteration.name', 'name');
+                    $query->where('transliteration.language_id', $lang);
+                    return $query;
+                })->first();
+            if(!empty($areas)){
+                $areas->name= $areas->value;
+                $areas->parent= $areas->parent->parent;
+                $wine->areas=$areas;
+            }else {
+                $wine->areas=null;
+            }
+        }
+//        print_r($q->toSql());die();
+		return ($paginate) ? $data->paginate(10) : $data;
 	}
 
 	public function filterWithoutPagination(Request $r) {
@@ -122,7 +280,7 @@ class WineController extends Controller {
 		$wines = $list->get();
 		$wines->makeHidden(['cover_image', 'bottle_image', 'winery']);
 		return $wines;
-	} 
+	}
 
 	public function paginateAllCategories(Request $req) {
 		$languageId = $req->header('Accept-Language');

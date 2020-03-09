@@ -16,7 +16,7 @@ class RateMigration extends Migration
         Schema::create('rates', function (Blueprint $table) {
             $table->increments('id');
 
-            $table->integer('rate');
+            $table->integer('rate')->nullable();
 
             $table->tinyInteger('object_type'); // koristi flagove
             $table->integer('object_id');

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App;
 
@@ -23,7 +23,7 @@ class Category extends BaseModel {
     ];
 
     protected $appends = [
-    	'cover_image'
+    	'cover_image', 'wine_count'
     ];
 
     protected $hidden = [
@@ -69,8 +69,7 @@ class Category extends BaseModel {
     //      -- CRUD override --
 
     public static function list($languageId, $sorting = 'asc', $getQuery = false) {
-        $query = static::select( static::$listData );
-
+        $query = static::select( static::$listData,true );
         $query->join('text_fields as transliteration', function ($query) use ($languageId) {
             $stat = new static;
             $query->on('transliteration.object_id', '=', $stat->getTable() . '.id');
@@ -83,7 +82,6 @@ class Category extends BaseModel {
 
         if ($getQuery)
             return $query;
-
         $categories = $query->get();
 
         $categories->transform(function($category) {
@@ -116,6 +114,11 @@ class Category extends BaseModel {
             $this->storeCover($req->cover);
 
         return true;
+    }
+
+    public function getWineCountAttribute()
+    {
+        return $this->wines()->count();
     }
 
 }

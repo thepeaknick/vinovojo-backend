@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App;
 
@@ -25,7 +25,7 @@ class WineType extends BaseModel {
 
     public static $listData = ['wine_types.id as id', 'wine_types.colour as colour'];
 
-
+//    public $appends=['name'];
         // 		-- Accessors --
 
     public function getFlagAttribute() {
@@ -60,7 +60,25 @@ class WineType extends BaseModel {
         $q->addSelect('descTrans.value as description');
 
         return ( $getQuery ) ? $q : $q->paginate(10);
-        
+
     }
-    
+
+//    public function getNameAttribute()
+//    {
+//        return \App\TextField::where('object_id',$this->id)->where('object_type',$this->flag);
+//    }
+
+    public function transliterate($languageId=null,$attributes=[]) {
+        $transliterations= $this->transliterations()->where('text_fields.language_id',$languageId)->where('text_fields.object_id',$this->id)->get();
+        foreach ($transliterations as $transliteration) {
+            if($transliteration->name=='name') {
+                $this->attributes['name']= $transliteration->value;
+            }
+        }
+//        if($name!=null)
+//            return $name;
+//        return null;
+    }
+
+
 }

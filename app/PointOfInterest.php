@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App;
 
@@ -88,6 +88,7 @@ class PointOfInterest extends BaseModel {
             $query->where('transliterations.object_type', (new static)->flag);
             $query->where('transliterations.name', 'name');
         });
+         
         $q->addSelect('transliterations.value as name');
 
         if ($getQuery)
@@ -95,10 +96,14 @@ class PointOfInterest extends BaseModel {
 
         $pois = $q->get();
 
-        $wineries = \App\Winery::list($languageId, $sorting, true);
+        // Add default language for winery list
+        $languageId= ($languageId!=null)?$languageId:'1';
+
+        $wineries = \App\Winery::list($languageId, $sorting, true,'');
         $wineries->join('pins', function($query) {
             $query->on('pins.object_id', '=', 'wineries.id');
             $query->where('pins.object_type', (new \App\Winery)->flag);
+//            $query->where('pins.object_type','!=', (new \App\Pin)->flag);
         });
 
         $wineries = $wineries->select('wineries.id as id', 'transliteration.value as name', 'pins.lat as lat', 'pins.lng as lng', 'wineries.address as address')->get();
@@ -109,10 +114,10 @@ class PointOfInterest extends BaseModel {
         });
         $data = $pois->merge($wineries);
 
-        $data->makeHidden(['cover_image', 'logo_image', 'video', 'rate', 'rate_count']);
+        $data->makeHidden(['cover_image', 'video', 'rate', 'rate_count']);
 
         $data = ( $sorting == 'asc' ) ? $data->sortBy('name') : $data->sortByDesc('name');
-        
+
         return $data->values();
     }
 
@@ -137,7 +142,7 @@ class PointOfInterest extends BaseModel {
 
 
     //      -- Custom methods --
-    
+
     public static function filterByDistance($langId, $lat, $long, $getQuery = false) {
         $q = static::list($langId, 'asc', true);
 

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 
 namespace App;
@@ -17,6 +17,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Http\Request as Request;
 
 class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
 
@@ -69,9 +70,9 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
     //      -- Mutators --
 
     public function setSocialTypeAttribute($value) {
-        if ( is_integer($value) && $value < count($this->typeCast) ) 
+        if ( is_integer($value) && $value < count($this->typeCast) )
             return $this->attributes['social_type'] = $value;
-        
+
         $index = array_search($value, $this->typeCast);
         if ( !$index )
             return null;
@@ -86,7 +87,7 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
 
 
 
-    //      -- Custom methods -- 
+    //      -- Custom methods --
 
     public static function convertType($type) {
         $cast = with(new static)->typeCast;
@@ -123,7 +124,7 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
     }
 
 
-        // JWT
+    // JWT
 
 
 
@@ -140,10 +141,10 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
     }
 
 
-        // Instantiation methods
+    // Instantiation methods
 
-    public static function loadFromNetwork($type, $key) {
-        return ($type == 'instagram') ? static::loadFromInstagram($key) : static::loadWithSocialite($type, $key);
+    public static function loadFromNetwork($type, $key,Request $r) {
+        return ($type == 'instagram') ? static::loadFromInstagram($key) : static::loadWithSocialite($type, $key,$r);
     }
 
     private static function loadFromInstagram($key) {
@@ -155,50 +156,131 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
             'grant_type' => config('services.instagram.grant_type'),
             'code' => $key
         ];
-        $response = $guzzle->post( config('services.instagram.request_url'), ['form_params' => $post] );
+//        $response = $guzzle->post( config('services.instagram.request_url'), ['form_params' => $post] );
+        try{
+            $response=$guzzle->get('https://api.instagram.com/v1/users/self/?access_token='.$key);
+//            dd($response);
+            $user=json_decode($response->getBody()->getContents())->data;
+            $user->social_id=$user->id;
+            if ( $response->getStatusCode() != 200) {
+                \Log::info( 'Zahtev Instagramu nije proso', json_decode($response->getBody(), 1) );
+                return false;
+            }
 
-        if ( $response->getStatusCode() != 200) {
-            \Log::info( 'Zahtev Instagramu nije proso', json_decode($response->getBody(), 1) );
+            $body = json_decode( $response->getBody(), 1 );
+    //        $user = $body['user'];
+    //        dd($user);
+
+            $s = static::instantiateSocialFromUser($user, 'instagram');
+            $s->social_key = $key;
+
+            return $s;
+
+        }catch (\Exception $e) {
             return false;
         }
-
-        $body = json_decode( $response->getBody(), 1 );
-        $user = $body['user'];
-
-        $s = static::instantiateSocialFromUser($user, 'instagram');
-        $s->social_key = $key;
-
-        return $s;        
+//            $data=
+//            \Log::info('Response ',array($response));
     }
 
-    private static function loadWithSocialite($type, $key) {
+    private static function loadWithSocialite($type, $key,Request $r) {
+        if($type=='facebook')
+            return static::loadFromFacebook($r, $key);
         $user = \Socialite::driver( $type )->userFromToken($key);
-        if ( !$user )
-            return false;
 
-        $definition['social_type'] = static::convertType( $type );
-        $definition['social_id'] = $user->id;
+//        dd($user);
 
-        $s = static::instantiateSocialFromUser($user, $type);
-        $s->social_key = $key;
+//        $user=$r->only(['social_id','email','avatar','name','social_key']);
+        // dd($user);
+//        $user['social_id']=$user['social_id'];
 
-        return $s;
+//        $user['name']=$user['name'];
+
+
+
+//        $user=(object) $user;
+//
+//        $def['social_type'] = static::convertType( $type);
+//        $def['social_id'] = $user->social_id;
+//
+//        $usr=\App\User::firstOrUpdate($def);
+//        dd($usr);
+
+        // $user['avatar']=$user['avatar'];
+
+
+        // if ( !$user )
+        //     return false;
+
+        // $definition['social_type'] = static::convertType( $type );
+        // $definition['social_id'] = $user->id;
+
+        // $s = static::instantiateSocialFromUser($user, $type);
+        // $s->social_key = $key;
+
+        // return $s;
+
+        return static::instantiateSocialFromUser($user,$type);
     }
 
-    private static function instantiateSocialFromUser($user, $type) {
-        $user = (object) $user;
+    public static function loadFromFacebook(Request $r, $key){
+        $user=\App\User::firstOrNew($r->only(['social_id,social_type']));
+        $soc_user= \Socialite::driver( 'facebook' )->userFromToken($key);
+//        dd($soc_user);
+
+//        dd($soc_user);
+
+        $user->social_id=$r->social_id;
+        $user->email=(isset($soc_user->email))?$soc_user->email:'null';
+        $user->full_name=$soc_user->user['name'];
+        $user->social_key=$r->social_key;
+        $user->social=1;
+        if($user->profile_picture==null)
+            $user->profile_picture= $soc_user->avatar;
+        if(!$user->save())
+            return false;
+        return $user;
+
+        $user->profile_picture=$user->profile_picture;
+
+    }
+
+    private static function instantiateSocialFromUser($ref_user, $type) {
+        $user = (object) $ref_user->user;
+        var_dump($ref_user);
 
         $definition['social_type'] = static::convertType( $type );
-        $definition['social_id'] = $user->id;
+
+        $definition['social_id']=($type=='google')?$user->id : $ref_user->social_id;
+
+//        dd($user->user);
+
+//        dd($type);
 
 
-        $s = \App\User::firstOrNew( $definition );
+        if($type=='instagram')
+            $s = \App\User::firstOrNew( $definition );
+        else{
+            $data=[
+                'full_name'     => $user->name,
+                'social_type'   => $type,
+                'email'         => $user->email,
+                'social'        => 1,
+                'social_type'   => $definition['social_type'] ,
+                'social_id'     => $definition['social_id']
+            ];
+            $s= \App\User::where('social_id',' = ',$definition['social_id'])->where('email' , ' = ' , $user->email)->first();
+            if($s) {
+                return $s->save();
+            }
+            $s=\App\User::firstOrNew( $data );
+            return $s;
 
-        \Log::info($type, (array) $user);
+        }
+
 
         $s->full_name =  ($type == 'instagram') ? $user->full_name : $user->name;
-        $s->social_id = $user->id;
-        // $s->social_type = $type;
+        $s->social_type = $type;
         $s->email = ($type == 'instagram') ? $user->username : $user->email;
 
         $s->social = 1;

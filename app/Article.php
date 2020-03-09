@@ -16,7 +16,7 @@ class Article extends BaseModel
     // public static $listTransliteration = [
     //     'name', 'text'
     // ];
-    
+
     protected $fillable = [
         'name', 'text', 'link'
     ];
@@ -40,13 +40,15 @@ class Article extends BaseModel
 
     //      -- CRUD override --
 
-    public static function list($lang, $sorting = 'asc', $getQuery = false) {
+    public static function list($lang, $sorting = 'asc', $getQuery = false,$search='',$sortBy=false) {
         $q = parent::list($lang, $sorting, true)
-                    ->join('text_fields as nameTransliteration', function ($q) use ($lang) {
+                    ->join('text_fields as nameTransliteration', function ($q) use ($lang,$search) {
                             $q->on('nameTransliteration.object_id', '=', 'articles.id');
                             $q->where('nameTransliteration.object_type', (new static)->flag);
                             $q->where('nameTransliteration.name', 'name');
                             $q->where('nameTransliteration.language_id', $lang);
+                            // dd($search);
+                            // print_r($q->toSql());die();
                         })
                     ->leftJoin( 'text_fields as textTransliteration', function ($q) use ($lang) {
                             $q->on('textTransliteration.object_id', '=', 'articles.id');
@@ -54,6 +56,8 @@ class Article extends BaseModel
                             $q->where('textTransliteration.name', 'text');
                             $q->where('textTransliteration.language_id', $lang);
                     });
+        if($search!=='')
+            $q->where('nameTransliteration.value', 'like', '%'.$search.'%');
 
         return ($getQuery) ? $q : $q->paginate(10);
     }

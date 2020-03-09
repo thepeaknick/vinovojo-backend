@@ -10,14 +10,16 @@ use App\Area;
 
 class AreaController extends BaseController
 {
-    
+
 	public function loadWithChildren($areaId, Request $req) {
 		$area = Area::find($areaId);
-		
+
 		if ( !$area )
 			return response()->json(['error' => 'Area not found'], 404);
 
-		$lang = $req->header('Accept-language');
+//		if( !empty($req->header('Accept-Language')) )
+            $lang = $req->header('Accept-Language');
+
 		$area->transliterate( $lang );
 
 		$area->children = $area->children()->paginate(10);
@@ -53,6 +55,7 @@ class AreaController extends BaseController
 	public function nestedDropdown(Request $req) {
 		Area::$listRelationships = [];
 		$languageId = $req->header('Accept-language');
+        ( isset($languageId) )?$languageId:$languageId=1;
 		$regions = Area::list($languageId, 'asc', true)
 						->where('type', 'regija')
 						->with('children.children')
@@ -60,6 +63,7 @@ class AreaController extends BaseController
 						->get();
 
 		return $regions->map(function($r) use ($languageId) {
+		    $r->transliterate($languageId);
 			$r->children->transliterate($languageId);
 			$r->children->transform(function ($c) use ($languageId) {
 				$c->children->transliterate($languageId);

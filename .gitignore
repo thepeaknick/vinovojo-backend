@@ -1,4 +1,6 @@
 /vendor
+/vendor2
+/storage
 /.idea
 Homestead.json
 Homestead.yaml

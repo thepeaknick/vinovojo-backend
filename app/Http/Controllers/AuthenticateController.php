@@ -17,6 +17,8 @@ class AuthenticateController extends BaseController
 		if ( !$token )
 			return response()->json(['error' => 'Invalid credentials'], 401);
 
+		\Log::info('Zahtev za login '.$r->email.' '.$r->password);
+		
 		return response()->json( ['token' => $token, 'user' => Auth::user()->full_name, 'user_id' => Auth::user()->id, 'user_data' => Auth::user()], 200 );
 	}
 

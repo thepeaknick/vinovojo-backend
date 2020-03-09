@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App;
 
@@ -58,7 +58,7 @@ class Area extends BaseModel {
                         $q->where('transliteration.name', 'name');
                         if ($languageId) {
                             $q->where('language_id', $languageId);
-                        } 
+                        }
                     });
     }
 
@@ -68,7 +68,7 @@ class Area extends BaseModel {
 
 
 
-    //      -- CRUD override -- 
+    //      -- CRUD override --
 
     public static function list($languageId, $sorting = 'asc', $getQuery = false) {
 
@@ -91,7 +91,11 @@ class Area extends BaseModel {
         $q->addSelect('transliteration.value as name');
 
         return ( $getQuery ) ? $q : $q->get();
-        
+
+    }
+
+    public function loadOne($id,$language){
+        return $this->list($language,'asc',true)->where('areas.id',$id);
     }
 
     public function postCreation($req = null) {
@@ -125,20 +129,62 @@ class Area extends BaseModel {
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
+        // dd($req);
         if ( $req->has('pins') ) {
             $this->pins()->delete();
-            foreach ($req->pins as $pin) 
+            foreach ($req->pins as $pin)
                 $this->storePoint($pin['lat'], $pin['lng']);
         }
-
+        // dd($req->pins);
         return true;
     }
 
+    public function storePoint($lat, $lng)
+    {
+
+            $point = Pin::where('object_id', $this->id)
+                              ->where('object_type', $this->flag)
+                              ->where('lat','=',$lat)
+                              ->where('lng','=',$lng)
+                              ->first();
+            if ($point) {
+                $point->lat = $lat;
+                $point->lng = $lng;
+                $point->save();
+                return $point;
+            }
+            $point = new \App\Pin(['object_id' => $this->id, 'object_type' => $this->flag]);
+            $point->lat = $lat;
+            $point->lng = $lng;
+            $success=$point->save();
+            return true;
+
+    }
+
+    public function nestedDropdown($languageId=1)
+    {
+        $areas= static::with('parent')->where('areas.id','=',$this->id)->where('areas.parent_id')
+            ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($languageId) {
+                $query->select('transliteration.name as name');
+                $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
+                $query->where('transliteration.object_type', (new \App\Area)->flag);
+                $query->where('transliteration.name', 'name');
+                $query->where('transliteration.language_id', $languageId);
+//                        $query->select('transliteration.name','name');
+                return $query;
+            })->get();
+        foreach ($areas as $area){
+            $area->name= $area->value;
+            if($area->parent !==null)
+                $area->parent= $area->parent->parent;
+        }
+        return $areas;
+    }
 
 
     //      -- Accessors --
 
-    public function getCoverImageAttribute() {        
+    public function getCoverImageAttribute() {
         return ( $this->hasCoverImage() ) ? route('cover_image', ['object' => 'area', 'id' => $this->id, 'antiCache' => time()]) : null;
     }
 

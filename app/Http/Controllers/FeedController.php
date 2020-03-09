@@ -32,7 +32,7 @@ class FeedController extends Controller
     public function loadNewsList(Request $r) {
         $languageId = $r->header('Accept-Language');
 
-        $json = Article::list($languageId, 'asc', true)->get()->toBase()->merge( Happening::list($languageId, 'asc', true)->get()->toBase() );
+        $json = Article::list($languageId, 'asc', true)->get();//->toBase()->merge( Happening::list($languageId, 'asc', true)->get()->toBase() );
         $json = $json->sortByDesc('created_at')->values();
         
         $paginated = $json->paginate(10);
@@ -69,7 +69,7 @@ class FeedController extends Controller
 
         $wines = Wine::list($languageId, 'asc', true)->whereIn('wines.id', $r->wines)->get();
         $wineries = Winery::list($languageId, 'asc', true)->whereIn('wineries.id', $r->wineries)->get();
-
+//        \Log::info('request favourites',$r->all());
         $json = $wines->toBase()->merge( $wineries->toBase() );
         $json = $json->sortBy('name')->values();
 
@@ -134,7 +134,7 @@ class FeedController extends Controller
         $wineries = Winery::count();
         $events = Happening::count();
         $articles = \App\Article::count();
-        $users = \App\Social::count();
+        $users = \App\User::count();
         return response()->json(compact(
             'wines', 'wineries', 'events', 'articles', 'users'
         ), 200);

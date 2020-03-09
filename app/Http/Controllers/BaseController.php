@@ -9,6 +9,8 @@ use App\WineType;
 use App\Happening;
 
 use Socialite;
+use stdClass;
+
 class BaseController extends Controller
 {
     /**
@@ -27,12 +29,12 @@ class BaseController extends Controller
 
 
 
-    //      -- Create -- 
+    //      -- Create --
 
     public function create(Request $r, $resource) {
         if ( $r->has('json') )
             $r->replace( json_decode($r->json, 1) );
-
+//        dd($r->all());
         \Log::info( 'Zahtev za create ' . $resource, $r->all() );
 
         $model = $this->resourceClass($resource);
@@ -41,7 +43,7 @@ class BaseController extends Controller
         if ( !$instance->preCreate($r) )
             return response()->json(['error' => 'Something went wrong'], 500);
 
-        if ( $instance->validatesBeforeCreation() ) 
+        if ( $instance->validatesBeforeCreation() )
             $this->validate( $r, $instance->getRules() );
 
         $instance->fill( $r->except(['languages', 'point']) );
@@ -51,7 +53,7 @@ class BaseController extends Controller
         if ( $r->has('languages') )
             if ( !$instance->saveLanguages( $r->languages ) )
                 return response()->json(['error' => 'Resource saved but transliteration failed', 500]);
-            
+
         if ( !$instance->postCreation($r) )
             return response()->json(['error' => $resource . ' saved but not fully proccesed'], 202);
 
@@ -64,54 +66,174 @@ class BaseController extends Controller
 
     public function loadAll($resource, Request $r) {
 
-       /* $result = WineType::get();
-        var_dump($result->toArray());
-        die();*/
-        $sorting = $r->header('Sorting', 'asc');
+        /* $result = WineType::get();
+         var_dump($result->toArray());
+         die();*/
+        //  $sorting = $r->header('Sorting', 'asc');
+         $languageId = $r->header('Accept-Language');
 
-        $languageId = $r->header('Accept-Language');
+         $model = $this->resourceClass($resource);
+//         if($model=='winePath')
+//         {
+//
+//         }
+         if($model=='\App\Happening')
+            $sorting = $r->header('Sorting', 'desc');
+         else $sorting = $r->header('Sorting', 'asc');
 
-        $model = $this->resourceClass($resource);
+        // dd($r->search);
+        //  Search
+//        if($model=='\App\PointOfIn')
+        $sortBy='';
+        if($r->header('Sort-By')){
+            $sortBy=$r->header('Sort-By');
+        }
+        if($r->has('search')){
+            $search=$r->search;
+            if($model=='\App\Wine' || $model=='\App\Winery') {
+                $instances = $model::listWithLiked($languageId,$sorting,false,$search,$sortBy);
+            }else if($model=='\App\User'){
+                $instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
+                return $instances;
+            }else{
+                if($model=='\App\WinePath') {
+                    $instances=$model::list($languageId,$sorting,true);
+                }else {
+                    $instances=$model::list($languageId,$sorting,false,$search,$sortBy);
+                    if($model=='\App\Article')
+                        return $instances;
+                }
+            }
 
-        $instances = $model::list($languageId, $sorting);
+        }else {
+            $search='';
+            if($model=='\App\Wine' || $model=='\App\Winery') {
+                $instances = $model::listWithLiked($languageId,$sorting,false,$search,$sortBy);
+                if($r->has('class_id')) {
+                    $instances= $instances->where('class_id','=',$r->class_id);
+                }
+                return response()->json($instances->paginate(12));
+            }else if($model=='\App\User') {
+                $instances= $model::listWithSearch($languageId,$sorting, false, $search, $sortBy);
+                return $instances;
+            }else {
+                if($model=='\App\WinePath') {
+                    $instances=$model::list($languageId,$sorting,true);
+                }else if($model=='\App\PointOfInterest') {
+                    $instances= $model::list($languageId,$sorting);
+                    return response()->json($instances);
+                }else {
+                    $instances = $model::list($languageId, $sorting, true,$search,$sortBy);
+                }
+            }
 
-        return $instances;
-    }
+        }
+        if($model=='\App\Category' || $model=='\App\PointOfInterest')
+            return $instances->get();
 
-    public function loadWithPagination($resource, Request $r) {
-        $sorting = $r->header('Sorting');
-        $sorting = ( is_null($sorting) ) ? 'asc' : $sorting;
+//        Manually sort  rates
+        if($model== '\App\Wine' || $model=='\App\Winery') {
+            foreach ($instances as $instance) {
+//             var_dump($instance);
+                if(isset( (( object)$instance)->rate_count ) )  {
+                    $count=\App\Rate::where('object_id',$instance['id'])->where('rates.status','=','approved')->whereNotNull('rates.rate')->get()->count();
+                    $instance['rate_count'] = $count;
+                }
+            }
+            return $instances;
+        }
 
-        $languageId = $r->header('Accept-Language');
+        if($resource=='winePath' || $model=='\App\WinePath')
+        {
+//            print_r($instances->toSql());
+//            dd();
+//            dd($instances->toSql());
+//            $instances=\App\WinePath::list($languageId,$sorting,false);
+//            dd($instances->with('wines'));
+            return $instances->paginate(50);
+        }
 
-        $model = $this->resourceClass($resource);
-        $instances = $model::list($languageId, $sorting, true)->paginate(10);
+//        dd($instances);
+        if($instances instanceof Illuminate\Database\Eloquent\Builder)
+            return $instances->get()->paginate(10);
 
-        return $instances;
-    }
+        return $instances->get();
+     }
 
-    public function loadSingle($resource, $id, Request $r) {
-        $languageId = $r->header('Accept-Language');
+     public function loadWithPagination($resource, Request $r) {
+         $sorting = $r->header('Sorting');
+         $sorting = ( is_null($sorting) ) ? 'asc' : $sorting;
 
-        $model = $this->resourceClass($resource);
-        $instance = $model::find($id);
-        if (!$instance)
-            return response()->json(['error' => $resource . ' not found'], 404);
+         $languageId = $r->header('Accept-Language');
 
-        if ( !is_null($languageId) )
-            $instance->transliterate($languageId);
+         $model = $this->resourceClass($resource);
 
-        return $instance->singleDisplay($languageId);
-    }
+         if($r->has('search')){
+             $search=$r->search;
+         }else{
+             $search='';
+         }
+//         dd($instances);
+         if($resource=='winery')
+         {
+             $instances=$model::list($languageId, $sorting, true,$search);
+             foreach ($instances as $winery)
+             {
 
+             }
+         }
+         if($resource=='wineClass')
+         {
+             return $model::list($languageId, $sorting, true,$search)->paginate(50);
+         }
+             return $model::list($languageId, $sorting, true,$search)->paginate(10);
+//            dd($instances);
+//         return $instances->paginate(10);
+     }
 
+     public function loadSingle($resource, $id, Request $r) {
+         $languageId = $r->header('Accept-Language');
+
+         $model = $this->resourceClass($resource);
+         $instance = $model::find($id);
+         if (!$instance)
+             return response()->json(['error' => $resource . ' not found'], 404);
+
+         if ( !is_null($languageId) )
+             $instance->transliterate($languageId);
+
+         return $instance->singleDisplay($languageId);
+     }
 
     //      -- Update --
 
     public function patchInitialize($resource, $id) {
+        $area=\App\Area::dropdown(1);
+//         dd($area);
         $model = $this->resourceClass($resource);
-
+//         dd($model);
         $instance = $model::find($id);
+
+        if($resource=='area' && $instance){
+            $instance=$instance->list(1,'asc',true)
+            ->where('areas.id',$instance->id)
+            ->first();
+            return $instance->patchInitialize();
+        }
+        $return = $instance->patchInitialize();
+//        if($resource=='winery' && $instance)
+//        {
+//            foreach ($return as $winery) {
+//                if ($winery->has('rate_count'))
+//            }
+//        }
+
+
+
+
+        // $lang=new \App\Language((array)$instance);
+        // var_dump($lang);
+        // die();
 
         if (!$instance)
             return response()->json(['error' => ucfirst($resource) . ' not found'], 404);
@@ -121,20 +243,25 @@ class BaseController extends Controller
 
     public function patch(Request $r, $resource, $id) {
         $model = $this->resourceClass($resource);
-
+        \Log::info( 'Zahtev za patch ' . $resource, $r->all() );
         if ( $r->has('json') )
             $r->replace( json_decode($r->json, 1) );
-        
+
         $instance = $model::find($id);
         if (!$instance)
             return response()->json(['error' =>  $resource . ' not found'], 404);
 
-        if ( $instance->validatesBeforeUpdate()  ) {
+        if ( $instance->validatesBeforeUpdate() && !($instance instanceof \App\User) ) {
             $this->validate( $r, $instance->rules );
         }
 
-        if ( $instance->update($r) )
-            return response(null, 204);
+        if($instance instanceof \App\User) {
+            if ( $r->has('profile_picture') )
+                $instance->saveProfile( $r->profile_picture );
+        }
+
+        if ($instance->update($r) )
+            return response()->json(['message'=>'Updated succefully'], 203);
 
         return response()->json(['error' => 'Something went wrong'], 500);
     }
@@ -147,19 +274,30 @@ class BaseController extends Controller
         $model = $this->resourceClass($resource);
 
         $instance = $model::find($id);
-        if (!$instance) 
+        if (!$instance)
             return response()->json(['error' => $resource . ' not found'], 404);
 
-        try {
-            $instance->delete();
-        } catch (\Illuminate\Database\QueryException $e) {
-            $code = $e->errorInfo[1];
-            dd($e->errorInfo);
-            if ($code == 1451)
-                return response()->json(['error' => 'Constraint failed'], 409);
-            
-            return response()->json(['error' => 'Something went wrong'], 500);
+
+            // \Log::alert('Korisnik'.$model);
+            // dd($instance);
+        if($model=='\App\User'){
+            if(!$instance->clear()){
+                return response()->json(['message'=>'Something went wrong'],500);
+            }
+
+        }else{
+            try {
+                $instance->delete();
+            } catch (\Illuminate\Database\QueryException $e) {
+                $code = $e->errorInfo[1];
+                // dd($e->errorInfo);
+                if ($code == 1451)
+                    return response()->json(['error' => 'Constraint failed'], 409);
+
+                return response()->json(['error' => 'Something went wrong'], 500);
+            }
         }
+
 
         return response(null, 204);
     }
@@ -181,7 +319,7 @@ class BaseController extends Controller
         if ( !$instance->saveLanguages($r->languages) )
             return response()->json(['error' => 'Something went wrong'], 500);
 
-        return response(null, 204);  
+        return response(null, 204);
     }
 
     public function deleteResourceLanguage($resource, $resourceId, $languageId) {
@@ -209,6 +347,17 @@ class BaseController extends Controller
         return response()->json($results, 200);
     }
 
+    public function searchByParam($resource,Request $req){
+        // dd($req->header('Accept-Language'));
+        $model=$this->resourceClass($resource);
+        $langId=($req->header('Accept-Language'))?$req->header('Accept-Language'):1;
+        $model=$this->resourceClass($resource);
+        $match=new stdClass();
+        $match->name=strtolower($req->name);
+        $match->value=strtolower($req->value);
+        return $model::loadByParam($match,$langId);
+    }
+
     public function dropdown(Request $req, $resource) {
         $model = $this->resourceClass($resource);
 
@@ -229,12 +378,20 @@ class BaseController extends Controller
       return $data;
     }
 
+    public function removeFavourite($id,$flag) {
+        $favourite=\App\Favourite::where('object_id','=',$id)->where('object_type','=',$flag)->first();
+        // dd($favourite);
+        if($favourite!==null && $favourite->delete())
+            return response()->json(['message'=>'successifully deleted'],204);
+        return response()->json(['message'=>'not found'],404);
+    }
+
     public function test() {
 
         return \Illuminate\Support\Facades\Artisan::call('migrate:refresh', ['--seed' => true]);
 
         $lang = json_decode($this->rsJson, 1);
-        $array = array_keys($lang);        
+        $array = array_keys($lang);
 
 
 
@@ -242,7 +399,7 @@ class BaseController extends Controller
             echo "'" . $key . "' => 'required|string',<br>";
         }
         return;
-        
+
 
         return \App\Winery::first()->gallery;
         $s = \App\Social::first();
@@ -604,15 +761,100 @@ class BaseController extends Controller
   "dialog_wine_filter_sorted_descending": "Opadajuće",
 
   "dialog_wine_filter_button_apply": "Poništi",
+
   "dialog_wine_filter_button_reset": "Primeni",
+
   "dialog_wine_filter_rating_3_and_more": "Ocena 3.5 i više",
+
   "dialog_wine_filter_region": "Regioni",
+
   "dialog_wine_filter_type_wine": "Tip Vina",
+
   "dialog_wine_filter_sort_wine": "Sorta Vina",
+
   "dialog_wine_filter_harvest_year": "Godina berbe",
+
   "dialog_wine_filter_winery": "Vinarija",
+
   "dialog_wine_filter_alcohol": "Alkohol",
-  "dialog_wine_filter_sort_with_rating": "Sortiraj po oceni"
+
+  "dialog_wine_filter_sort_with_rating": "Sortiraj po oceni",
+
+  "SIDEBAR_ADVERTISING_TITLE" : "Marketing",
+
+  "SIDEBAR_ADVERTISING_SUBMENU_1":"Marketing Reklame",
+
+  "SIDEBAR_ADVERTISING_SUBMENU_2":"Marketing Vinarije",
+
+  "SIDEBAR_ADVERTISING_SUBMENU_3":"Marketing Vina",
+
+  "SIDEBAR_ADVERTISING_SUBMENU_4":"Google ad\'s",
+
+  "ROLE_ADMIN":"admin",
+
+  "ADVERTISING_ADD_EVENT":"Dodaj reklamu",
+
+  "ADS_IMAGE":"Slika",
+
+  "ADS_TITLE":"Naziv",
+
+  "ADS_START_DATE":"Pocetak",
+
+  "ADS_END_DATE":"Kraj",
+
+  "ADS_ACTIVE":"Aktivna",
+
+  "ADS_EDIT":"Uredi",
+
+  "ADS_DELETE":"Obrisi",
+
+  "ADS_SECTION":"Sekcija",
+
+  "ADS_REPEATING":"Ponavljanje",
+
+  "ADS_ADD_IMAGE":"Dodaj Sliku",
+
+  "ADS_WINERY_NAME":"Vinarija",
+
+  "ADS_WINERY_SEARCH":"Pretraga vinarija",
+
+  "ADS_WINERY_LANGUAGE":"Izaberite jezik",
+
+  "ADS_WINERY_NAME":"Ime",
+
+  "ADS_WINERY_ADDRESS":"Adresa",
+
+  "ADS_WINERY_REGION":"Regija",
+
+  "ADS_WINERY_OPTIONS":"Opcije",
+
+  "ADS_WINERY_RECOMMENDED":"Preporuceno",
+
+  "ADS_WINERY_HIGHLIGHTED":"Istaknuto",
+
+  "ADS_WINERY_NOT_RECOMMENDED":"Nije Preporuceno",
+
+  "ADS_WINERY_NOT_HIGHLIGHTED":"Nije Istaknuto",
+
+  "ADS_ELEMENTS_PER_PAGE":"Elemenata po stranici",
+
+  "ADS_WINE_NAME":"Naziv",
+
+  "ADS_WINE_SEARCH":"Pretraga vina",
+
+  "ADS_WINE_LANGUAGE":"Izaberite jezik",
+
+  "ADS_WINE_YEAR":"Godina berbe",
+
+  "ADS_WINE_WINERY_NAME":"Ime vinarije",
+
+  "ADS_WINE_OPTIONS":"Opcije",
+
+  "ADS_GOOGLE":"Google ads",
+
+  "CHANGE_PASSWORD_INPUT":"Promeni sifru"
+
+
 
 }';
 

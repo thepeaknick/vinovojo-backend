@@ -73,6 +73,10 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         return $this->belongsToMany('App\Winery');
     }
 
+    public function rate()  {
+        return $this->belongsToMany('\App\Rate');
+    }
+
 
 
     //      -- Mutators --
@@ -87,7 +91,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
 
 
 
-    //      -- Validation -- 
+    //      -- Validation --
 
     public function validatesBeforeCreation() {
         return true;
@@ -99,11 +103,11 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
             'name' => 'string',
             'email' => 'string|unique:users,email',
             'password' => 'filled|bail|string|min:8',
-            'old_password' => function($attribute, $oldPassword, $fail) use ($user) {
-                if ( !$user->checkPassword($oldPassword) )
-                    return $fail('Old password incorrect');
-            }
-        ]; 
+//            'old_password' => function($attribute, $oldPassword, $fail) use ($user) {
+//                if ( !$user->checkPassword($oldPassword) )
+//                    return $fail('Old password incorrect');
+//            }
+        ];
         return true;
     }
 
@@ -134,8 +138,13 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
                 $constraint->aspectRatio();
             });
         } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
+            \Log::info((array)$e);
             return false;
         }
+//        if($this->profileExists());
+//        dd($this->profileFullPath(true));
+        if(file_exists($this->profileFullPath(true)))
+            unlink($this->profileFullPath(true));
         return $image->save( $this->profileFullPath(true) );
     }
 
@@ -180,10 +189,41 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     }
 
     public function postCreation($req = null) {
-       /* if ($req->has('wineries'))
-            $this->winery()->sync($req->wineries);*/
+        if($req->has('profile_picture'))
+            $this->saveProfile($req['profile_picture']);
+
+        if ($req->has('wineries') && $req['wineries']!=="")
+            $this->winery()->sync($req->wineries);
 
         return true;
     }
-    
+
+    public function clear(){
+        $rates=\App\Rate::where('user_id',$this->id)->get();
+        // var_dump(count($rates));
+        // dd($rates);
+        if(count($rates)!==0){
+            foreach($rates as $rate){
+                // dd($rate);
+                $instance=\App\Rate::findOrFail($rate->id);
+                $instance->delete();
+            }
+        }
+
+        $userInstance=$this;
+        // dd($userInstance);
+        if($userInstance->destroy($this->id))
+            return true;
+        return false;
+    }
+
+    public static function listWithSearch($lang, $sorting = 'ASC', $getQuery = false, $search='', $sortBy='name' )
+    {
+        $data= static::list($lang, $sorting, true);
+        if($search!=='')
+            $data->where('full_name','like','%'.$search.'%');
+        $data->orderBy('full_name',$sorting);
+        return $data->get();
+    }
+
 }

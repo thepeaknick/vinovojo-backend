@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 class WineryController extends BaseController
 {
-    
+
 	public function loadWineryComments($wineryId) {
 		$winery = Winery::where('id', $wineryId)->first();
 
@@ -29,7 +29,7 @@ class WineryController extends BaseController
 	public function loadWineryCommentsForAdmin($wineId) {
 		$winery = Winery::where('id', $wineId)->first();
 
-		if (!$winery) 
+		if (!$winery)
 			return response()->json(['error' => 'Wine not found'], 404);
 
 		$rates = $winery->rates()->with('user')->latest('created_at')->paginate(10);
@@ -55,33 +55,173 @@ class WineryController extends BaseController
 		return response()->json(['areas' => $areas], 200);
 	}
 
+    public function initializeFilterMobile(Request $r) {
+	    if(!$r->header('Accept-Language'))
+	        return response()->json(['message'=>'not found(Accept-Language)'],404);
+	    $langId= $r->header('Accept-Language');
+        $areas= \App\Area::with('parent')
+            ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($langId) {
+                $query->select('transliteration.name as name');
+                $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
+                $query->where('transliteration.object_type', (new \App\Area)->flag);
+                $query->where('transliteration.name', 'name');
+                $query->where('transliteration.language_id', $langId);
+//                        $query->select('transliteration.name','name');
+                return $query;
+            })->get();
+        foreach ($areas as $area){
+            $area->name= $area->value;
+            if($area !==null && $area->parent !==null) {
+                $area->parent= $area->parent->parent;
+            }
+        }
+        return response()->json(['areas' => $areas], 200);
+    }
+
+    public function filterUserWineries(Request $r)
+    {
+        $ids = Auth::user()->winery()->pluck('wineries.id as id');
+        if(!empty($ids) && count($ids)>0) {
+            $wineries= $this->FilterWineries($r)->whereIn('wineries.id', $ids->all());
+            return response()->json($wineries->paginate(12));
+        }else{
+            return $this->FilterWineries($r)->paginate(12);
+        }
+
+    }
+
 	public function filter(Request $r) {
-		$langId = $r->header('Accept-Language');
+        $q= $this->FilterWineries($r);
 
-		if ( $r->has(['lat', 'lng', 'max_distance']) ) {
-			$q = Winery::filterByDistance($langId, $r->lat, $r->lng, true);
-			$q->having('distance', '<=', $r->max_distance);
-		}
-		else {
-			$q = Winery::list($langId, 'asc', true);
-		}
-
-		if ( $r->has('area_id') )
-			$q->where('wineries.area_id', $r->area_id);
-
-		if ( $r->has('min_rate') )
-			$q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
-
-		if ( $r->has('sort') ) {
-			$q->getQuery()->orders = null;
-			$sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
-			$q->orderBy('rate', $sort);
-		}
-		
 		$data = $q->get();
+
 
 		return $data->paginate(10);
 	}
+
+	public function FilterWineries(Request $r) {
+        $langId = $r->header('Accept-Language');
+
+        \Log::info('Distance',['REQUEST'=>$r->all()]);
+        if ( $r->has(['lat', 'lng', 'max_distance']) ) {
+            $q = Winery::filterByDistance($langId, $r->lat, $r->lng, true);
+            $q->having('distance', '<=', $r->max_distance);
+        }
+        else {
+            $q = Winery::list($langId, 'asc', true);
+
+        }
+
+        if ( $r->has('area_id') )
+        {
+            \Log::info('Filtriranje vinarije po area_id',['area_id',$r->area_id]);
+            $area_ids=[];
+            $query="
+                SELECT
+                    a.id as a_id,
+                    p_a.id as p_id,
+                    pp_a.id as pp_id
+                FROM areas a
+                INNER JOIN areas p_a
+                    ON a.parent_id=p_a.id
+                INNER JOIN areas pp_a
+                    ON p_a.parent_id= pp_a.id
+                WHERE a.id= $r->area_id
+                OR p_a.id= $r->area_id
+                OR pp_a.id= $r->area_id
+            ";
+            $areas=\DB::select(\DB::raw($query));
+            foreach ($areas as $area) {
+                if(is_int($area->a_id))
+                    $area_ids[]= $area->a_id;
+                if(is_int($area->p_id))
+                    $area_ids[]= $area->p_id;
+                if(is_int($area->pp_id))
+                    $area_ids[]= $area->pp_id;
+            }
+            $q->whereIn('wineries.area_id', array_unique($area_ids));
+        }
+//        print_r($q->toSql());die();
+
+        if($r->has('search'))
+            $q->where('wineries.name','like','%'.$r->search.'%');
+
+
+//        dd(array_unique($area_ids));
+
+
+
+
+
+        if ( $r->has('min_rate') )
+            $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
+
+        if ( $r->has('sort') ) {
+            $q->getQuery()->orders = null;
+            $sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
+
+//			$q->orderBy('winery.name','DESC');
+            $q->orderBy('rate', $sort);
+        }
+
+        return $q;
+    }
+
+    public function filterWithoutPagination(Request $r)
+    {
+        $langId = $r->header('Accept-Language');
+
+        \Log::info('Distance',['REQUEST'=>$r->all()]);
+        if ( $r->has(['lat', 'lng', 'max_distance']) ) {
+            $q = Winery::filterByDistance($langId, $r->lat, $r->lng, true);
+            $q->having('distance', '<=', $r->max_distance);
+        }
+        else {
+            $q = Winery::list($langId, 'asc', true);
+        }
+        $q->with('area');
+        if ( $r->has('area_id') )
+        {
+            $area_ids=[];
+            $query="
+                SELECT
+                    a.id as a_id,
+                    p_a.id as p_id,
+                    pp_a.id as pp_id
+                FROM areas a
+                INNER JOIN areas p_a
+                    ON a.parent_id=p_a.id
+                INNER JOIN areas pp_a
+                    ON p_a.parent_id= pp_a.id
+                WHERE a.id= $r->area_id
+                OR p_a.id= $r->area_id
+                OR pp_a.id= $r->area_id
+            ";
+            $areas=\DB::select(\DB::raw($query));
+//            dd($areas);
+            foreach ($areas as $area) {
+                if(is_int($area->a_id))
+                    $area_ids[]= $area->a_id;
+                if(is_int($area->p_id))
+                    $area_ids[]= $area->p_id;
+                if(is_int($area->pp_id))
+                    $area_ids[]= $area->pp_id;
+            }
+            $q->whereIn('wineries.area_id', array_unique($area_ids));
+//            print_r($q->toSql());die();
+        }
+        if ( $r->has('min_rate') )
+            $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
+
+        if ( $r->has('sort') ) {
+            $q->getQuery()->orders = null;
+            $sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
+
+//			$q->orderBy('winery.name','DESC');
+            $q->orderBy('rate', $sort);
+        }
+        return response()->json($q->get());
+    }
 
 	public function userWinery(Request $req, $getQuery = false) {
 		$ids = Auth::user()->winery()->pluck('wineries.id as id');
@@ -115,7 +255,16 @@ class WineryController extends BaseController
 
 	public function ovoJeSamoZaAcu(Request $r) {
 		$langId = $r->header('Accept-Language');
-		return Winery::list($langId, true)->get();
+		$wineries= Winery::list($langId,'asc',true)->get();
+		return $wineries;
+//		return Winery::list($langId,'asc',true)->get();
 	}
+
+	public function loadAllWinaries(Request $r)
+    {
+        $langId= $r->header('Accept-Language');
+        $winery=new \App\Winery();
+        return $winery->loadAllWineries();
+    }
 
 }

@@ -25,12 +25,12 @@ class PathController extends BaseController
     public function inRange(Request $req) {
         $query = PointOfInterest::filterByDistance($req->header('Accept-Language'), $req->lat, $req->lng, true);
         $pois = $query->orderBy('distance', 'asc')->having('distance', '<=', $req->radius)->get();
-
         $controller = $this;
         $origin = [
             $req->lat,
             $req->lng
         ];
+
         return $pois->filter(function($poi, $index) use ($controller, $origin, $req) {
             $matrix = $controller->checkDistance( $origin, $poi->only(['lat', 'lng'])->all() );
             if ( !isset($matrix['duration']) )
@@ -43,10 +43,10 @@ class PathController extends BaseController
             return true;
         });
     }
-    
+
     // params:
     // lat - user lat
-    // lng - user lng 
+    // lng - user lng
     // radius - desired radius
     // winery_time - time per winery
     // total_time - total time
@@ -58,7 +58,7 @@ class PathController extends BaseController
             'lat' => $req->lat,
             'lng' => $req->lng
         ];
-
+//        dd($wineries);
         // return $wineries;
 
         // total time in seconds
@@ -78,7 +78,7 @@ class PathController extends BaseController
             $winery = $wineries->shift();
             $points->push( $winery );
             $destination = $winery->pin->only(['lat', 'lng']);
-            $matrix = $this->checkDistance($origin, $destination);            
+            $matrix = $this->checkDistance($origin, $destination);
             $origin = $destination;
             $totalTime += $wineryTime + $matrix['duration']['value'];
 
@@ -88,13 +88,13 @@ class PathController extends BaseController
             'time' => $totalTime / 60,
             'points' => $points
         ];
-    }   
+    }
 
     private function checkDistance($origin, $destination) {
         $guzzle = new Client([
             'base_uri' => 'https://maps.googleapis.com'
         ]);
-        
+
         // $route = 'maps/api/directions/json';
         $route = 'maps/api/distancematrix/json';
         $params = [
@@ -104,20 +104,22 @@ class PathController extends BaseController
             'key' => config('services.maps.key')
         ];
 
-        
+
         // handluj response
         $response = $guzzle->get($route, [
             'query' => $params
         ]);
+//        dd(json_decode($response->getBody(),true)['status']);
 
         $json = json_decode($response->getBody(), true);
 
-        if ( $response->getStatusCode() != 200 )
-            dd($json);
+        if ( $response->getStatusCode() != 200 || $json['status']==='REQUEST_DENIED')
+            return false;
+//            dd($json);
 
         return $json['rows'][0]['elements'][0];
     }
 
-   
+
 
 }

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 	return [
 
@@ -10,7 +10,8 @@
 		'google' => [
 			'client_id' => '108270205742-cdjk32vk0kshhpdp0b33a08r7ovoolse.apps.googleusercontent.com',
 			'client_secret' => 'nySm8xZWFFzBObdNP_sYxxvW',
-			'redirect' => 'http://itcentar.rs'
+//			'redirect' => 'http://itcentar.rs',
+            'redirect'=>'http://admin.vinovojo.com'
 		],
 
 		'instagram' => [
@@ -30,7 +31,7 @@
 		'maps' => [
 			'key' => 'AIzaSyC-RpJTVJRs0GxeYnTz2baSNdYHSFaLsdw'
 		]
-	
+
 	];
 
  ?>

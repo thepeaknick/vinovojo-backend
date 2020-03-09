@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App;
 
@@ -80,22 +80,32 @@ class WinePath extends BaseModel {
     //      -- CRUD override --
 
     public static function list($languageId, $sorting = 'asc', $getQuery = false) {
-        $q = parent::list($languageId, $sorting, true)
+//        dd($languageId);
+//        dd(parent::list($languageId,$sorting,true,''));
+        $q = parent::list($languageId, $sorting, true,'')
                     ->join('text_fields as nameTransliteration', function ($q) use ($languageId) {
                             $q->on('nameTransliteration.object_id', '=', 'routes.id');
                             $q->where('nameTransliteration.object_type', (new static)->flag);
                             $q->where('nameTransliteration.name', 'name');
                             $q->where('nameTransliteration.language_id', $languageId);
-                        });
-
-
+                        })
+                    ->join('pins',function ($q) {
+                        $q->on('routes.id','=','pins.object_id');
+                        $q->where('pins.object_type','=','12');
+//                        $q->where('pins.object_id','routes.id','');
+                    });
+        $q->groupBy('routes.id');
+////        dd($q->toSql());
+        $q->addSelect('pins.lat','pins.lng');
 
         if ($getQuery)
             return $q;
 
         $data = $q->paginate(10);
+//        dd($data);
 
-        $data->getCollection()->makeHidden(['start', 'end']);
+
+        $data->get()->getCollection()->makeHidden(['start', 'end']);
 
         return $data;
     }
@@ -132,7 +142,7 @@ class WinePath extends BaseModel {
                     return false;
             }
 
-        if ( $req->hasFile('cover') ) 
+        if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
         $this->start->update(['object_id' => $this->id]);

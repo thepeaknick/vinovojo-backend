@@ -37,7 +37,7 @@ class BaseModel extends Model
         $data = $q->paginate(10);
         if ( static::$transliteratesLists )
             $data->transliterate($lang, static::$listTransliteration );
-            
+
         return $data;
     }
 
@@ -48,7 +48,7 @@ class BaseModel extends Model
             'transliteration.value as name'
         ];
         $query = static::select($selects);
-        
+
         $query->join( (new \App\TextField)->getTable() . ' as transliteration', function ($q) use ($languageId, $i) {
             $q->on('transliteration.object_id', '=', $i->getTable() . '.id');
             $q->where('transliteration.object_type', $i->flag);
@@ -87,10 +87,13 @@ class BaseModel extends Model
         return static::select('name', 'id')->orderBy('name', 'asc')->get();
     }
 
-    public function singleDisplay($languageId = null) {        
+    public function singleDisplay($languageId = null) {
         if ( property_exists($this, 'relationships') )
             $this->load($this->relationships);
 
+//        dd($this->relationships);
+//        if( property_exists($this, 'logo'))
+//            $this->setAppends(['logo']);
         return $this;
     }
 
@@ -142,13 +145,13 @@ class BaseModel extends Model
                 $txt = new \App\TextField($lang);
                 $txt->object_type = $this->flag;
                 $txt->object_id = $this->id;
-                
+
                 if (!$txt->save())
                     return false;
 
                 continue;
             }
-            \App\TextField::where('id', $lang['id'])->update( [ 'value' => $lang['value'] ] ); 
+            \App\TextField::where('id', $lang['id'])->update( [ 'value' => $lang['value'] ] );
         }
 
         return true;
@@ -165,7 +168,7 @@ class BaseModel extends Model
         }
 
         else {
-            
+
             $query = $this->transliterations()->where('language_id', $languageId)->select('name', 'value', 'language_id');
             $query->where(function ($q) use ($attributes) {
                 foreach ($attributes as $attr)
@@ -226,7 +229,7 @@ class BaseModel extends Model
 
     public function transliterations() {
         return $this->hasMany('App\TextField', 'object_id')->where('object_type', $this->flag);
-    }    
+    }
 
     public function availableLanguages() {
         return $this->transliterations()
@@ -238,7 +241,7 @@ class BaseModel extends Model
 
 
 
-    //      -- Validation methods -- 
+    //      -- Validation methods --
 
     public function validatesBeforeUpdate() {
     	return false;
@@ -294,6 +297,7 @@ class BaseModel extends Model
                 $constraint->aspectRatio();
             });
         } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
+            \Log::info('nije uspio da sacuva sliku ',(array)$e);
             return false;
         }
         return $image->save( $this->coverFullPath() );
@@ -335,7 +339,7 @@ class BaseModel extends Model
         $return = $this->toArray();
 
         $this->setVisible($currentVisible);
-        
+
         return collect( $return );
     }
 
@@ -345,5 +349,5 @@ class BaseModel extends Model
                               ->where($this->getKeyName(), $this->getKey())
                               ->update(['search_count' => $this->search_count]);
     }
-    
+
 }

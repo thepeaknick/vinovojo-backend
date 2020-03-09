@@ -29,7 +29,7 @@ class Rate extends BaseModel {
     public $rules = [
         'user_id' => 'numeric|exists:users,id|required',
         'comment' => 'string',
-        'rate' => 'numeric|min:0|max:5|required',
+        'rate' => 'numeric|min:0|max:5|nullable',
         'object_id' => 'numeric|required',
         'object_type' => 'numeric|required|min:2|max:3'        
     ];
