@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DB;
 use http\Env\Request;
 use Illuminate\Database\Eloquent\Model;
 
@@ -80,14 +81,15 @@ class Winery extends BaseModel {
         $languageId = app('translator')->getLocale();
         // dd($languageId);
         $area= $this->belongsTo('App\Area')->select('areas.id as id', 'transliteration.value as name', 'areas.type as type', 'areas.parent_id as area_parent_id')
-                                           ->join('text_fields as transliteration', function ($q) use ($languageId) {
-                                                $q->on('areas.id', '=', 'transliteration.object_id');
-                                                $q->where('object_type', (new \App\Area)->flag);
-                                                $q->where('transliteration.name', 'name');
-                                                // if ($languageId) {
-                                                    // $q->where('language_id', $languageId);
-                                                // }
-                                           });
+                        ->join('text_fields as transliteration', function ($q) use ($languageId) {
+                            $q->on('areas.id', '=', 'transliteration.object_id');
+                            $q->where('object_type', (new \App\Area)->flag);
+                            $q->where('transliteration.name', 'name');
+                            // if ($languageId) {
+                                // $q->where('language_id', $languageId);
+                            // }
+                        });
+            
         return $area;
     }
 
@@ -144,7 +146,8 @@ class Winery extends BaseModel {
         // $q->addSelect('areaTransliteration.value as area');
         $q->addSelect('wineries.area_id as area_id');
 
-        $q->with('area.parent');
+        $q->with('area');
+        // $q->with('area.parent');
 
         $q->leftJoin('rates', function ($q) {
             $q->on('wineries.id', '=', 'rates.object_id');
@@ -160,58 +163,40 @@ class Winery extends BaseModel {
             $q->where('transliteration.language_id', $lang);
             $q->where('transliteration.value','like','%'.rtrim($search.'%',' ').'%');
         });
-        if(app('request')->has('search'))
-            $q->where('transliteration.value','like','%'.app('request')->search.'%');
 
-//        if(app('request')->has('area_id'))
-//        if(app('request')->has('area_id'))
-//            $q->where('wineries.area_id','=',app('request')->area_id);
+        //  Handle filter
+        $req= app('request');
+        if($req->has('search'))
+            $q->where('transliteration.value','like','%'.$req->search.'%');
 
-        if ( app('request')->has('area_id') )
+        if($req->has('winery_id'))
+            $q->where('wineries.id','=',$req->winery_id);
+
+
+        if ( $req->has('area_id') )
         {
             $area_ids=[];
-            $req= app('request');
-            $query="
-                SELECT
-                    a.id as a_id,
-                    p_a.id as p_id,
-                    pp_a.id as pp_id
-                FROM areas a
-                INNER JOIN areas p_a
-                    ON a.parent_id=p_a.id
-                INNER JOIN areas pp_a
-                    ON p_a.parent_id= pp_a.id
-                WHERE a.id= $req->area_id
-                OR p_a.id= $req->area_id
-                OR pp_a.id= $req->area_id
-            ";
+            $area= Area::where('id',$req->area_id)->first();
+            if($area!==null) {
+                $area_ids[] =$area->id;
+                if($area->parent_id!=null)
+                {
+                    $area_ids[]= $area->parent_id;
+                    $parent= Area::where('id',$area->parent_id)->first();
+                    if($parent->parent_id!==null)
+                        $area_ids[]= $parent->parent_id;
+                }
+            }
+            $q->whereIn('wineries.area_id', array_unique($area_ids));
         }
-        if(app('request')->has('class_id')) {
-            $class_id= app('request')->class_id;
-            $q->where('wineries.class_id',$class_id);
-        }
-
-        // return $q->paginate();
-//         $q->join('areas', 'areas.id', '=', 'wineries.area_id');
-//         $q->join('text_fields as areaTransliteration', function($q) use($lang) {
-//             $q->on('areaTransliteration.object_id', '=', 'areas.id');
-//             $q->where('areaTransliteration.object_type', (new Area)->flag);
-//             $q->where('areaTransliteration.name', 'name');
-//             $q->where('areaTransliteration.language_id', $lang);
-//             $q->addSelect('areaTransliteration.value as area_name');
-//             return $q;
-//         });
-        // $data=$q->paginate(10);
-        // return $data;
-        $sortBy = app('request')->header('Sort-By', static::$listSort);
-        if(app('request')->has('SortBy'))
+        $sortBy = $req->header('Sort-By', static::$listSort);
+        if($req->has('SortBy'))
             $q->orderBy( $sortBy, $sorting );
 
         $q->groupBy('wineries.id');
 
         $q->orderBy('wineries.highlighted', 'desc');
         $q->orderBy('wineries.recommended','desc');
-//        print_r($q->toSql());die();
         if ($getQuery)
             return $q;
 

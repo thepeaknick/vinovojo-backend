@@ -22,7 +22,7 @@ class Wine extends BaseModel {
     ];
 
     protected static $listData = [
-    	'wines.id as id', 'wineTransliteration.value as name', 'harvest_year','wines.category_id as category_id', 'wines.recommended as recommended', 'wineryTransliteration.value as winery_name', 'wines.background as background', 'wines.highlighted as highlighted'
+        'wines.id as id', 'wineTransliteration.value as name', 'harvest_year','wines.category_id as category_id', 'wines.recommended as recommended', 'wineryTransliteration.value as winery_name', 'wines.background as background', 'wines.highlighted as highlighted'
     ];
 
     public static $transliteratesLists = true;
@@ -155,9 +155,7 @@ class Wine extends BaseModel {
 
     public static function list($lang, $sorting = 'asc', $getQuery = false,$search='',$orderBy='') {
         // select everything needed including rates
-
         $q = static::select( static::$listData );
-
         $q->addSelect( app('db')->raw( "avg(rates.rate) as rate,count(rates.rate) as rate_count" ) );
 
         // join rates to the query
@@ -180,16 +178,14 @@ class Wine extends BaseModel {
         });
 
         $q->addSelect(app('db')->raw('wines.area_id as area_id','wineTransliteration.value as winery_name', 'wines.winery_id as wineryid'));
-//        $q->leftJoin('area',function ($q) {
-//            $join->on('wines.area_id','=','areas.id', function($q) use($q) {
-//                $q->where('id',$q->parent_id);
-//            });
-//        });
-        if(app('request')->has('winery_id'))
-            $q->where('winery_id',app('request')->winery_id);
 
-        if(app('request')->has('class_id')) {
-//            $q->with('classes')->where('wines.classification_id',app('request')->class_id);
+        // handle filters
+        $req= app('request');
+
+        if($req->has('winery_id'))
+            $q->where('winery_id',$req->winery_id);
+
+        if($req->has('class_id')) {
             $q->join('classes_wines','classes_wines.wine_id','=','wines.id');
             $q->where('classes_wines.class_id','=',app('request')->class_id);
         }
@@ -207,13 +203,25 @@ class Wine extends BaseModel {
             $q->where('wineTransliteration.value','like','%'.$search.'%');
 
 
-//        if(app('request')->has('category_id'))
-//        {
-//            $q->with('category');
-//            $q->where('category.id','=',app('request')->category_id);
-//        }
+        if($req->has('category_id'))
+            $q->where('wines.category_id','=',$req->category_id);
 
-        // return response()->json($q->toSql());
+        if ( $req->has('area_id') )
+        {
+            $area_ids=[];
+            $area= Area::where('id',$req->area_id)->first();
+            if($area!==null) {
+                $area_ids[] =$area->id;
+                if($area->parent_id!=null)
+                {
+                    $area_ids[]= $area->parent_id;
+                    $parent= Area::where('id',$area->parent_id)->first();
+                    if($parent->parent_id!==null)
+                        $area_ids[]= $parent->parent_id;
+                }
+            }
+            $q->whereIn('wines.area_id', array_unique($area_ids));
+        }
         // group by wines
         $q->groupBy('wines.id');
 
@@ -226,9 +234,7 @@ class Wine extends BaseModel {
         $q->orderBy('wines.recommended','desc');
 
         $q->orderBy( static::$listSort, $sorting );
-        // dd(app('auth')->user());
 
-//        $q->setAppends([''])
         if($getQuery)
             return $q;
         else {
