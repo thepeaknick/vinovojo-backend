@@ -1175,7 +1175,15 @@ class Language extends BaseModel {
         'WINERY_ADD_FRIDAY'=> 'required|string',
         'WINERY_ADD_SATURDAY'=> 'required|string',
         'WINERY_ADD_SUNDAY'=> 'required|string',
-     'CHANGE_PASSWORD_INPUT'=>'required|string',
+        'CHANGE_PASSWORD_INPUT'=>'required|string',
+        'TABLES_WINERY_SEARCH_FIELD_LABEL'=> 'required|string',
+        'TABLES_RESET_FIELDS_BTN_TEXT'=> 'required|string',
+        'TABLES_WINE_SEARCH_FIELD_LABEL'=> 'required|string',
+        'SIDEBAR_COMMENTS_SUBMENU_1'=> 'required|string',
+        'SIDEBAR_COMMENTS_SUBMENU_2'=> 'required|string',
+        'TABLES_USERS_SEARCH_FIELD_LABEL'=> 'required|string',
+        'TABLES_ARTICLE_SEARCH_FIELD_LABEL'=> 'required|string',
+        'TABLES_EVENTS_SEARCH_FIELD_LABEL'=> 'required|string'
     ];
 
 

@@ -38,9 +38,13 @@ class Winery extends BaseModel {
 
     public $rules = [
         'address' => 'string|required',
-        'ponpet' => 'present',
-        'sub' => 'present',
-        'ned' => 'present',
+        // 'monday' => 'present',
+        // 'tuesday' => 'present',
+        // 'wednesday' => 'present',
+        // 'thursday' => 'present',
+        // 'friday' => 'present',
+        // 'saturday' => 'present',
+        // 'sunday' => 'present',
         'area_id' => 'numeric',
         'languages' => 'array|min:1|required'
     ];
@@ -166,8 +170,9 @@ class Winery extends BaseModel {
 
         //  Handle filter
         $req= app('request');
-        if($req->has('search'))
+        if($req->has('search')){
             $q->where('transliteration.value','like','%'.$req->search.'%');
+        }
 
         if($req->has('winery_id'))
             $q->where('wineries.id','=',$req->winery_id);

@@ -10,6 +10,8 @@ use App\Wine;
 
 use App\Winery;
 
+use App\User;
+
 use App\Favourite;
 
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -81,7 +83,7 @@ class FeedController extends Controller
 
     public function loadFavouritesForAuthenticated(Request $r) {
         $languageId = $r->header('Accept-Language');
-        $social = \App\User::find( app('auth')->user()->id );
+        $social = User::find( app('auth')->user()->id );
         if (!$social)
             return response()->json(['error' => 'Invalid request'], 422);
 
@@ -123,7 +125,7 @@ class FeedController extends Controller
         $constraints = $req->only(['object_id', 'object_type']);
         $constraints['social_id'] = app('auth')->user()->id;
 
-        if ( !\App\Favourite::where($constraints)->delete() )
+        if ( !Favourite::where($constraints)->delete() )
             return response()->json(['outcome' => 'No favourites found'], 200);
 
         return response(null, 204);
@@ -133,8 +135,8 @@ class FeedController extends Controller
         $wines = Wine::count();
         $wineries = Winery::count();
         $events = Happening::count();
-        $articles = \App\Article::count();
-        $users = \App\User::count();
+        $articles = Article::count();
+        $users = User::count();
         return response()->json(compact(
             'wines', 'wineries', 'events', 'articles', 'users'
         ), 200);

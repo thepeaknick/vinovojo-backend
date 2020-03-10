@@ -47,8 +47,6 @@ class Article extends BaseModel
                             $q->where('nameTransliteration.object_type', (new static)->flag);
                             $q->where('nameTransliteration.name', 'name');
                             $q->where('nameTransliteration.language_id', $lang);
-                            // dd($search);
-                            // print_r($q->toSql());die();
                         })
                     ->leftJoin( 'text_fields as textTransliteration', function ($q) use ($lang) {
                             $q->on('textTransliteration.object_id', '=', 'articles.id');
@@ -56,8 +54,9 @@ class Article extends BaseModel
                             $q->where('textTransliteration.name', 'text');
                             $q->where('textTransliteration.language_id', $lang);
                     });
-        if($search!=='')
-            $q->where('nameTransliteration.value', 'like', '%'.$search.'%');
+        $req= app('request');
+        if($req->has('search'))
+            $q->where('nameTransliteration.value', 'like', '%'.$req->search.'%');
 
         return ($getQuery) ? $q : $q->paginate(10);
     }

@@ -143,9 +143,6 @@ class WineryController extends BaseController
         }
 //        print_r($q->toSql());die();
 
-        if($r->has('search'))
-            $q->where('wineries.name','like','%'.$r->search.'%');
-
 
 //        dd(array_unique($area_ids));
 
@@ -224,10 +221,9 @@ class WineryController extends BaseController
     }
 
 	public function userWinery(Request $req, $getQuery = false) {
-		$ids = Auth::user()->winery()->pluck('wineries.id as id');
+        $ids = Auth::user()->winery()->pluck('wineries.id as id');
 		$query = Winery::list($req->header('Accept-Language'), 'asc', true)
 						->whereIn('wineries.id', $ids->all());
-
 		return ($getQuery) ? $query : $query->paginate(10);
 	}
 
@@ -257,7 +253,6 @@ class WineryController extends BaseController
 		$langId = $r->header('Accept-Language');
 		$wineries= Winery::list($langId,'asc',true)->get();
 		return $wineries;
-//		return Winery::list($langId,'asc',true)->get();
 	}
 
 	public function loadAllWinaries(Request $r)

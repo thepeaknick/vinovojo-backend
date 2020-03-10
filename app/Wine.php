@@ -199,6 +199,9 @@ class Wine extends BaseModel {
             $q->where('wineryTransliteration.language_id', $lang);
         });
 
+        if($req->has('search'))
+            $q->where('wineTransliteration.value','like','%'.$req->search.'%');
+
         if($search!=='')
             $q->where('wineTransliteration.value','like','%'.$search.'%');
 
@@ -206,7 +209,7 @@ class Wine extends BaseModel {
         if($req->has('category_id'))
             $q->where('wines.category_id','=',$req->category_id);
 
-        if ( $req->has('area_id') )
+        if ( $req->has('area_id')&& !empty($req->area_id) && ctype_digit($req->area_id) )
         {
             $area_ids=[];
             // dd($req->area_id);

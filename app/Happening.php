@@ -12,7 +12,7 @@ use LaravelFCM\Request\Request;
 class Happening extends BaseModel {
 
     protected static $listData = [
-        'events.id as id', 'start', 'end', 'location', 'link', 'lat', 'lng', 'created_at', 'nameTransliteration.value as name', 'textTransliteration.value as description'
+        'events.id as id', 'start', 'end', 'active', 'location', 'link', 'lat', 'lng', 'created_at', 'nameTransliteration.value as name', 'textTransliteration.value as description'
     ];
 
     // public static $listTransliteration = [
@@ -24,7 +24,7 @@ class Happening extends BaseModel {
     ];
 
     protected $appends = [
-    	'image_path', 'flag'
+    	'image_path', 'flag', 'active'
     ];
 
     protected $hidden = [
@@ -57,14 +57,18 @@ class Happening extends BaseModel {
         return 0;
     }
 
+    public function getActiveAttribute() {
+        if($this->attributes['active']==null)
+            return 0;
+        else return $this->attributes['active'];
+    }
+
 
 
     //      -- CRUD override --
 
     public static function list($lang, $sorting = 'desc', $getQuery = false) {
         parent::$listSort='events.start';
-        // parent::$sorting='asc';
-        // $q = parent::list($lang, $sorting, true);
         $q = parent::list($lang, $sorting, true,'')
                     ->join('text_fields as nameTransliteration', function ($q) use ($lang) {
                             $q->on('nameTransliteration.object_id', '=', 'events.id');
@@ -78,12 +82,10 @@ class Happening extends BaseModel {
                             $q->where('textTransliteration.name', 'description');
                             $q->where('textTransliteration.language_id', $lang);
                     });
-        // var_dump($q instanceof \Illuminate\Database\Eloquent\Builder);
+        $req= app('request');
+        if($req->has('search'))
+            $q->where('nameTransliteration.value','like','%'.$req->search.'%');
 
-        // var_dump($q->toSql());
-        // die();
-
-        // $q->latest('start');
         return ($getQuery) ? $q : $q->paginate(10);
     }
 
@@ -109,7 +111,6 @@ class Happening extends BaseModel {
     {
         $all=DB::table('events')->select()->orderBy( static::$listSort , 'desc' )->get();
 
-        // dd($all);
         if( count( $all ) && $id)
         {
             return new \App\Happening((array)$all[$id-1]);

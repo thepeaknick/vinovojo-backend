@@ -256,7 +256,7 @@ class SocialController extends Controller {
 
     public function wineComments($wineId) {
         if ( is_null( app('auth')->user() ) )
-            return (new WineController)->loadWineComements($wineId);
+            return (new WineController)->loadWineComments($wineId);
 
         $wine = \App\Wine::where('id', $wineId)->first();
 

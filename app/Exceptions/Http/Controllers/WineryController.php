@@ -66,8 +66,8 @@ class WineryController extends BaseController
 			$q = Winery::list($langId, 'asc', true);
 		}
 
-		if ( $r->has('area_id') )
-			$q->where('wineries.area_id', $r->area_id);
+		// if ( $r->has('area_id') )
+		// 	$q->where('wineries.area_id', $r->area_id);
 
 		if ( $r->has('min_rate') )
 			$q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);

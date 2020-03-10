@@ -80,7 +80,6 @@ class WineController extends Controller {
 
 	public function loadWineComments($wineId) {
 		$wine = Wine::where('id', $wineId)->first();
-		// dd($wine);
 		$wine->comments->load('user');
 
 		if (!$wine)
