@@ -22,7 +22,7 @@ class Wine extends BaseModel {
     ];
 
     protected static $listData = [
-        'wines.id as id', 'wineTransliteration.value as name', 'harvest_year','wines.category_id as category_id', 'wines.recommended as recommended', 'wineryTransliteration.value as winery_name', 'wines.background as background', 'wines.highlighted as highlighted'
+    	'wines.id as id', 'wineTransliteration.value as name', 'harvest_year','wines.category_id as category_id', 'wines.recommended as recommended', 'wines.area_id as area_id', 'wineryTransliteration.value as winery_name', 'wines.background as background', 'wines.highlighted as highlighted'
     ];
 
     public static $transliteratesLists = true;
@@ -209,16 +209,30 @@ class Wine extends BaseModel {
         if ( $req->has('area_id') )
         {
             $area_ids=[];
-            $area= Area::where('id',$req->area_id)->first();
-            if($area!==null) {
-                $area_ids[] =$area->id;
-                if($area->parent_id!=null)
-                {
-                    $area_ids[]= $area->parent_id;
-                    $parent= Area::where('id',$area->parent_id)->first();
-                    if($parent->parent_id!==null)
-                        $area_ids[]= $parent->parent_id;
-                }
+            // dd($req->area_id);
+            $area_id= $req->area_id;
+            $query="
+            SELECT
+                a.id as a_id,
+                p_a.id as p_id,
+                pp_a.id as pp_id
+            FROM areas a
+            INNER JOIN areas p_a
+                ON a.parent_id=p_a.id
+            INNER JOIN areas pp_a
+                ON p_a.parent_id= pp_a.id
+            WHERE a.id= $area_id
+            OR p_a.id= $area_id
+            OR pp_a.id= $area_id
+        ";
+            $areas=\DB::select(\DB::raw($query));
+            foreach ($areas as $area) {
+                if(is_int($area->a_id))
+                    $area_ids[]= $area->a_id;
+                if(is_int($area->p_id))
+                    $area_ids[]= $area->p_id;
+                if(is_int($area->pp_id))
+                    $area_ids[]= $area->pp_id;
             }
             $q->whereIn('wines.area_id', array_unique($area_ids));
         }
