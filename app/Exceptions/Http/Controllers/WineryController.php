@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 class WineryController extends BaseController
 {
     
-	public function loadWineryComments($wineryId) {
+	public function loadWineryComments(Request $r, $wineryId) {
 		$winery = Winery::where('id', $wineryId)->first();
 
 		if ( !$winery )
@@ -26,7 +26,9 @@ class WineryController extends BaseController
 
 
 
-	public function loadWineryCommentsForAdmin($wineId) {
+	public function loadWineryCommentsForAdmin(Request $r, $wineId) {
+		if($wineId==='all')
+			return $this->loadAllWineryCommentsForAdmin($r);
 		$winery = Winery::where('id', $wineId)->first();
 
 		if (!$winery) 
@@ -35,7 +37,6 @@ class WineryController extends BaseController
 		$rates = $winery->rates()->with('user')->latest('created_at')->paginate(10);
 
 		return response()->json($rates, 200);
-
 	}
 
 	public function loadVideo($wineryId) {

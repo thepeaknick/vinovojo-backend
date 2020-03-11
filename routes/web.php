@@ -176,6 +176,10 @@ $router->get('wine/category/{categoryId}', 'WineController@categoryWines');
 
 $router->get('wine/winery/{wineryId}/{categoryId}', 'WineController@wineryWines');
 
+$router->get('wine/comments/panel', 'WineController@loadAllWineComments');
+
+// $router->get('wine/comments/panel/foradmin', 'WineController@loadAllWineCommentsForAdmin');
+
 $router->get('wine/comments/{wineId}', 'WineController@loadWineComments');
 
 $router->get('wine/comments/{wineId}/admin', 'WineController@loadWineCommentsForAdmin');
@@ -195,6 +199,10 @@ $router->get('get/category/paginate', 'WineController@paginateAllCategories');
 
 
 //		-- Winery --
+
+$router->get('winery/comments/panel', 'WineryController@loadAllWineryComments');
+
+// $router->get('winery/comments/panel/admin', 'WineryController@loadAllWineryCommentsForAdmin');
 
 $router->get('winery/comments/{wineryId}', 'WineryController@loadWineryComments');
 

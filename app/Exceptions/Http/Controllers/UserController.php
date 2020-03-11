@@ -55,11 +55,8 @@ class UserController extends BaseController
 		$sort = $req->header('Sorting');
 		if ( is_null($sort) )
 			$sort = 'asc';
+			
 
-		if($req->has('search'))
-		    $query->where('users.full_name','like', '%'.$req->search.'%');
-
-		$query->orderBy('full_name', $sort);
 
 		return $query->paginate(10);
 	}

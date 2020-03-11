@@ -133,6 +133,10 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
             $image->resize(320, null, function ($constraint) {
                 $constraint->aspectRatio();
             });
+            $width= $image->width();
+            $height= $image->height();
+            if($width>$height)
+                $image->rotate(90);
         } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
             return false;
         }

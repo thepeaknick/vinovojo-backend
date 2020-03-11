@@ -4,16 +4,25 @@ namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
 
-use Illuminate\Http\Request;
+use DB;
+
+use App\Area;
+
+use App\Rate;
 
 use App\Winery;
+
+use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 
 class WineryController extends BaseController
 {
 
-	public function loadWineryComments($wineryId) {
+	public function loadWineryComments(Request $r, $wineryId) {
+        if($wineryId==='panel' || $wineryId==='all')
+            return $this->loadAllWineryComments($r);
+
 		$winery = Winery::where('id', $wineryId)->first();
 
 		if ( !$winery )
@@ -24,9 +33,19 @@ class WineryController extends BaseController
 		return response()->json($rates, 200);
 	}
 
+	public function loadWineryCommentsForAdmin(Request $r,$wineId) {
+        if($wineId==='panel' || $wineId==='all') {
+            $admin= $this->loadAllWineryCommentsForAdmin($r, false);
+            $all_comments= $this->loadAllWineryComments($r, false)->get();
+            // dd($admin->get());
+            $coll= collect();
+            foreach($admin as $admins_comm) 
+                $coll->push($admins_comm);
+            foreach($all_comments as $comments) 
+                $coll->push($comments);
+            return $coll->paginate(10);
+        }
 
-
-	public function loadWineryCommentsForAdmin($wineId) {
 		$winery = Winery::where('id', $wineId)->first();
 
 		if (!$winery)
@@ -35,7 +54,6 @@ class WineryController extends BaseController
 		$rates = $winery->rates()->with('user')->latest('created_at')->paginate(10);
 
 		return response()->json($rates, 200);
-
 	}
 
 	public function loadVideo($wineryId) {
@@ -59,11 +77,11 @@ class WineryController extends BaseController
 	    if(!$r->header('Accept-Language'))
 	        return response()->json(['message'=>'not found(Accept-Language)'],404);
 	    $langId= $r->header('Accept-Language');
-        $areas= \App\Area::with('parent')
+        $areas= Area::with('parent')
             ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($langId) {
                 $query->select('transliteration.name as name');
-                $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
-                $query->where('transliteration.object_type', (new \App\Area)->flag);
+                $query->on('transliteration.object_id', '=', (new Area)->getTable() . '.id');
+                $query->where('transliteration.object_type', (new Area)->flag);
                 $query->where('transliteration.name', 'name');
                 $query->where('transliteration.language_id', $langId);
 //                        $query->select('transliteration.name','name');
@@ -92,10 +110,7 @@ class WineryController extends BaseController
 
 	public function filter(Request $r) {
         $q= $this->FilterWineries($r);
-
 		$data = $q->get();
-
-
 		return $data->paginate(10);
 	}
 
@@ -130,7 +145,7 @@ class WineryController extends BaseController
                 OR p_a.id= $r->area_id
                 OR pp_a.id= $r->area_id
             ";
-            $areas=\DB::select(\DB::raw($query));
+            $areas= DB::select(DB::raw($query));
             foreach ($areas as $area) {
                 if(is_int($area->a_id))
                     $area_ids[]= $area->a_id;
@@ -141,14 +156,6 @@ class WineryController extends BaseController
             }
             $q->whereIn('wineries.area_id', array_unique($area_ids));
         }
-//        print_r($q->toSql());die();
-
-
-//        dd(array_unique($area_ids));
-
-
-
-
 
         if ( $r->has('min_rate') )
             $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
@@ -194,8 +201,7 @@ class WineryController extends BaseController
                 OR p_a.id= $r->area_id
                 OR pp_a.id= $r->area_id
             ";
-            $areas=\DB::select(\DB::raw($query));
-//            dd($areas);
+            $areas= DB::select(DB::raw($query));
             foreach ($areas as $area) {
                 if(is_int($area->a_id))
                     $area_ids[]= $area->a_id;
@@ -205,7 +211,6 @@ class WineryController extends BaseController
                     $area_ids[]= $area->pp_id;
             }
             $q->whereIn('wineries.area_id', array_unique($area_ids));
-//            print_r($q->toSql());die();
         }
         if ( $r->has('min_rate') )
             $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
@@ -260,6 +265,37 @@ class WineryController extends BaseController
         $langId= $r->header('Accept-Language');
         $winery=new \App\Winery();
         return $winery->loadAllWineries();
+    }
+
+    public function loadAllWineryComments(Request $r, $paginate=true)
+    {
+        $user= Auth::user();
+        $q= Rate::with('user')->where('object_type',(new Winery)->flag);
+
+        if($user==null || $user->role!=='admin')
+            $q=$q->where('status','approved');
+            
+        return ($paginate)?$q->paginate(10):$q;
+    }
+
+    public function loadAllWineryCommentsForAdmin(Request $r, $paginate=true) 
+    {
+        $user= Auth::user();
+        if($user==null)
+            return $this->loadAllWineryComments($r, $paginate);
+        
+        if($user->role=='admin')
+            return $this->loadSuperAdminWineryComments($r, $paginate);
+
+        $wineries= $user->winery()->pluck('wineries.id as id')->toArray();
+        $q= Rate::with('user')->where('object_type',(new Winery)->flag)->whereIn('object_id',$wineries);
+        return ($paginate)?$q->paginate(10):$q;
+    }
+
+    public function loadSuperAdminWineryComments(Request $r, $paginate=true)
+    {
+        $q= Rate::with('user')->where('object_type',(new Winery)->flag);
+        ($paginate)?$q->paginate(10):$q;
     }
 
 }

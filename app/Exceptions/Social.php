@@ -97,6 +97,10 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
     public function saveProfile($image) {
         try {
             $image = Image::make($image);
+            $width= $image->width();
+            $height= $image->height();
+            if($width>$height)
+                $image->rotate(90);
         } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
             return false;
         }

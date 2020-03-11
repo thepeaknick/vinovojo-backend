@@ -4,7 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+
+use App\Rate;
+
 use App\Social;
+
+use App\Wine;
+
+use App\Winery;
 
 use Log;
 
@@ -18,7 +25,7 @@ use Laravel\Socialite\Two\GoogleProvider;
 class SocialController extends Controller {
 
     public function approveComment($id) {
-        $rate = \App\Rate::find($id);
+        $rate = Rate::find($id);
 
         if (!$rate)
             return response()->json(['error' => 'Rate does not exist'], 404);
@@ -30,7 +37,7 @@ class SocialController extends Controller {
     }
 
     public function deapproveComment($id) {
-        $rate = \App\Rate::find($id);
+        $rate = Rate::find($id);
 
         if (!$rate)
             return response()->json(['error' => 'Rate does not exist'], 404);

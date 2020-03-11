@@ -4,9 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Rate;
+
 use App\Wine;
 
+use App\Winery;
+
 use App\Category;
+
+use App\WineClass;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -32,7 +38,6 @@ class WineController extends Controller {
 
 	public function loadWineComments($wineId) {
 		$wine = Wine::where('id', $wineId)->first();
-
 		$wine->comments->load('user');
 
 		if (!$wine) 
@@ -41,7 +46,6 @@ class WineController extends Controller {
 		$rates = $wine->comments()->with('user')->where('status', 'approved')->paginate(10);
 
 		return response()->json($rates, 200);
-
 	}
 
 	public function loadWineCommentsForAdmin($wineId) {
@@ -58,10 +62,10 @@ class WineController extends Controller {
 
 	public function initializeFilter(Request $r) {
 		$langId = $r->header('Accept-Language');
-		$wineries = \App\Winery::dropdown($langId);
-		$categories = \App\Category::dropdown($langId);
-		$classes = \App\WineClass::dropdown($langId);
-		$areas = \App\Area::dropdown($langId);
+		$wineries = Winery::dropdown($langId);
+		$categories = Category::dropdown($langId);
+		$classes = WineClass::dropdown($langId);
+		$areas = Area::dropdown($langId);
 
 		$wines = Wine::select('harvest_year', 'alcohol')->get();
 		$years = $wines->pluck('harvest_year');
@@ -182,5 +186,6 @@ class WineController extends Controller {
 			];
 		});
 	}
+
 
 }

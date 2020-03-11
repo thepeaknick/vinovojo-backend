@@ -4,7 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use DB;
+
+use App\Area;
+
+use App\Rate;
+
 use App\Wine;
+
+use App\Winery;
+
+use App\WineClass;
+
+use App\TextField;
 
 use App\Category;
 
@@ -21,7 +33,7 @@ class WineController extends Controller {
                 $areas= \App\Area::where('id',$wine->area_id)->first();
 
             $areas= \App\Area::with('parent')->where('areas.id','=',$wine->area_id)
-                ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($languageId) {
+                ->join( (new TextField)->getTable() . ' as transliteration', function ($query) use ($languageId) {
                     $query->select('transliteration.name as name');
                     $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
                     $query->where('transliteration.object_type', (new \App\Area)->flag);
@@ -37,9 +49,7 @@ class WineController extends Controller {
                 $wine->areas=null;
             }
         }
-//            dd($wine);
-//            dd($wine);
-                $wine->rate_count=\DB::table('rates')->where('object_id','=',$wine->id)->where('object_type','=','2')->where('status','=','approved')->where('rates.rate','!=','null')->get()->count();
+        $wine->rate_count= DB::table('rates')->where('object_id','=',$wine->id)->where('object_type','=','2')->where('status','=','approved')->where('rates.rate','!=','null')->get()->count();
 
 		$paginated = $wines->paginate(10);
 		return response()->json($paginated, 200);
@@ -47,7 +57,6 @@ class WineController extends Controller {
 
 	public function wineryWines($wineryId, $categoryId, Request $r) {
 		$languageId = $r->header('Accept-Language');
-//dd($wineryId,$categoryId);
 		$wines = Wine::list($languageId, 'asc', true)->where('category_id', $categoryId)
 								 ->where('winery_id', $wineryId)->get();
 
@@ -56,11 +65,11 @@ class WineController extends Controller {
             if($wine instanceof \App\Wine && !empty($wine->area_id))
                 $areas= \App\Area::where('id',$wine->area_id)->first();
 
-            $areas= \App\Area::with('parent')->where('areas.id','=',$wine->area_id)
-                ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($languageId) {
+            $areas= Area::with('parent')->where('areas.id','=',$wine->area_id)
+                ->join( (new TextField)->getTable() . ' as transliteration', function ($query) use ($languageId) {
                     $query->select('transliteration.name as name');
-                    $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
-                    $query->where('transliteration.object_type', (new \App\Area)->flag);
+                    $query->on('transliteration.object_id', '=', (new Area)->getTable() . '.id');
+                    $query->where('transliteration.object_type', (new Area)->flag);
                     $query->where('transliteration.name', 'name');
                     $query->where('transliteration.language_id', $languageId);
                     return $query;
@@ -72,13 +81,16 @@ class WineController extends Controller {
             }else {
                 $wine->areas=null;
             }
-            $wine->rate_count=\DB::table('rates')->where('object_id','=',$wine->id)->where('object_type','=','2')->where('status','=','approved')->where('rates.rate','!=','null')->get()->count();
+            $wine->rate_count= DB::table('rates')->where('object_id','=',$wine->id)->where('object_type','=','2')->where('status','=','approved')->where('rates.rate','!=','null')->get()->count();
         }
 
 		return response()->json($wines->paginate(10), 200);
 	}
 
-	public function loadWineComments($wineId) {
+	public function loadWineComments(Request $r,$wineId) {
+        if($wineId==='panel' || $wineId==='all')
+            return $this->loadAllWineComments($r);
+
 		$wine = Wine::where('id', $wineId)->first();
 		$wine->comments->load('user');
 
@@ -88,30 +100,68 @@ class WineController extends Controller {
 		$rates = $wine->comments()->with('user')->where('status', 'approved')->paginate(10);
 
 		return response()->json($rates, 200);
-
 	}
 
-	public function loadWineCommentsForAdmin($wineId) {
+	public function loadWineCommentsForAdmin(Request $r, $wineId) {
+        if($wineId==='panel')
+            return $this->loadAllWineCommentsForAdmin($r);
+
         $wine = Wine::where('id', $wineId)->first();
 		if (!$wine)
 			return response()->json(['error' => 'Wine not found'], 404);
         $rates = $wine->rates()->with('user')->paginate();
 
 		return response()->json($rates, 200);
+    }
+    
+    public function loadAllWineComments(Request $r) 
+	{
+		return Rate::with('user')->where('object_type',(new Wine)->flag)->where('status','approved')->paginate(10);
+	}
 
+	public function loadAllWineCommentsForAdmin(Request $r)
+	{
+        $user= Auth::user();
+        if($user==null)
+            return $this->loadAllWineComments($r);
+
+        $query= "
+            SELECT wines.id 
+            FROM wineries
+            JOIN wines
+                ON wines.winery_id=wineries.id
+            WHERE wineries.id IN (
+                SELECT wineries.id
+                FROM wineries
+                LEFT JOIN user_winery
+                ON wineries.id= user_winery.winery_id
+                WHERE user_winery.user_id= $user->id  
+            )
+        ";
+        // $wines= $user->winery()->join('wines',function($join) {
+        //     $join->on('wineries.id','=','wines.winery_id');
+        //     $join->select('wines.id as wine_id');
+        // })->select('wineries.id as winery_id')->whereIn('wine_id','wines.wine_id')->pluck('wine_id')->toArray();
+        // $wines= DB::table('wines')->whereIn('wines.winery_id',$wineries)->pluck('wines.id')->toArray();
+        $wines= DB::select(DB::raw($query));
+        $wine_ids=[];
+        foreach($wines as $wine)
+            $wine_ids[]= $wine->id;
+        // dd($wine_ids);
+		return Rate::with('user')->where('object_type',(new Wine)->flag)->whereIn('object_id',$wine_ids)->paginate(10);
 	}
 
 	public function initializeFilter(Request $r) {
 		$langId = $r->header('Accept-Language');
-		$wineries = \App\Winery::dropdown($langId);
-		$categories = \App\Category::dropdown($langId);
-		$classes = \App\WineClass::dropdown($langId);
-		$areas = \App\Area::dropdown($langId);
+		$wineries = Winery::dropdown($langId);
+		$categories = Category::dropdown($langId);
+		$classes = WineClass::dropdown($langId);
+		$areas = Area::dropdown($langId);
 
 		$wines = Wine::select('harvest_year', 'alcohol')->get();
 		$yearss = ($wines->pluck('harvest_year')->unique()->toArray());
         $years=[];
-        foreach($yearss as $year){
+        foreach($yearss as $year) {
             $years[]=$year;
         }
 		$alcoholl = (array)($wines->pluck('alcohol')->unique()->toArray());
@@ -126,10 +176,9 @@ class WineController extends Controller {
 	public function initalizeFilterMobile(Request $r)
     {
         $langId = $r->header('Accept-Language');
-        $wineries = \App\Winery::dropdown($langId);
-        $categories = \App\Category::dropdown($langId);
-        $classes = \App\WineClass::dropdown($langId);
-//        $areas = \App\Area::dropdown($langId);
+        $wineries = Winery::dropdown($langId);
+        $categories = Category::dropdown($langId);
+        $classes = WineClass::dropdown($langId);
 
         $wines = Wine::select('harvest_year', 'alcohol')->get();
         $yearss = ($wines->pluck('harvest_year')->unique()->toArray());
@@ -143,11 +192,11 @@ class WineController extends Controller {
             $alcohol[] = $alc;
         }
 
-        $areas= \App\Area::with('parent')
-            ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($langId) {
+        $areas= Area::with('parent')
+            ->join( (new TextField)->getTable() . ' as transliteration', function ($query) use ($langId) {
                 $query->select('transliteration.name as name');
-                $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
-                $query->where('transliteration.object_type', (new \App\Area)->flag);
+                $query->on('transliteration.object_id', '=', (new Area)->getTable() . '.id');
+                $query->where('transliteration.object_type', (new Area)->flag);
                 $query->where('transliteration.name', 'name');
                 $query->where('transliteration.language_id', $langId);
 //                        $query->select('transliteration.name','name');
@@ -187,7 +236,6 @@ class WineController extends Controller {
 		if ( $r->has('recommended') )
 			$q->where('wines.recommended', $r->recommended);
 
-//		$q->with('category');
 		if ( $r->has('category_id') ) {
 		    $q->where('wines.category_id','=',$r->category_id);
 //		    $q->addSelect('wines.category_id as category_id');
@@ -224,7 +272,7 @@ class WineController extends Controller {
             OR p_a.id= $r->area_id
             OR pp_a.id= $r->area_id
         ";
-            $areas=\DB::select(\DB::raw($query));
+            $areas= DB::select( DB::raw($query));
             foreach ($areas as $area) {
                 if(is_int($area->a_id))
                     $area_ids[]= $area->a_id;
@@ -243,13 +291,13 @@ class WineController extends Controller {
 		$data= $q->get();
 		foreach($data as $wine) {
             if($wine instanceof \App\Wine && !empty($wine->area_id))
-                $areas= \App\Area::where('id',$wine->area_id)->first();
+                $areas= Area::where('id',$wine->area_id)->first();
 
-            $areas= \App\Area::with('parent')->where('areas.id','=',$wine->area_id)
-                ->join( (new \App\TextField)->getTable() . ' as transliteration', function ($query) use ($lang) {
+            $areas= Area::with('parent')->where('areas.id','=',$wine->area_id)
+                ->join( (new TextField)->getTable() . ' as transliteration', function ($query) use ($lang) {
                     $query->select('transliteration.name as name');
-                    $query->on('transliteration.object_id', '=', (new \App\Area)->getTable() . '.id');
-                    $query->where('transliteration.object_type', (new \App\Area)->flag);
+                    $query->on('transliteration.object_id', '=', (new Area)->getTable() . '.id');
+                    $query->where('transliteration.object_type', (new Area)->flag);
                     $query->where('transliteration.name', 'name');
                     $query->where('transliteration.language_id', $lang);
                     return $query;
@@ -262,7 +310,6 @@ class WineController extends Controller {
                 $wine->areas=null;
             }
         }
-//        print_r($q->toSql());die();
 		return ($paginate) ? $data->paginate(10) : $data;
 	}
 
