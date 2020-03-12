@@ -116,40 +116,70 @@ class WineController extends Controller {
     
     public function loadAllWineComments(Request $r) 
 	{
-		return Rate::with('user')->where('object_type',(new Wine)->flag)->where('status','approved')->paginate(10);
+        $user= Auth::user();
+        $q= Rate::with('user')->join('wines',function ($query) {
+            $query->on('wines.id','=','rates.object_id');
+
+        })->join('text_fields as wineTransliteration',function($join) {
+                $join->on('wines.id','=','wineTransliteration.object_id');
+                $join->where('wineTransliteration.name','=','name');
+                $join->where('wineTransliteration.object_type','=',(new Wine)->flag);
+                $join->where('wineTransliteration.name','=','name');
+            })->join('users',function($join) {
+                $join->on('rates.user_id','=','users.id');
+            })->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
+        ->orderBy('rates.status','asc');
+        if($user!==null && $user->role=='admin') {
+
+            return $q->paginate(10);
+        }
+        return $q->where('rates.status','approved')->paginate(10);
 	}
 
-	public function loadAllWineCommentsForAdmin(Request $r)
-	{
+    public function loadAllWineCommentsForAdmin(Request $r)
+    {
         $user= Auth::user();
         if($user==null)
             return $this->loadAllWineComments($r);
 
         $query= "
-            SELECT wines.id 
+            SELECT wines.id
             FROM wineries
             JOIN wines
                 ON wines.winery_id=wineries.id
             WHERE wineries.id IN (
                 SELECT wineries.id
-                FROM wineries
-                LEFT JOIN user_winery
+                FROM user_winery
+                LEFT JOIN wineries
                 ON wineries.id= user_winery.winery_id
-                WHERE user_winery.user_id= $user->id  
+                WHERE user_winery.user_id= $user->id
             )
         ";
-        // $wines= $user->winery()->join('wines',function($join) {
-        //     $join->on('wineries.id','=','wines.winery_id');
-        //     $join->select('wines.id as wine_id');
-        // })->select('wineries.id as winery_id')->whereIn('wine_id','wines.wine_id')->pluck('wine_id')->toArray();
-        // $wines= DB::table('wines')->whereIn('wines.winery_id',$wineries)->pluck('wines.id')->toArray();
+        $q= Rate::with('user')->join('wines',function ($join) {
+                $join->on('wines.id','=','rates.object_id');
+            })
+            ->join('text_fields as wineTransliteration',function($join) {
+                    $join->on('wines.id','=','wineTransliteration.object_id');
+                    $join->where('wineTransliteration.name','=','name');
+                    $join->where('wineTransliteration.object_type','=',(new Wine)->flag);
+                    $join->where('wineTransliteration.name','=','name');
+                })
+            ->join('users',function($join) {
+                    $join->on('rates.user_id','=','users.id');
+                })
+            ->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
+            ->orderBy('rates.status','asc');
         $wines= DB::select(DB::raw($query));
         $wine_ids=[];
         foreach($wines as $wine)
             $wine_ids[]= $wine->id;
         // dd($wine_ids);
-		return Rate::with('user')->where('object_type',(new Wine)->flag)->whereIn('object_id',$wine_ids)->paginate(10);
-	}
+        if($user->role=='winery_admin') 
+            $q->whereIn('wines.id',$wine_ids);
+        if($user->role=='admin')
+            return $q->paginate(10);//->whereIn('object_id',$wine_ids)->paginate(10);
+        return $q->where('rates.status','approved')->paginate(10);
+    }
 
 	public function initializeFilter(Request $r) {
 		$langId = $r->header('Accept-Language');
@@ -215,12 +245,16 @@ class WineController extends Controller {
 	public function filter(Request $r, $paginate = true) {
 		$lang = $r->header('Accept-Language');
 
-		if ( $r->has('sort') )
-			$sort = ($r->sort_name == 1) ? 'asc' : 'desc';
-		else
-			$sort = 'asc';
+		// if ( $r->has('sort') )
+		// 	$sort = ($r->sort_name == 1) ? 'asc' : 'desc';
+		// else
+        // 	$sort = 'asc';
+        if($r->has('sort'))
+            $sort= ($r->sort==1)?'asc':'desc';
+        else $sort= 'asc';
 
         $q = Wine::list($lang, $sort, true);
+        // print_r($q->toSql());die();
 		if ( $r->has('min_rate') )
 			$q->having( app('db')->raw('avg(rates.rate)'), '>', $r->min_rate);
 

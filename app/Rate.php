@@ -49,6 +49,7 @@ class Rate extends BaseModel {
 
 
 
+
     //		-- Accessors 
 
     public function getCoverImageAttribute() {

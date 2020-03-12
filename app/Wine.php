@@ -159,10 +159,11 @@ class Wine extends BaseModel {
         $q->addSelect( app('db')->raw( "avg(rates.rate) as rate,count(rates.rate) as rate_count" ) );
 
         // join rates to the query
-        $q->leftJoin('rates', function ($q) {
+        $q->leftJoin('rates', function ($q)use($sorting) {
             $q->on('wines.id', '=', 'rates.object_id');
             $q->where('rates.object_type', (new static)->flag );
             $q->where('status', 'approved');
+            $q->orderBy('rates.rate', $sorting);
         });
         // join wineries
         $q->leftJoin('wineries', 'wines.winery_id', '=', 'wineries.id');
@@ -185,9 +186,8 @@ class Wine extends BaseModel {
         if($req->has('winery_id'))
             $q->where('winery_id',$req->winery_id);
 
-        if($req->has('class_id')) {
-            $q->join('classes_wines','classes_wines.wine_id','=','wines.id');
-            $q->where('classes_wines.class_id','=',app('request')->class_id);
+        if($_SERVER['REQUEST_URI']==='/get/wine' && $req->has('class_id')) {
+            $q->where('wines.category_id','=',$req->class_id);
         }
 
 
@@ -242,15 +242,31 @@ class Wine extends BaseModel {
         // group by wines
         $q->groupBy('wines.id');
 
-        if($orderBy!==''){
-            $q->orderBy($orderBy,$sorting);
-        }
+        // if($orderBy!==''){
+        //     $q->orderBy($orderBy,$sorting);
+        // }
 
 //         dd($q->toSql());
-        $q->orderBy('wines.highlighted', 'desc');
-        $q->orderBy('wines.recommended','desc');
+        // if($req->has('sort'))
+        // {
+        //     // 1 rastuce 0 opadajuce
+        //     if($req->sort==0) {
+        //         $q->orderBy('rates.status','asc');
+        //         $q->orderBy('rates.rate', 'asc');
+        //     }
+        //     if($req->sort==1) {
+        //         $q->orderBy('rates.status', 'asc');
+        //         $q->orderBy('rates.rate', 'desc');
+        //     }
+        // }
+        // dd($sorting);
+        if($sorting=='asc') 
+            $q->orderBy('rates.rate',!$sorting);
+        else
+            $q->orderBy('rates.rate','desc');
 
-        $q->orderBy( static::$listSort, $sorting );
+
+        // $q->orderBy( static::$listSort, $sorting );
 
         if($getQuery)
             return $q;

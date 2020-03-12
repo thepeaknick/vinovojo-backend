@@ -174,14 +174,16 @@ class WineryController extends BaseController
     public function filterWithoutPagination(Request $r)
     {
         $langId = $r->header('Accept-Language');
-
         \Log::info('Distance',['REQUEST'=>$r->all()]);
         if ( $r->has(['lat', 'lng', 'max_distance']) ) {
             $q = Winery::filterByDistance($langId, $r->lat, $r->lng, true);
             $q->having('distance', '<=', $r->max_distance);
         }
         else {
-            $q = Winery::list($langId, 'asc', true);
+            if($r->has('sort'))
+                $sort= ($r->sort==1)?'asc':'desc';
+            else $sort= 'asc';
+            $q = Winery::list($langId, $sort, true);
         }
         $q->with('area');
         if ( $r->has('area_id') )
@@ -215,13 +217,13 @@ class WineryController extends BaseController
         if ( $r->has('min_rate') )
             $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
 
-        if ( $r->has('sort') ) {
-            $q->getQuery()->orders = null;
-            $sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
+//         if ( $r->has('sort') ) {
+//             $q->getQuery()->orders = null;
+//             $sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
 
-//			$q->orderBy('winery.name','DESC');
-            $q->orderBy('rate', $sort);
-        }
+// //			$q->orderBy('winery.name','DESC');
+//             $q->orderBy('rate', $sort);
+//        }
         return response()->json($q->get());
     }
 
@@ -255,8 +257,11 @@ class WineryController extends BaseController
 	}
 
 	public function ovoJeSamoZaAcu(Request $r) {
-		$langId = $r->header('Accept-Language');
-		$wineries= Winery::list($langId,'asc',true)->get();
+        $langId = $r->header('Accept-Language');
+        if($r->has('sort')) {
+            $sort= ($r->sort==1)?'asc':'desc';
+        }else $sort= 'asc';
+		$wineries= Winery::list($langId,$sort,true)->get();
 		return $wineries;
 	}
 
@@ -270,11 +275,20 @@ class WineryController extends BaseController
     public function loadAllWineryComments(Request $r, $paginate=true)
     {
         $user= Auth::user();
-        $q= Rate::with('user')->where('object_type',(new Winery)->flag);
+        $q= Rate::with('user')->join('wineries',function ($query) {
+            $query->on('wineries.id','=','rates.object_id');
 
+        })->join('text_fields as wineryTransliteration',function($join) {
+            $join->on('wineries.id','=','wineryTransliteration.object_id');
+            $join->where('wineryTransliteration.name','=','name');
+            $join->where('wineryTransliteration.object_type','=',(new Winery)->flag);
+            $join->where('wineryTransliteration.name','=','name');
+        })->join('users',function($join) {
+            $join->on('rates.user_id','=','users.id');
+        })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status']);
         if($user==null || $user->role!=='admin')
             $q=$q->where('status','approved');
-            
+
         return ($paginate)?$q->paginate(10):$q;
     }
 
@@ -294,7 +308,19 @@ class WineryController extends BaseController
 
     public function loadSuperAdminWineryComments(Request $r, $paginate=true)
     {
-        $q= Rate::with('user')->where('object_type',(new Winery)->flag);
+        $q= Rate::with('user')->join('wineries',function ($query) {
+            $query->on('wineries.id','=','rates.object_id');
+
+        })->join('text_fields as wineryTransliteration',function($join) {
+            $join->on('wineries.id','=','wineryTransliteration.object_id');
+            $join->where('wineryTransliteration.name','=','name');
+            $join->where('wineryTransliteration.object_type','=',(new Winery)->flag);
+            $join->where('wineryTransliteration.name','=','name');
+        })->join('users',function($join) {
+            $join->on('rates.user_id','=','users.id');
+        })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
+        ->orderBy('rates.status','asc');
+        // $q= Rate::with('user')->where('object_type',(new Winery)->flag)->orderBy('status','asc');
         ($paginate)?$q->paginate(10):$q;
     }
 

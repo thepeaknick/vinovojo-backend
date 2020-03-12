@@ -951,7 +951,11 @@ class BaseController extends Controller
 
 	"TABLES_ARTICLE_SEARCH_FIELD_LABEL": "Pretraga vesti",
 
-	"TABLES_EVENTS_SEARCH_FIELD_LABEL": "Pretraga dešavanja"
+    "TABLES_EVENTS_SEARCH_FIELD_LABEL": "Pretraga dešavanja"
+    
+    "RATE_WINERY_TABLE_NAME": "Naziv vinarije"
+    
+    "RATE_WINE_TABLE_NAME": "Naziv vina" 
 
 
 }';

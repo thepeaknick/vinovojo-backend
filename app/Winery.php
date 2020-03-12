@@ -157,6 +157,7 @@ class Winery extends BaseModel {
             $q->on('wineries.id', '=', 'rates.object_id');
             $q->where('rates.object_type', (new static)->flag );
             $q->where('status', 'approved');
+            $q->addSelect(app('db')->raw("avg(rates.rate as rate, count(IFNULL(rates.id,'')) as rate_count"));
         });
         $q->with('pin');
 
@@ -229,10 +230,11 @@ class Winery extends BaseModel {
         if($req->has('SortBy'))
             $q->orderBy( $sortBy, $sorting );
 
+        if($req->has('sort')) {
+            $q->orderBy('rates.rate',$sorting);
+            // $q->orderByRaw( 'CAST(rate as FLOAT) '.$sorting);
+        }
         $q->groupBy('wineries.id');
-
-        $q->orderBy('wineries.highlighted', 'desc');
-        $q->orderBy('wineries.recommended','desc');
         if ($getQuery)
             return $q;
 

@@ -1183,7 +1183,9 @@ class Language extends BaseModel {
         'SIDEBAR_COMMENTS_SUBMENU_2'=> 'required|string',
         'TABLES_USERS_SEARCH_FIELD_LABEL'=> 'required|string',
         'TABLES_ARTICLE_SEARCH_FIELD_LABEL'=> 'required|string',
-        'TABLES_EVENTS_SEARCH_FIELD_LABEL'=> 'required|string'
+        'TABLES_EVENTS_SEARCH_FIELD_LABEL'=> 'required|string',
+        'RATE_WINERY_TABLE_NAME'=> 'required|string',
+        'RATE_WINE_TABLE_NAME'=> 'required|string'
     ];
 
 
