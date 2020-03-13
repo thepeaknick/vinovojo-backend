@@ -225,9 +225,12 @@ class Winery extends BaseModel {
             }
             $q->whereIn('wineries.area_id', array_unique($area_ids));
         }
-        $sortBy = $req->header('Sort-By', static::$listSort);
-        if($req->has('SortBy'))
-            $q->orderBy( $sortBy, $sorting );
+        // $sortBy = $req->header('Sort-By', static::$listSort);
+        if(!empty($req->header('SortBy')))
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }
 
         if($req->has('sort')) {
             $q->orderBy('rates.rate',$sorting);
