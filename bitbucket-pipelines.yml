@@ -1,0 +1,24 @@
+# This is a sample build configuration for Other.
+# Check our guides at https://confluence.atlassian.com/x/5Q4SMw for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: atlassian/default-image:2
+
+pipelines:
+  default:
+    - step:
+            name: Deploy artifacts using SCP to PROD
+            deployment: production
+            script:
+              - pipe: atlassian/scp-deploy:0.3.4
+                variables:
+                  USER: $USER
+                  SERVER: $SERVER
+                  REMOTE_PATH: '/home/vinovojo/public_html/api'
+                  LOCAL_PATH: './'
+              - pipe: atlassian/ssh-run:0.2.2
+                variables:
+                  SSH_USER: $USER
+                  SERVER: $SERVER
+                  COMMAND: 'chmod -R u+rwX,go+rX,go-w /home/vinovojo/public_html/api'
