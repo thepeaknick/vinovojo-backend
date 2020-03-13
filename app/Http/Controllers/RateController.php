@@ -25,7 +25,7 @@ class RateController extends BaseController
 			return (new WineryController)->loadAllWineryComments($req,false)->where('status',$status)->paginate(10);
 
 		if($model=='App\Wine' && $is_not_id)
-			return (new WineController)->loadAllWineComments($r,false)->where('status',$status)->paginate(10);
+			return (new WineController)->loadAllWineComments($req,false)->where('status',$status)->paginate(10);
 
 		$instance = $model::find($id);
 		// dd($instance);

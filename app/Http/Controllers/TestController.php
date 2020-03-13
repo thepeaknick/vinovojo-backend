@@ -36,6 +36,7 @@ class TestController extends Controller {
 
     public function testDB(Request $r)
     {
+        dd(\Storage::disk('local')->path(''));
         $titles= \DB::table('text_fields')->where('name','like','ADS_WINERY_ADDRESS')->get();
     }
 
