@@ -92,8 +92,11 @@ class Winery extends BaseModel {
                             // if ($languageId) {
                                 // $q->where('language_id', $languageId);
                             // }
-                        });
-            
+                         });
+        // $req= app('request');
+        // if($req->has('SortBy') && $req->SortBy=='area_name') {
+        //     $order= ($req->SortBy=='')
+        // }
         return $area;
     }
 
@@ -149,6 +152,7 @@ class Winery extends BaseModel {
         // $q->addSelect('areaTransliteration.value as area');
         $q->addSelect('wineries.area_id as area_id');
 
+        // $q->with('area');
         $q->with('area');
         // $q->with('area.parent');
 
@@ -230,6 +234,17 @@ class Winery extends BaseModel {
         if(!empty($req->header('SortBy')))
         {
             $sort= $req->header('Sorting','asc');
+            $sort= ($sort==1)?'asc':'desc';
+            if($req->header('SortBy')=='area_name') {
+                $q->join('areas','wineries.area_id','areas.id')
+                    ->leftJoin('text_fields as areaTransliteration',function($join) {
+                        $join->on('areaTransliteration.object_id','=','areas.id');
+                        $join->where('areaTransliteration.object_type',(new \App\Area)->flag);
+                        $join->where('areaTransliteration.name','name');
+                    });
+                $q->addSelect('areaTransliteration.value as area_name');
+                $q->orderBy('area_name', $sort);
+            }
             $q->orderBy($req->header('SortBy'), $sort);
         }
 
@@ -237,6 +252,7 @@ class Winery extends BaseModel {
             $q->orderBy('rates.rate',$sorting);
             // $q->orderByRaw( 'CAST(rate as FLOAT) '.$sorting);
         }
+        // print_r($q->toSql());die();
         $q->groupBy('wineries.id');
         if ($getQuery)
             return $q;
