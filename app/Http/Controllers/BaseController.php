@@ -92,7 +92,7 @@ class BaseController extends Controller
 				if ($r->has('search')) 
 					$search= $r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                return $instances->paginate(12);
+                return $instances->paginate(10);
 			break;
 			};
             case '\App\Winery':
@@ -100,7 +100,7 @@ class BaseController extends Controller
 				$search= '';
                 $search= (!$r->has('search'))?'':$r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                return $instances->paginate(12);
+                return $instances->paginate(10);
 				break;
 			};
             case '\App\Article':
@@ -115,25 +115,25 @@ class BaseController extends Controller
 				break;
 			}
 			case '\App\Happening':
-			{
+            {
                 $sorting = $r->header('Sorting', 'desc');
                 $search= (!$r->has('search'))?'':$r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                return $instances->paginate(12);
-				break;
-			}
-			case '\App\WinePath':
-			{
-				$instances = $model::list($languageId, $sorting, true);
-				return $instances->paginate(50);
-				break;	
-			}
-			case '\App\Category':
-			case '\App\PointOfInterest':
+                return $instances->get();
+            break;
+            }			
+            case '\App\WinePath':
+                {
+                    $instances = $model::list($languageId, $sorting, true);
+                    return $instances->paginate(50);
+                    break;	
+                }
+                case '\App\Category':			
+                case '\App\PointOfInterest':
 			{
                 $search= (!$r->has('search'))?'':$r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                return $instances->paginate(12);
+                return $instances->get(10);
 				break;
 			}
             default:
