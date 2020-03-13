@@ -285,7 +285,7 @@ class WineryController extends BaseController
         })->join('users',function($join) {
             $join->on('rates.user_id','=','users.id');
         })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status']);
-        if($user==null || $user->role!=='admin')
+        if($user==null || $user->type!=='admin')
             $q=$q->where('status','approved');
 
         return ($paginate)?$q->paginate(10):$q;
@@ -294,10 +294,11 @@ class WineryController extends BaseController
     public function loadAllWineryCommentsForAdmin(Request $r, $paginate=true) 
     {
         $user= Auth::user();
+        
         if($user==null)
             return $this->loadAllWineryComments($r, $paginate);
         
-        if($user->role=='admin')
+        if($user->type=='admin')
             return $this->loadSuperAdminWineryComments($r, $paginate);
 
         $wineries= $user->winery()->pluck('wineries.id as id')->toArray();

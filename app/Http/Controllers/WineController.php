@@ -129,7 +129,7 @@ class WineController extends Controller {
                 $join->on('rates.user_id','=','users.id');
             })->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
         ->orderBy('rates.status','asc');
-        if($user!==null && $user->role=='admin') {
+        if($user!==null && $user->type=='admin') {
             return ($paginate)?$q->paginate(10):$q;
         }
         $q->where('rates.status','approved');
@@ -174,9 +174,9 @@ class WineController extends Controller {
         foreach($wines as $wine)
             $wine_ids[]= $wine->id;
         // dd($wine_ids);
-        if($user->role=='winery_admin') 
+        if($user->type=='winery_admin') 
             $q->whereIn('wines.id',$wine_ids);
-        if($user->role=='admin')
+        if($user->type=='admin')
             return $q->paginate(10);//->whereIn('object_id',$wine_ids)->paginate(10);
         return $q->where('rates.status','approved')->paginate(10);
     }

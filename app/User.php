@@ -230,4 +230,9 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         return $data->get();
     }
 
+    public function getRole()
+    {
+        return $this->type;
+    }
+
 }
