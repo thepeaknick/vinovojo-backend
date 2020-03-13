@@ -380,7 +380,8 @@ class Wine extends BaseModel {
 
     public function getBottleImageAttribute() {
         // return ( $this->hasBottleImage() ) ? route('bottle_image', ['id' => $this->id, 'antiCache' => time()]) : null;
-        return ( $this->hasBottleImage() ) ? 'http://vinovojo.itcentar.rs/bottle/'.$this->id.'/'.time() : null;
+        // dd($app->url)
+        return ( $this->hasBottleImage() ) ? url('/bottle/'.$this->id.'/'.time()) : null;
     }
 
     public function getFlagAttribute() {
@@ -427,7 +428,7 @@ class Wine extends BaseModel {
     }
 
     public function bottleFullPath() {
-        return Storage::disk('wines')->path( $this->bottleDiskPath() );
+        return Storage::disk('wines')->url( $this->bottleDiskPath() );
     }
 
     public function storeBottle($image) {
