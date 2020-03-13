@@ -89,6 +89,10 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         return ( empty($url) ) ? true : $this->saveProfile($url);
     }
 
+    // public function getRoleAttribute() {
+    //     return $this->attributes['role'];
+    // }
+
 
 
     //      -- Validation --

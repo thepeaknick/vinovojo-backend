@@ -282,7 +282,7 @@ class SocialController extends Controller {
             ->latest('created_at')
             ->get()
             ->paginate(10);
-
+            
         return response()->json($comments, 200);
     }
 

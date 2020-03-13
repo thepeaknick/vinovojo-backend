@@ -34,5 +34,10 @@ class TestController extends Controller {
         }
     }
 
+    public function testDB(Request $r)
+    {
+        $titles= \DB::table('text_fields')->where('name','like','ADS_WINERY_ADDRESS')->get();
+    }
+
 
 }
