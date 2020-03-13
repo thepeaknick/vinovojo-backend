@@ -136,6 +136,8 @@ $router->get('rate/approve/{id}', 'SocialController@approveComment');
 
 $router->get('rate/deapprove/{id}', 'SocialController@deapproveComment');
 
+// $router->get('/')
+
 $router->get('{object}/{id}/rate/{type}', 'RateController@filter');
 
 

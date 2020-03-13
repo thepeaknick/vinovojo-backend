@@ -263,7 +263,7 @@ class SocialController extends Controller {
 
     public function wineComments($wineId) {
         if ( is_null( app('auth')->user() ) )
-            return (new WineController)->loadWineComments($wineId);
+            return (new WineController)->loadWineComments(app('request'), $wineId);
 
         $wine = \App\Wine::where('id', $wineId)->first();
 
@@ -300,7 +300,7 @@ class SocialController extends Controller {
 
     public function wineryComments($wineryId) {
         if ( is_null( app('auth')->user() ) )
-            return (new WineryController)->loadWineryComments($wineryId);
+            return (new WineryController)->loadWineryComments(app('request'), $wineryId);
 
         $winery = \App\Winery::where('id', $wineryId)->first();
 

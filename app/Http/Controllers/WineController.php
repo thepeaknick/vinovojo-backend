@@ -103,7 +103,7 @@ class WineController extends Controller {
 	}
 
 	public function loadWineCommentsForAdmin(Request $r, $wineId) {
-        if($wineId==='panel')
+        if($wineId==='panel' || $wineId==='all')
             return $this->loadAllWineCommentsForAdmin($r);
 
         $wine = Wine::where('id', $wineId)->first();
@@ -114,7 +114,7 @@ class WineController extends Controller {
 		return response()->json($rates, 200);
     }
     
-    public function loadAllWineComments(Request $r) 
+    public function loadAllWineComments(Request $r, $paginate=true) 
 	{
         $user= Auth::user();
         $q= Rate::with('user')->join('wines',function ($query) {
@@ -130,10 +130,10 @@ class WineController extends Controller {
             })->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
         ->orderBy('rates.status','asc');
         if($user!==null && $user->role=='admin') {
-
-            return $q->paginate(10);
+            return ($paginate)?$q->paginate(10):$q;
         }
-        return $q->where('rates.status','approved')->paginate(10);
+        $q->where('rates.status','approved');
+        return ($paginate)?$q->paginate(10):$q;
 	}
 
     public function loadAllWineCommentsForAdmin(Request $r)

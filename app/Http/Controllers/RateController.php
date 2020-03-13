@@ -4,7 +4,13 @@ namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
 
+use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Http\Request;
+
+use App\Http\Controllers\WineryController;
+
+use App\Http\Controllers\WineController;
 
 use App\Rate;
 
@@ -13,8 +19,16 @@ class RateController extends BaseController
     
 	public function filter(Request $req, $object, $id, $status) {
 		$model = "App\\" . ucfirst($object);
-		$instance = $model::find($id);
+		// dd($id);
+		$is_not_id= $status==='all' || $status==='approved' || $status==='unaprooved' || $status==='hold';
+		if($model=='App\Winery' && $is_not_id)
+			return (new WineryController)->loadAllWineryComments($req,false)->where('status',$status)->paginate(10);
 
+		if($model=='App\Wine' && $is_not_id)
+			return (new WineController)->loadAllWineComments($r,false)->where('status',$status)->paginate(10);
+
+		$instance = $model::find($id);
+		// dd($instance);
 		if (!$instance)
 			return response()->json(['error' => 'Model not found'], 404);
 

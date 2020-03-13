@@ -37,7 +37,6 @@ class WineryController extends BaseController
         if($wineId==='panel' || $wineId==='all') {
             $admin= $this->loadAllWineryCommentsForAdmin($r, false);
             $all_comments= $this->loadAllWineryComments($r, false)->get();
-            // dd($admin->get());
             $coll= collect();
             foreach($admin as $admins_comm) 
                 $coll->push($admins_comm);

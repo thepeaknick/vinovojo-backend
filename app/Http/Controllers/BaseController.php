@@ -84,64 +84,67 @@ class BaseController extends Controller
         if ($r->header('Sort-By')) {
             $sortBy = $r->header('Sort-By');
         }
-		// switch ($model) 
-		// {
-        //     case '\App\Wine':
-		// 	{
-		// 		$search= '';
-		// 		if ($r->has('search')) 
-		// 			$search= $r->search;
-		// 		$instances = $model::listWithLiked($languageId, $sorting, false, $search, $sortBy);
-		// 		// if ($r->has('class_id')) 
-		// 		// {
-		// 		// 	$instances = $instances->where('class_id', '=', $r->class_id);
-		// 		// }
-		// 	break;
-		// 	};
-        //     case '\App\Winery':
-		// 	{
-		// 		$search= '';
-		// 		if ($r->has('search')) 
-		// 			$search= $r->search;
-		// 		$instances = $model::listWithLiked($languageId, $sorting, false, $r, $sortBy);
-		// 		break;
-		// 	};
-        //     case '\App\Article':
-		// 	{
+		switch ($model) 
+		{
+            case '\App\Wine':
+			{
+				$search= '';
+				if ($r->has('search')) 
+					$search= $r->search;
+                $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
+                return $instances->paginate(12);
+			break;
+			};
+            case '\App\Winery':
+			{
+				$search= '';
+                $search= (!$r->has('search'))?'':$r->search;
+                $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
+                return $instances->paginate(12);
+				break;
+			};
+            case '\App\Article':
+			{
 				
-		// 		break;
-		// 	};
-		// 	case '\App\User':
-		// 	{
-		// 		$instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
-		// 		break;
-		// 	}
-		// 	case '\App\Happening':
-		// 	{
-		// 		$sorting = $r->header('Sorting', 'desc');
-
-		// 		break;
-		// 	}
-		// 	case '\App\WinePath':
-		// 	{
-		// 		$instances = $model::list($languageId, $sorting, true);
-		// 		return $instances->paginate(50);
-		// 		break;	
-		// 	}
-		// 	case '\App\Category':
-		// 	case '\App\PointOfInterest':
-		// 	{
-		// 		$instances = $model::list($languageId, $sorting, false, $search, $sortBy);
-		// 		break;
-		// 	}
-        //     default:
-		// 	{
-		// 		$instances= $model::list($languageId, $sorting, false, $search, $sortBy);
-		// 		return $instances->get();
-		// 		break;
-		// 	};
-		// 	return $instances;
-        // }
+				break;
+			};
+			case '\App\User':
+			{
+                $search= (!$r->has('search'))?'':$r->search;
+				$instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
+				break;
+			}
+			case '\App\Happening':
+			{
+                $sorting = $r->header('Sorting', 'desc');
+                $search= (!$r->has('search'))?'':$r->search;
+                $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
+                return $instances->paginate(12);
+				break;
+			}
+			case '\App\WinePath':
+			{
+				$instances = $model::list($languageId, $sorting, true);
+				return $instances->paginate(50);
+				break;	
+			}
+			case '\App\Category':
+			case '\App\PointOfInterest':
+			{
+                $search= (!$r->has('search'))?'':$r->search;
+                $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
+                return $instances->paginate(12);
+				break;
+			}
+            default:
+			{
+                $search= (!$r->has('search'))?'':$r->search;
+				$instances= $model::list($languageId, $sorting, true, $search, $sortBy);
+				return $instances->get();
+				break;
+			};
+			return $instances;
+        }
         if ($model == '\App\Happening') {
             $sorting = $r->header('Sorting', 'desc');
         } else {
@@ -332,8 +335,11 @@ class BaseController extends Controller
             if ($r->has('profile_picture')) {
                 $instance->saveProfile($r->profile_picture);
             }
-
         }
+
+        // if($instance instanceof \App\Winery) {
+        //     if ($r->has(''))
+        // }
 
         if ($instance->update($r)) {
             return response()->json(['message' => 'Updated succefully'], 203);

@@ -79,7 +79,6 @@ class Category extends BaseModel {
         });
 
         $request = app('request');
-
         if ($getQuery)
             return $query;
         $categories = $query->get();

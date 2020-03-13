@@ -112,7 +112,6 @@ class Winery extends BaseModel {
             // dd($data);
             $allData=collect();
             foreach($data as $winery) {
-                // dd(winery);
                 $marketing=new \App\Highlight();
                 //Q$marketing->checkAndModify($winery->id,(new static)->flag);
                 $exists=\App\Favourite::where('object_id','=',$winery->id)->where('favourites.object_type', '=', '2')->first();
@@ -215,7 +214,7 @@ class Winery extends BaseModel {
             OR p_a.id= $area_id
             OR pp_a.id= $area_id
         ";
-            $areas=\DB::select(\DB::raw($query));
+            $areas= DB::select(DB::raw($query));
             foreach ($areas as $area) {
                 if(is_int($area->a_id))
                     $area_ids[]= $area->a_id;
