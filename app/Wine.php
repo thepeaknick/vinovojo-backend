@@ -379,7 +379,8 @@ class Wine extends BaseModel {
     }
 
     public function getBottleImageAttribute() {
-        return ( $this->hasBottleImage() ) ? route('bottle_image', ['id' => $this->id, 'antiCache' => time()]) : null;
+        // return ( $this->hasBottleImage() ) ? route('bottle_image', ['id' => $this->id, 'antiCache' => time()]) : null;
+        return ( $this->hasBottleImage() ) ? url('/bottle/'.$this->id.'/'.time()) : null;
     }
 
     public function getFlagAttribute() {
