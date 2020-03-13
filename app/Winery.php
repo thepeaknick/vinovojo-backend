@@ -226,6 +226,7 @@ class Winery extends BaseModel {
             $q->whereIn('wineries.area_id', array_unique($area_ids));
         }
         // $sortBy = $req->header('Sort-By', static::$listSort);
+        // dd($req->header('SortBy'));
         if(!empty($req->header('SortBy')))
         {
             $sort= $req->header('Sorting','asc');

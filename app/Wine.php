@@ -12,7 +12,7 @@ use Intervention\Image\ImageManagerStatic as Image;
 
 class Wine extends BaseModel {
 
-    public $attributes= ['areas_nested'=>''];
+    // public $attributes= ['areas_nested'=>''];
     protected $fillable = [
         'id', 'name', 'description', 'harvest_year', 'serving_temp', 'alcohol', 'serbia_bottles', 'type', 'recommended', 'category_id', 'winery_id', 'area_id', 'background', 'classification_id', 'highlighted', 'wine_type'
     ];
