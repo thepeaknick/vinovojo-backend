@@ -163,7 +163,7 @@ class Wine extends BaseModel {
             $q->on('wines.id', '=', 'rates.object_id');
             $q->where('rates.object_type', (new static)->flag );
             $q->where('status', 'approved');
-            $q->orderBy('rates.rate', $sorting);
+            // $q->orderBy('rates.rate', $sorting);
         });
         // join wineries
         $q->leftJoin('wineries', 'wines.winery_id', '=', 'wineries.id');
