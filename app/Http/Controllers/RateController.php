@@ -32,8 +32,8 @@ class RateController extends BaseController
 		if($id!=='all' && $model== 'App\Wine')
 			$q->where('wines.id','=',$id);
 
-		if($status!=='all')
 			$q->where('rates.status',$status);
+			if($status!=='all')
 
 		return $q->paginate(10);
 	}

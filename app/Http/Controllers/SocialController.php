@@ -274,7 +274,7 @@ class SocialController extends Controller {
             ->where(function ($query) {
                 $query->where('status', 'approved');
                 $query->orWhere(function ($query) {
-                    $query->where('status', '!=', 'approved');
+                    $query->where('status', '=', 'hold');
                     $query->where('user_id', app('auth')->user()->id);
                 });
             })
@@ -311,7 +311,7 @@ class SocialController extends Controller {
             ->where(function ($query) {
                 $query->where('status', 'approved');
                 $query->orWhere(function ($query) {
-                    $query->where('status', '!=', 'approved');
+                    $query->where('status', '=', 'hold');
                     $query->where('user_id', app('auth')->user()->id);
                 });
             })
