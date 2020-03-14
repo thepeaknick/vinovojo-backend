@@ -129,7 +129,7 @@ class WineController extends Controller {
                 $join->on('rates.user_id','=','users.id');
             })->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
         ->orderBy('rates.status','asc');
-        if($user!==null && $user->type=='admin') {
+        if($user!==null && ($user->type=='admin' || $user->type=='winery_admin')) {
             return ($paginate)?$q->paginate(10):$q;
         }
         $q->where('rates.status','approved');

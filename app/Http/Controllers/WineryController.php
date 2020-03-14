@@ -34,12 +34,15 @@ class WineryController extends BaseController
 	}
 
 	public function loadWineryCommentsForAdmin(Request $r,$wineId) {
+        // dd($wineId);
         if($wineId==='panel' || $wineId==='all') {
             $admin= $this->loadAllWineryCommentsForAdmin($r, false);
             $all_comments= $this->loadAllWineryComments($r, false)->get();
             $coll= collect();
-            foreach($admin as $admins_comm) 
-                $coll->push($admins_comm);
+            if($admin!==NULL) {
+                foreach($admin as $admins_comm) 
+                    $coll->push($admins_comm);
+            }
             foreach($all_comments as $comments) 
                 $coll->push($comments);
             return $coll->paginate(10);
@@ -274,6 +277,7 @@ class WineryController extends BaseController
     public function loadAllWineryComments(Request $r, $paginate=true)
     {
         $user= Auth::user();
+        // dd($user->type);
         $q= Rate::with('user')->join('wineries',function ($query) {
             $query->on('wineries.id','=','rates.object_id');
 
@@ -285,10 +289,12 @@ class WineryController extends BaseController
         })->join('users',function($join) {
             $join->on('rates.user_id','=','users.id');
         })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status']);
-        if($user==null || $user->type!=='admin')
-            $q=$q->where('status','approved');
-
+        if($user!==null && ($user->type!=='admin' || $user->type=='winery_admin'))
+            return ($paginate)?$q->paginate(10):$q;
+        
+        $q=$q->where('status','approved');
         return ($paginate)?$q->paginate(10):$q;
+
     }
 
     public function loadAllWineryCommentsForAdmin(Request $r, $paginate=true) 

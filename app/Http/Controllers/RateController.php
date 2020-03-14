@@ -19,8 +19,9 @@ class RateController extends BaseController
     
 	public function filter(Request $req, $object, $id, $status) {
 		$model = "App\\" . ucfirst($object);
-		// dd($id);
-		$is_not_id= $status==='all' || $status==='approved' || $status==='unaprooved' || $status==='hold';
+		// dd($status==='unapproved');
+		// dd(Auth::user());
+		$is_not_id= $status==='all' || $status==='approved' || $status==='unapproved' || $status==='hold';
 		if($model=='App\Winery' && $is_not_id) {
 			if($status=='all')
 				return (new WineryController)->loadAllWineryComments($req,false)->paginate(10);
