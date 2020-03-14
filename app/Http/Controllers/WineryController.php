@@ -180,6 +180,13 @@ class WineryController extends BaseController
             $q = Winery::list($langId, $sort, true);
         }
         $q->with('area');
+        /**
+         * Mobile phone sort By rate
+         */
+        if(!empty($r->header('SortBy'))) {
+            if($r->header('SortBy')==='rate') 
+                $q->orderBy('rate', $r->header('Sorting'));
+        }
         if ( $r->has('area_id') )
         {
             $area_ids=[];
@@ -208,6 +215,8 @@ class WineryController extends BaseController
             }
             $q->whereIn('wineries.area_id', array_unique($area_ids));
         }
+
+        
         if ( $r->has('min_rate') )
             $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
 
