@@ -168,6 +168,7 @@ class WineController extends Controller {
                     $join->on('rates.user_id','=','users.id');
                 })
             ->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
+            ->orderBy('rates.updated_at','desc')
             ->orderBy('rates.status','asc');
         $wines= DB::select(DB::raw($query));
         $wine_ids=[];

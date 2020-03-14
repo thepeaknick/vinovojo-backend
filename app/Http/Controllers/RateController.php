@@ -26,13 +26,13 @@ class RateController extends BaseController
 		if($model=='App\Winery' && $is_not_id) {
 			if($status=='all')
 				return (new WineryController)->loadAllWineryComments($req,false)->paginate(10);
-			else return (new WineryController)->loadAllWineryComments($req,false)->where('status',$status)->paginate(10);
+			else return (new WineryController)->loadAllWineryComments($req,false)->where('wineries.id',$id)->where('status',$status)->paginate(10);
 		}
 
 		if($model=='App\Wine' && $is_not_id) {
 			if($status=='all')			
 				return (new WineController)->loadAllWineComments($req,false)->paginate(10);
-			else return (new WineController)->loadAllWineComments($req,false)->where('status',$status)->paginate(10);
+			else return (new WineController)->loadAllWineComments($req,false)->where('wines.id',$id)->where('status',$status)->paginate(10);
 		}
 
 		$instance = $model::find($id);
