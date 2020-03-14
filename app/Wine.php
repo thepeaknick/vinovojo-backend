@@ -253,7 +253,7 @@ class Wine extends BaseModel {
         $q->groupBy('wines.id');
 
         // dd($req->SortBy);
-        if(!empty($req->header('SortBy')) && $req->SortBy!=='asc')
+        if(!empty($req->header('SortBy')) && $req->header('SortBy')!=='asc')
         {
             $sort= $req->header('Sorting','asc');
             $q->orderBy($req->header('SortBy'), $sort);

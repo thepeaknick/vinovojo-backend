@@ -49,14 +49,6 @@ class WineryController extends BaseController
         }
         $rates= $this->loadAllWineryCommentsForAdmin($r, false)->where('wineries.id','=',$wineId)->paginate(10);
         return response()->json($rates);
-		$winery = Winery::where('id', $wineId)->first();
-
-		if (!$winery)
-			return response()->json(['error' => 'Wine not found'], 404);
-
-		$rates = $winery->rates()->with('user')->latest('created_at')->paginate(10);
-
-		return response()->json($rates, 200);
 	}
 
 	public function loadVideo($wineryId) {
