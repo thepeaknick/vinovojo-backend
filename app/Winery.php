@@ -234,8 +234,8 @@ class Winery extends BaseModel {
         if(!empty($req->header('SortBy')))
         {
             $sort= $req->header('Sorting','asc');
-            $sort= ($sort==1)?'asc':'desc';
             if($req->header('SortBy')=='region') {
+                $sort= ($sort==1)?'asc':'desc';
                 $q->join('areas','wineries.area_id','areas.id')
                     ->leftJoin('text_fields as areaTransliteration',function($join) {
                         $join->on('areaTransliteration.object_id','=','areas.id');
