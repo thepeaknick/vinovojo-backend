@@ -199,6 +199,12 @@ class Wine extends BaseModel {
             $q->where('wineryTransliteration.name', 'name');
             $q->where('wineryTransliteration.language_id', $lang);
         });
+        $q->join('pins', function($q) {
+            $q->on('pins.object_id','=','wineries.id');
+            $q->where('pins.object_type','=',(new Winery)->flag);
+        });
+        $q->addSelect('pins.lat as lat');
+        $q->addSelect('pins.lng as lng');
 
         if($req->has('search'))
             $q->where('wineTransliteration.value','like','%'.$req->search.'%');
@@ -244,7 +250,7 @@ class Wine extends BaseModel {
         $q->groupBy('wines.id');
 
         // dd($req->SortBy);
-        if(!empty($req->header('SortBy')))
+        if(!empty($req->header('SortBy')) && $req->SortBy!=='asc')
         {
             $sort= $req->header('Sorting','asc');
             $q->orderBy($req->header('SortBy'), $sort);
@@ -380,7 +386,7 @@ class Wine extends BaseModel {
 
     public function getBottleImageAttribute() {
         // return ( $this->hasBottleImage() ) ? route('bottle_image', ['id' => $this->id, 'antiCache' => time()]) : null;
-        // dd($app->url)
+        // dd($_SERVER['SERVER_NAME']);
         return ( $this->hasBottleImage() ) ? url('/bottle/'.$this->id.'/'.time()) : null;
     }
 
@@ -428,7 +434,7 @@ class Wine extends BaseModel {
     }
 
     public function bottleFullPath() {
-        return Storage::disk('wines')->url( $this->bottleDiskPath() );
+        return Storage::disk('wines')->path( $this->bottleDiskPath() );
     }
 
     public function storeBottle($image) {
