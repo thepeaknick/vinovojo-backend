@@ -148,7 +148,7 @@ class Winery extends BaseModel {
     public static function list($lang, $sorting = 'asc', $getQuery = false,$search='') {
         $q = static::select( static::$listData );
 
-        $q->addSelect( app('db')->raw( "avg(rates.rate) as rate, count(IFNULL(rates.id,'')) as rate_count" ) );
+        // $q->addSelect( app('db')->raw( "avg(rates.rate) as rate, count(IFNULL(rates.id,'')) as rate_count" ) );
         // $q->addSelect('areaTransliteration.value as area');
         $q->addSelect('wineries.area_id as area_id');
 
@@ -159,9 +159,10 @@ class Winery extends BaseModel {
         $q->leftJoin('rates', function ($q) {
             $q->on('wineries.id', '=', 'rates.object_id');
             $q->where('rates.object_type', (new static)->flag );
-            $q->where('status', 'approved');
-            $q->addSelect(app('db')->raw("avg(rates.rate as rate, count(IFNULL(rates.id,'')) as rate_count"));
+            $q->where('rates.status', 'approved');
+            // $q->addSelect(app('db')->raw("avg(IIF(rates.status LIKE approved)rates.rate as rate), count(IFNULL(rates.id,'')) as rate_count"));
         });
+        // print_r($q->toSql());die();
         $q->with('pin');
 
         $q->join('text_fields as transliteration', function ($q) use ($lang,$search) {
@@ -257,7 +258,6 @@ class Winery extends BaseModel {
         $q->groupBy('wineries.id');
         if ($getQuery)
             return $q;
-
         $data = $q->paginate(10);
         foreach ($data as $singleData) {
             $marketing=new \App\Highlight();
@@ -659,14 +659,14 @@ class Winery extends BaseModel {
     }
     public function getRateAttribute()
     {
-        $rate= $this->rates()->whereNotNull('rate');
+        $rate= $this->approvedRates()->whereNotNull('rate');
         if($rate->count()>0)
             return floatval($rate->sum('rate')/$rate->count());
         else return 0;
     }
     public function getRateCountAttribute()
     {
-        $rates= $this->rates()->whereNotNull('rate');
+        $rates= $this->approvedRates()->whereNotNull('rate');
         if($rates->count()>0)
             return floatval($rates->count());
         else return 0;
