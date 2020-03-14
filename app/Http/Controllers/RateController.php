@@ -22,10 +22,14 @@ class RateController extends BaseController
 		// dd($status==='unapproved');
 		// dd(Auth::user());
 		$is_not_id= $status==='all' || $status==='approved' || $status==='unapproved' || $status==='hold';
+		
 		if($model=='App\Winery' && $is_not_id) {
 			if($status=='all')
 				return (new WineryController)->loadAllWineryComments($req,false)->paginate(10);
-			else return (new WineryController)->loadAllWineryComments($req,false)->where('status',$status)->paginate(10);
+			else {
+				print_r((new WineryController)->loadAllWineryComments($req,false)->where('status',$status)->toSql());die();
+				return (new WineryController)->loadAllWineryComments($req,false)->where('status',$status)->paginate(10);
+			}
 		}
 
 		if($model=='App\Wine' && $is_not_id) {

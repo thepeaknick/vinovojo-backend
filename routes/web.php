@@ -128,8 +128,6 @@ $router->get('wine/filter/initialize/mobile', 'WineController@initalizeFilterMob
 
 $router->get('winery/filter/initialize/mobile', 'WineryController@initializeFilterMobile');
 
-
-
 //		-- Rates --
 
 $router->get('rate/approve/{id}', 'SocialController@approveComment');
@@ -201,6 +199,7 @@ $router->get('get/category/paginate', 'WineController@paginateAllCategories');
 
 
 //		-- Winery --
+
 
 $router->get('winery/comments/panel', 'WineryController@loadAllWineryComments');
 

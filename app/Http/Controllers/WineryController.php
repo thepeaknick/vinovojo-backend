@@ -34,7 +34,6 @@ class WineryController extends BaseController
 	}
 
 	public function loadWineryCommentsForAdmin(Request $r,$wineId) {
-        // dd($wineId);
         if($wineId==='panel' || $wineId==='all') {
             $admin= $this->loadAllWineryCommentsForAdmin($r, false);
             $all_comments= $this->loadAllWineryComments($r, false)->get();
@@ -270,7 +269,7 @@ class WineryController extends BaseController
     public function loadAllWineryComments(Request $r, $paginate=true)
     {
         $user= Auth::user();
-        // dd($user->type);
+        
         $q= Rate::with('user')->join('wineries',function ($query) {
             $query->on('wineries.id','=','rates.object_id');
 
@@ -285,7 +284,7 @@ class WineryController extends BaseController
         if($user!==null && ($user->type!=='admin' || $user->type=='winery_admin'))
             return ($paginate)?$q->paginate(10):$q;
         
-        $q=$q->where('status','approved');
+        // $q=$q->where('status','approved');
         return ($paginate)?$q->paginate(10):$q;
 
     }
@@ -321,5 +320,10 @@ class WineryController extends BaseController
         ->orderBy('rates.status','asc');
         // $q= Rate::with('user')->where('object_type',(new Winery)->flag)->orderBy('status','asc');
         return ($paginate)?$q->paginate(10):$q;
+    }
+
+    public function loadWineryCommentsByType(Request $r, $type) 
+    {
+        dd($type);
     }
 }
