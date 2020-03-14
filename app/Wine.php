@@ -199,12 +199,15 @@ class Wine extends BaseModel {
             $q->where('wineryTransliteration.name', 'name');
             $q->where('wineryTransliteration.language_id', $lang);
         });
-        $q->join('pins', function($q) {
-            $q->on('pins.object_id','=','wineries.id');
-            $q->where('pins.object_type','=',(new Winery)->flag);
-        });
-        $q->addSelect('pins.lat as lat');
-        $q->addSelect('pins.lng as lng');
+        /**
+         *  WIne list problem
+         */
+        // $q->join('pins', function($q) {
+        //     $q->on('pins.object_id','=','wineries.id');
+        //     $q->where('pins.object_type','=',(new Winery)->flag);
+        // });
+        // $q->addSelect('pins.lat as lat');
+        // $q->addSelect('pins.lng as lng');
 
         if($req->has('search'))
             $q->where('wineTransliteration.value','like','%'.$req->search.'%');
