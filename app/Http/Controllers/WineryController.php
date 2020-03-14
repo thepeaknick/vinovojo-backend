@@ -47,7 +47,8 @@ class WineryController extends BaseController
                 $coll->push($comments);
             return $coll->paginate(10);
         }
-
+        $rates= $this->loadAllWineryCommentsForAdmin($r, false)->where('wineries.id','=',$wineId)->paginate(10);
+        return response()->json($rates);
 		$winery = Winery::where('id', $wineId)->first();
 
 		if (!$winery)
@@ -327,7 +328,6 @@ class WineryController extends BaseController
         })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
         ->orderBy('rates.status','asc');
         // $q= Rate::with('user')->where('object_type',(new Winery)->flag)->orderBy('status','asc');
-        ($paginate)?$q->paginate(10):$q;
+        return ($paginate)?$q->paginate(10):$q;
     }
-
 }

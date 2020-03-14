@@ -208,6 +208,8 @@ $router->get('winery/comments/panel', 'WineryController@loadAllWineryComments');
 
 $router->get('winery/comments/{wineryId}', 'WineryController@loadWineryComments');
 
+$router->get('winery/comments/all/admin', 'WineryController@loadAllWineryCommentsForAdmin');
+
 $router->get('winery/comments/{wineId}/admin', 'WineryController@loadWineryCommentsForAdmin');
 
 $router->get('winery/video/{wineryId}', 'WineryController@loadVideo');
