@@ -167,6 +167,15 @@ class Wine extends BaseModel {
         });
         // join wineries
         $q->leftJoin('wineries', 'wines.winery_id', '=', 'wineries.id');
+
+        // add pins lng and lat
+        $q->join('pins', function($join) {
+            $join->on('wineries.id','=','pins.object_id');
+            $join->where('pins.object_type','=',(new Winery)->flag);
+        });
+        $q->addSelect('pins.lat as lat');
+        $q->addSelect('pins.lng as lng');
+
         $q->with('classes');
         // join the transliteration table in order to load wine name
         $q->leftJoin('text_fields as wineTransliteration', function ($q) use ($lang,$search) {
