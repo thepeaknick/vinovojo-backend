@@ -172,6 +172,8 @@ $router->get('bottle/{id}/{antiCache}', ['uses' => 'ImageController@loadBottleIm
 
 //		-- Wine --
 
+$router->get('mobile/get/wine', 'WineController@loadWinesForMobile');
+
 $router->get('wine/category/{categoryId}', 'WineController@categoryWines');
 
 $router->get('wine/winery/{wineryId}/{categoryId}', 'WineController@wineryWines');

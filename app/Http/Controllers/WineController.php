@@ -441,6 +441,13 @@ class WineController extends Controller {
 				'name' => $win->name
 			];
 		});
-	}
+    }
+    
+    public function loadWinesForMobile(Request $req)
+    {
+        $languageId= $req->header('Accept-Language','1');
+        $q= Wine::listByWineryDistance($req, $languageId);
+        return response()->json($q->paginate(10));
+    }
 
 }

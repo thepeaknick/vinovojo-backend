@@ -52,24 +52,29 @@ class File extends BaseModel {
 
 
     public function storeFile($file) {
-        $extension = pathinfo($file->getClientOriginalName())['extension'];
-        if ($extension == 'jpg' || $extension == 'png') {
-            try {
-                $image = Image::make($file);
-                if ($image->width() > 1024)
-                    $image->resize(1024, null, function ($constraint) {
-                        $constraint->aspectRatio();
-                    });
+        try{
+            $extension = pathinfo($file->getClientOriginalName())['extension'];
+            if ($extension == 'jpg' || $extension == 'png') {
+                try {
+                    $image = Image::make($file);
+                    if ($image->width() > 1024)
+                        $image->resize(1024, null, function ($constraint) {
+                            $constraint->aspectRatio();
+                        });
+                    $path = $this->galleryPath( $file->getClientOriginalName() );
+                    $image->save( $path );
+                } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
+                    return false;
+                }
+            }else {
+                $file->storeAs($this->galleryDiskPath(), $file->getClientOriginalName(), $this->storageDisk);
                 $path = $this->galleryPath( $file->getClientOriginalName() );
-                $image->save( $path );
-            } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
-                return false;
             }
-        }
-        else {
+        }catch(\Exception $e) {
             $file->storeAs($this->galleryDiskPath(), $file->getClientOriginalName(), $this->storageDisk);
             $path = $this->galleryPath( $file->getClientOriginalName() );
         }
+
     	$this->path = pathinfo($path)['dirname'];
     	$this->filename = pathinfo($path)['basename'];
     	return $this->save();
