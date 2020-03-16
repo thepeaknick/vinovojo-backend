@@ -106,12 +106,26 @@ class WineController extends Controller {
         if($wineId==='panel' || $wineId==='all')
             return $this->loadAllWineCommentsForAdmin($r);
 
-        $wine = Wine::where('id', $wineId)->first();
-		if (!$wine)
-			return response()->json(['error' => 'Wine not found'], 404);
-        $rates = $wine->rates()->with('user')->paginate();
+        $rates = Wine::where('id', $wineId)->first();
+		if (!$rates)
+            return response()->json(['error' => 'Wine not found'], 404);
 
-		return response()->json($rates, 200);
+        $q= Rate::with('user')->join('wines',function ($query) {
+            $query->on('wines.id','=','rates.object_id');
+
+        })->join('text_fields as wineTransliteration',function($join) {
+                $join->on('wines.id','=','wineTransliteration.object_id');
+                $join->where('wineTransliteration.name','=','name');
+                $join->where('wineTransliteration.object_type','=',(new Wine)->flag);
+                $join->where('wineTransliteration.name','=','name');
+            })->join('users',function($join) {
+                $join->on('rates.user_id','=','users.id');
+            })->where('wines.id',$wineId)->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
+        ->orderBy('rates.status','asc');
+        
+        // $rates = $wine->rates()->with('user')->paginate();
+
+		return response()->json($q->paginate(10), 200);
     }
     
     public function loadAllWineComments(Request $r, $paginate=true) 

@@ -46,8 +46,21 @@ class WineryController extends BaseController
                 $coll->push($comments);
             return $coll->paginate(10);
         }
-        $rates= $this->loadAllWineryCommentsForAdmin($r, false)->where('wineries.id','=',$wineId)->paginate(10);
-        return response()->json($rates);
+        // $rates= $this->loadAllWineryCommentsForAdmin($r, false)->where('wineries.id','=',$wineId)->paginate(10);
+        $q= Rate::with('user')->join('wineries',function ($query) {
+            $query->on('wineries.id','=','rates.object_id');
+
+        })->join('text_fields as wineryTransliteration',function($join) {
+            $join->on('wineries.id','=','wineryTransliteration.object_id');
+            $join->where('wineryTransliteration.name','=','name');
+            $join->where('wineryTransliteration.object_type','=',(new Winery)->flag);
+            $join->where('wineryTransliteration.name','=','name');
+        })->join('users',function($join) {
+            $join->on('rates.user_id','=','users.id');
+        })->where('wineries.id','=',$wineId)->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
+        ->orderBy('rates.updated_at','desc')
+        ->orderBy('rates.status','asc');
+        return response()->json($q->paginate(10));
 	}
 
 	public function loadVideo($wineryId) {
@@ -185,7 +198,7 @@ class WineryController extends BaseController
          */
         if(!empty($r->header('SortBy'))) {
             if($r->header('SortBy')==='rate') 
-                $q->orderBy('rate', $r->header('Sorting'));
+                $q->orderBy('rates.rate', $r->header('Sorting'));
         }
         if ( $r->has('area_id') )
         {
