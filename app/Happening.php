@@ -20,7 +20,7 @@ class Happening extends BaseModel {
     // ];
 
     protected $fillable = [
-        'name', 'description', 'start', 'end', 'location', 'lat', 'lng', 'link', 'active'
+        'name', 'description', 'start', 'end', 'location', 'lat', 'lng', 'link', 'actives'
     ];
 
     protected $appends = [
@@ -69,6 +69,7 @@ class Happening extends BaseModel {
 
     public static function list($lang, $sorting = 'desc', $getQuery = false) {
         parent::$listSort='events.start';
+        // dd(static::all());
         $q = parent::list($lang, $sorting, true,'')
                     ->join('text_fields as nameTransliteration', function ($q) use ($lang) {
                             $q->on('nameTransliteration.object_id', '=', 'events.id');
@@ -101,6 +102,10 @@ class Happening extends BaseModel {
         if ( !parent::update($req) )
             return response()->json(['error ' => 'Something went wrong'], 500);
 
+        if($req->has('active')) {
+            $this->active= $req->active;
+            $this->save();
+        }
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
