@@ -1185,7 +1185,14 @@ class Language extends BaseModel {
         'TABLES_ARTICLE_SEARCH_FIELD_LABEL'=> 'required|string',
         'TABLES_EVENTS_SEARCH_FIELD_LABEL'=> 'required|string',
         'RATE_WINERY_TABLE_NAME'=> 'required|string',
-        'RATE_WINE_TABLE_NAME'=> 'required|string'
+        'RATE_WINE_TABLE_NAME'=> 'required|string',
+        'TABLES_ADS_STATUS_ACTIVATED'=> 'required|string',
+        'TABLES_ADS_STATUS_DEACTIVATED'=> 'required|string',
+        'TABLES_ADS_IMAGE'=> 'required|string',
+        'TABLES_ADS_NAME'=> 'required|string',
+        'TABLES_ADS_START_DATE'=> 'required|string',
+        'TABLES_ADS_END_DATE'=> 'required|string',
+        'TABLES_ADS_ACTIVE'=> 'required|string'
     ];
 
 

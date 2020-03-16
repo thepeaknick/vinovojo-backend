@@ -957,11 +957,25 @@ class BaseController extends Controller
 
 	"TABLES_ARTICLE_SEARCH_FIELD_LABEL": "Pretraga vesti",
 
-    "TABLES_EVENTS_SEARCH_FIELD_LABEL": "Pretraga dešavanja"
+    "TABLES_EVENTS_SEARCH_FIELD_LABEL": "Pretraga dešavanja",
     
-    "RATE_WINERY_TABLE_NAME": "Naziv vinarije"
+    "RATE_WINERY_TABLE_NAME": "Naziv vinarije",
     
-    "RATE_WINE_TABLE_NAME": "Naziv vina" 
+    "RATE_WINE_TABLE_NAME": "Naziv vina",
+
+    "TABLES_ADS_STATUS_ACTIVATED": "Aktivno",
+    
+    "TABLES_ADS_STATUS_DEACTIVATED": "Neaktivno",
+
+    "TABLES_ADS_IMAGE": "Slika",
+    
+    "TABLES_ADS_NAME": "Naziv",
+
+    "TABLES_ADS_START_DATE": "Datum početka",
+
+    "TABLES_ADS_END_DATE": "Datum završetka",
+
+    "TABLES_ADS_ACTIVE": "Aktivno"
 
 
 }';
