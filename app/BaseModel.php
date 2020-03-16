@@ -291,6 +291,10 @@ class BaseModel extends Model
     }
 
     public function storeCover( $image ) {
+        
+        if($image==null)
+            return $this->deleteCoverImage();
+
         try {
             $image = Image::make($image);
             $image->resize(480, null, function ($constraint) {

@@ -39,6 +39,49 @@ class TestController extends Controller {
         dd(\Storage::disk('local')->path(''));
         $titles= \DB::table('text_fields')->where('name','like','ADS_WINERY_ADDRESS')->get();
     }
+    public function textFieldsInsert(Request $r)
+    {
+        $fields_sr= [
+            'TABLES_ADS_STATUS_ACTIVATED'=> 'Aktivno',
+            'TABLES_ADS_STATUS_DEACTIVATED'=> 'Neaktivno',
+            'TABLES_ADS_IMAGE'=> 'Slika',
+            'TABLES_ADS_NAME'=> 'Naziv',
+            'TABLES_ADS_START_DATE'=> 'Datum početka',
+            'TABLES_ADS_END_DATE'=> 'Datum zavrsetka',
+            'TABLES_ADS_ACTIVE'=> 'Aktivno'
+        ];
+        $fields_en= [
+            'TABLES_ADS_STATUS_ACTIVATED'=> 'Active',
+            'TABLES_ADS_STATUS_DEACTIVATED'=> 'Deactivated',
+            'TABLES_ADS_IMAGE'=> 'Image',
+            'TABLES_ADS_NAME'=> 'Name',
+            'TABLES_ADS_START_DATE'=> 'Start date',
+            'TABLES_ADS_END_DATE'=> 'End date',
+            'TABLES_ADS_ACTIVE'=> 'Active'
+        ];
+        $data_to_insert=[];
+        foreach( $fields_sr as $key=>$val) {
+            $data_to_insert[] =[
+                'object_type'=> '29',
+                'object_id'=> '1',
+                'language_id'=> '1',
+                'name'=> $key,
+                'value'=> $val
+            ];
+        }
+        foreach($fields_en as $key=>$val) {
+            $data_to_insert[] =[
+                'object_type'=> '29',
+                'object_id'=> '4',
+                'language_id'=> '4',
+                'name'=> $key,
+                'value'=> $val
+            ];
+        }
+
+        $success= \DB::table('text_fields')->insert($data_to_insert);
+        return response()->json(['success'=>$success]);
+    }
 
 
 }

@@ -519,6 +519,9 @@ class Winery extends BaseModel {
         // } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
         //     return false;
         // }
+        if($image==null)
+            return $this->deleteLogoImage();
+
         return $image->storeAs( '', $this->logoDiskPath(), $this->storageDisk );
         return $image->save( $this->logoFullPath() );
     }
@@ -543,6 +546,9 @@ class Winery extends BaseModel {
     }
 
     public function storeVideo($video) {
+        if($video==null)
+            return $this->deleteVideo();
+            
         return $video->storeAs( '', $this->videoDiskPath(), $this->storageDisk );
     }
 
