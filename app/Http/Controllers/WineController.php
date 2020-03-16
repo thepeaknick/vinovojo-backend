@@ -122,10 +122,17 @@ class WineController extends Controller {
                 $join->on('rates.user_id','=','users.id');
             })->where('wines.id',$wineId)->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
         ->orderBy('rates.status','asc');
-        
+        $data= $q->paginate(10)->toArray();
+
+        $data['name']= Wine::where('wines.id',$wineId)->join('text_fields',function($join) {
+            $join->on('wines.id','=','text_fields.object_id');
+            $join->where('text_fields.object_type',(new Wine)->flag);
+            $join->where('text_fields.name','name');
+        })->first()->value;
+        return response()->json($data);
         // $rates = $wine->rates()->with('user')->paginate();
 
-		return response()->json($q->paginate(10), 200);
+		return response()->json($data, 200);
     }
     
     public function loadAllWineComments(Request $r, $paginate=true) 

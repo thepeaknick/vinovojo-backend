@@ -60,7 +60,14 @@ class WineryController extends BaseController
         })->where('wineries.id','=',$wineId)->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
         ->orderBy('rates.updated_at','desc')
         ->orderBy('rates.status','asc');
-        return response()->json($q->paginate(10));
+        $data= $q->paginate(10)->toArray();
+        // $data['name']='cilic';
+        $data['name']= Winery::where('wineries.id',$wineId)->join('text_fields',function($join) {
+            $join->on('wineries.id','=','text_fields.object_id');
+            $join->where('text_fields.object_type',(new Winery)->flag);
+            $join->where('text_fields.name','name');
+        })->first()->value;
+        return response()->json($data);
 	}
 
 	public function loadVideo($wineryId) {
