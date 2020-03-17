@@ -226,12 +226,17 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
     public static function loadFromFacebook(Request $r, $key){
         $soc_user= \Socialite::driver( 'facebook' )->userFromToken($key);
 
+        
         if(!$r->has('social_id') || !$r->has('social_type'))
-            return false;
-
+        return false;
+        
         $user= User::where('social_id',$r->social_id)
-                        ->where('social_type',$r->social_type)
-                        ->first();
+                    ->where('social_type',$r->social_type)
+                    ->first();
+
+        \Log::info('Soc_user: ',(array)$soc_user);
+        \Log::info('User prije: ',(array)$user);
+
         if($user==null)
         {
             $user= User::firstOrNew($r->only(['social_id,social_type']));
@@ -240,13 +245,15 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
             $user->full_name=$soc_user->user['name'];
             $user->social_key=$r->social_key;
             $user->social=1;
+            $user->social_type= '1';
             if($user->profile_picture==null)
                 $user->profile_picture= $soc_user->avatar;
             if(!$user->save())
                 return false;
                 
         }
-        
+        \Log::info('User poslije: ',(array)$user);
+
         return $user;
     }
 
