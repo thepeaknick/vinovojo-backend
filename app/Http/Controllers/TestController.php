@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Intervention\Image\ImageManagerStatic as Image;
 use Log;
 
+use App\User;
+
 use FCM;
 use Laravel\Socialite\Two\GoogleProvider;
 
