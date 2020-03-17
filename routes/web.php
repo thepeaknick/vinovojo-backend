@@ -369,6 +369,8 @@ $router->get('getSettingGoogle','SettingsController@getAll');
 $router->get('testStorage', 'TestController@testDB');
 
 $router->get('getUserByType/{userType}','TestController@loadByType');
+
+$router->get('log/download', 'TestController@logDownload');
 // $router->get('test','TestController@index');
 // $router->post('testImage','TestController@saveImage');
 // $router->get('insertTextFields','TestController@textFieldsInsert');

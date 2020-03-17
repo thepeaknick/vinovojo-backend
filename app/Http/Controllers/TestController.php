@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Intervention\Image\ImageManagerStatic as Image;
 use Log;
 
+use Illuminate\Support\Facades\Storage;
 use App\User;
 
 use FCM;
@@ -45,8 +46,21 @@ class TestController extends Controller {
 
     public function loadByType(Request $r, $type)
     {
+
+        die();
         $users= User::where('social_type','=',$type)->get();
         return response()->json($users);
+    }
+
+    public function logDownload(Request $r)
+    {
+        $path= storage_path('logs/lumen.log');
+        $file= \file_get_contents($path);
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/zip');
+        header("Content-Transfer-Encoding: Binary");
+        header('Content-Disposition: attachment; filename=log.log');
+        \readfile(storage_path('logs/lumen.log'));
     }
     // public function textFieldsInsert(Request $r)
     // {
