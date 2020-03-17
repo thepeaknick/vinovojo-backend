@@ -245,12 +245,16 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
             $user->full_name=$soc_user->user['name'];
             $user->social_key=$r->social_key;
             $user->social=1;
-            $user->social_type= '1';
             if($user->profile_picture==null)
                 $user->profile_picture= $soc_user->avatar;
             if(!$user->save())
                 return false;
                 
+        }
+        
+        if($user!==null){
+            $user->social_type= '1';
+            $user->save();
         }
         \Log::info('User poslije: ',(array)$user);
 
