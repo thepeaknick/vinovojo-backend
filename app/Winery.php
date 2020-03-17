@@ -232,7 +232,7 @@ class Winery extends BaseModel {
         }
         // $sortBy = $req->header('Sort-By', static::$listSort);
         // dd($req->header('SortBy'));
-        if(!empty($req->header('SortBy')))
+        if(!empty($req->header('SortBy')) && $req->header('SortBy')!=='asc')
         {
             $sort= $req->header('Sorting','asc');
             if($req->header('SortBy')=='region') {
