@@ -121,7 +121,7 @@ class WineController extends Controller {
             })->join('users',function($join) {
                 $join->on('rates.user_id','=','users.id');
             })->where('wines.id',$wineId)->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
-        ->orderBy('rates.status','asc');
+                ->orderBy('rates.status','asc');
         $data= $q->paginate(10)->toArray();
 
         $data['name']= Wine::where('wines.id',$wineId)->join('text_fields',function($join) {

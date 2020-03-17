@@ -58,10 +58,9 @@ class WineryController extends BaseController
         })->join('users',function($join) {
             $join->on('rates.user_id','=','users.id');
         })->where('wineries.id','=',$wineId)->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
-        ->orderBy('rates.updated_at','desc')
-        ->orderBy('rates.status','asc');
+            ->orderBy('rates.updated_at','desc')
+            ->orderBy('rates.status','asc');
         $data= $q->paginate(10)->toArray();
-        // $data['name']='cilic';
         $data['name']= Winery::where('wineries.id',$wineId)->join('text_fields',function($join) {
             $join->on('wineries.id','=','text_fields.object_id');
             $join->where('text_fields.object_type',(new Winery)->flag);
@@ -310,7 +309,8 @@ class WineryController extends BaseController
         })->join('users',function($join) {
             $join->on('rates.user_id','=','users.id');
         })
-        ->orderBy('rates.updated_at','desc')
+        ->orderBy('rates.status', 'asc')
+        ->orderBy('rates.updated_at', 'desc')
         ->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status']);
         if($user!==null && ($user->type!=='admin' || $user->type=='winery_admin'))
             return ($paginate)?$q->paginate(10):$q;
@@ -353,9 +353,5 @@ class WineryController extends BaseController
         // $q= Rate::with('user')->where('object_type',(new Winery)->flag)->orderBy('status','asc');
         return ($paginate)?$q->paginate(10):$q;
     }
-
-    public function loadWineryCommentsByType(Request $r, $type) 
-    {
-        dd($type);
-    }
+    
 }
