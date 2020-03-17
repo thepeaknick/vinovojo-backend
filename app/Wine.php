@@ -180,6 +180,10 @@ class Wine extends BaseModel {
                                         * SIN(RADIANS({$lat})))) ) as winery_distance";
             $q->addSelect(app('db')->raw($distanceCalculation));
         }else {
+            $q->join('pins', function($join) {
+                $join->on('wineries.id','=','pins.object_id');
+                $join->where('pins.object_type','=',(new Winery)->flag);
+            });
             $shouldSortByLocation= false;
         }
 
@@ -206,13 +210,13 @@ class Wine extends BaseModel {
         });
         $q->addSelect( app('db')->raw( "avg(rates.rate) as rate,count(rates.rate) as rate_count" ) );
 
-        // load areas and parent and parent
+        // // load areas and parent and parent
         // $q->join('areas', function ($q)use($langId) {
         //     $q->on('wineries.area_id','=', 'areas.id');
         //     // join translates
         //     $q->join('text_fields as areaTransliteration', function($q) use ($langId) {
         //         $q->on('areas.id', '=', 'areaTransliteration.object_id');
-        //         $q->where('object_type', (new Area)->flag);
+        //         $q->where('areaTransliteration.object_type', (new Area)->flag);
         //         $q->where('areaTransliteration.name', 'name');
         //         if ($langId) {
         //             $q->where('language_id', $langId);
@@ -221,8 +225,8 @@ class Wine extends BaseModel {
         //     $q->join('areas as parent', function($q)use ($langId) {
         //         $q->on('areas.parent_id', '=', 'parent.id');
         //         $q->join('text_fields as parentAreaTransliteration', function($q) use ($langId) {
-        //             $q->on('areas.id', '=', 'parentAreaTransliteration.object_id');
-        //             $q->where('object_type', (new Area)->flag);
+        //             $q->on('parent.id', '=', 'parentAreaTransliteration.object_id');
+        //             $q->where('parentAreaTransliteration.object_type', (new Area)->flag);
         //             $q->where('parentAreaTransliteration.name', 'name');
         //             if ($langId) {
         //                 $q->where('language_id', $langId);
@@ -232,7 +236,7 @@ class Wine extends BaseModel {
         //     return $q;
         // });
         // $q->addSelect(['areas.id as id, areaTransliteration.value as area_name, parentAreaTransliteration.value as parent_name']);
-        // // dd($q->toSql());
+        // print_r($q->toSql());die();
         // filters
         if($req->has('area_id') && !empty($req->area_id) && ctype_digit($req->area_id)) {
             $area_ids=[];
@@ -292,9 +296,6 @@ class Wine extends BaseModel {
             if($shouldSortByLocation && !$isSortByRate) {
                 $q->orderBy('winery_distance', 'asc');
             }
-            
-
-            
         }else {
             if($shouldSortByLocation) {
                 $q->orderBy('winery_distance', 'asc');
@@ -309,9 +310,6 @@ class Wine extends BaseModel {
 
         $q->groupBy('wines.id');
         $q->with(['classes','area','area.parent']);
-        
-
-        // handling areas
 
 
         // handle search
