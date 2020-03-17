@@ -231,7 +231,7 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
         return false;
         
         $user= User::where('social_id',$r->social_id)
-                    ->where('social_type',$r->social)
+                    ->where('social_type',$r->social_type)
                     ->first();
 
         \Log::info('Soc_user: ',(array)$soc_user);
