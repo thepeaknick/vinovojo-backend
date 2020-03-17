@@ -70,11 +70,6 @@ class BaseController extends Controller
 
     public function loadAll($resource, Request $r)
     {
-
-        /* $result = WineType::get();
-        var_dump($result->toArray());
-        die();*/
-        //  $sorting = $r->header('Sorting', 'asc');
         $languageId = $r->header('Accept-Language');
 
 		$model = $this->resourceClass($resource);
@@ -101,18 +96,13 @@ class BaseController extends Controller
                 $search= (!$r->has('search'))?'':$r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
                 return $instances->paginate(10);
-				break;
-			};
-            case '\App\Article':
-			{
-				
-				break;
+            break;
 			};
 			case '\App\User':
 			{
                 $search= (!$r->has('search'))?'':$r->search;
 				$instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
-				break;
+            break;
 			}
 			case '\App\Happening':
             {
@@ -123,114 +113,114 @@ class BaseController extends Controller
             break;
             }			
             case '\App\WinePath':
-                {
-                    $instances = $model::list($languageId, $sorting, true);
-                    return $instances->paginate(50);
-                    break;	
-                }
-                case '\App\Category':			
-                case '\App\PointOfInterest':
+            {
+                $instances = $model::list($languageId, $sorting, true);
+                return $instances->paginate(50);
+            break;	
+            }
+            case '\App\Category':			
+            case '\App\PointOfInterest':
 			{
                 $search= (!$r->has('search'))?'':$r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
                 return $instances->get(10);
-				break;
+            break;
 			}
             default:
 			{
                 $search= (!$r->has('search'))?'':$r->search;
 				$instances= $model::list($languageId, $sorting, true, $search, $sortBy);
 				return $instances->get();
-				break;
+            break;
 			};
 			return $instances;
         }
-        if ($model == '\App\Happening') {
-            $sorting = $r->header('Sorting', 'desc');
-        } else {
-            $sorting = $r->header('Sorting', 'asc');
-        }
+//         if ($model == '\App\Happening') {
+//             $sorting = $r->header('Sorting', 'desc');
+//         } else {
+//             $sorting = $r->header('Sorting', 'asc');
+//         }
 
-        // dd($r->search);
-        //  Search
-        //        if($model=='\App\PointOfIn')
-        $sortBy = '';
-        if ($r->header('Sort-By')) {
-            $sortBy = $r->header('Sort-By');
-        }
-        if ($r->has('search')) {
-            $search = $r->search;
-            if ($model == '\App\Wine' || $model == '\App\Winery') {
-                $instances = $model::listWithLiked($languageId, $sorting, false, $search, $sortBy);
-            } else if ($model == '\App\User') {
-                $instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
-                return $instances;
-            } else {
-                if ($model == '\App\WinePath') {
-                    $instances = $model::list($languageId, $sorting, true);
-                } else {
-                    $instances = $model::list($languageId, $sorting, false, $search, $sortBy);
-                    if ($model == '\App\Article') {
-                        return $instances;
-                    }
+//         // dd($r->search);
+//         //  Search
+//         //        if($model=='\App\PointOfIn')
+//         $sortBy = '';
+//         if ($r->header('Sort-By')) {
+//             $sortBy = $r->header('Sort-By');
+//         }
+//         if ($r->has('search')) {
+//             $search = $r->search;
+//             if ($model == '\App\Wine' || $model == '\App\Winery') {
+//                 $instances = $model::listWithLiked($languageId, $sorting, false, $search, $sortBy);
+//             } else if ($model == '\App\User') {
+//                 $instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
+//                 return $instances;
+//             } else {
+//                 if ($model == '\App\WinePath') {
+//                     $instances = $model::list($languageId, $sorting, true);
+//                 } else {
+//                     $instances = $model::list($languageId, $sorting, false, $search, $sortBy);
+//                     if ($model == '\App\Article') {
+//                         return $instances;
+//                     }
 
-                }
-            }
+//                 }
+//             }
 
-        } else {
-            $search = '';
-            if ($model == '\App\Wine' || $model == '\App\Winery') {
-                $instances = $model::listWithLiked($languageId, $sorting, false, $search, $sortBy);
-                // if ($r->has('class_id')) {
-                //     $instances = $instances->where('class_id', '=', $r->class_id);
-                // }
-                return response()->json($instances->paginate(12));
-            } else if ($model == '\App\User') {
-                $instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
-                return $instances;
-            } else {
-                if ($model == '\App\WinePath') {
-                    $instances = $model::list($languageId, $sorting, true);
-                } else if ($model == '\App\PointOfInterest') {
-                    $instances = $model::list($languageId, $sorting);
-                    return response()->json($instances);
-                } else {
-                    $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                }
-            }
+//         } else {
+//             $search = '';
+//             if ($model == '\App\Wine' || $model == '\App\Winery') {
+//                 $instances = $model::listWithLiked($languageId, $sorting, false, $search, $sortBy);
+//                 // if ($r->has('class_id')) {
+//                 //     $instances = $instances->where('class_id', '=', $r->class_id);
+//                 // }
+//                 return response()->json($instances->paginate(12));
+//             } else if ($model == '\App\User') {
+//                 $instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
+//                 return $instances;
+//             } else {
+//                 if ($model == '\App\WinePath') {
+//                     $instances = $model::list($languageId, $sorting, true);
+//                 } else if ($model == '\App\PointOfInterest') {
+//                     $instances = $model::list($languageId, $sorting);
+//                     return response()->json($instances);
+//                 } else {
+//                     $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
+//                 }
+//             }
 
-        }
-        if ($model == '\App\Category' || $model == '\App\PointOfInterest') {
-            return $instances->get();
-        }
+//         }
+//         if ($model == '\App\Category' || $model == '\App\PointOfInterest') {
+//             return $instances->get();
+//         }
 
-//        Manually sort  rates
-        if ($model == '\App\Wine' || $model == '\App\Winery') {
-            foreach ($instances as $instance) {
-//             var_dump($instance);
-                if (isset(((object) $instance)->rate_count)) {
-                    $count = \App\Rate::where('object_id', $instance['id'])->where('rates.status', '=', 'approved')->whereNotNull('rates.rate')->get()->count();
-                    $instance['rate_count'] = $count;
-                }
-            }
-            return $instances;
-        }
+// //        Manually sort  rates
+//         if ($model == '\App\Wine' || $model == '\App\Winery') {
+//             foreach ($instances as $instance) {
+// //             var_dump($instance);
+//                 if (isset(((object) $instance)->rate_count)) {
+//                     $count = \App\Rate::where('object_id', $instance['id'])->where('rates.status', '=', 'approved')->whereNotNull('rates.rate')->get()->count();
+//                     $instance['rate_count'] = $count;
+//                 }
+//             }
+//             return $instances;
+//         }
 
-        if ($resource == 'winePath' || $model == '\App\WinePath') {
-//            print_r($instances->toSql());
-            //            dd();
-            //            dd($instances->toSql());
-            //            $instances=\App\WinePath::list($languageId,$sorting,false);
-            //            dd($instances->with('wines'));
-            return $instances->paginate(50);
-        }
+//         if ($resource == 'winePath' || $model == '\App\WinePath') {
+// //            print_r($instances->toSql());
+//             //            dd();
+//             //            dd($instances->toSql());
+//             //            $instances=\App\WinePath::list($languageId,$sorting,false);
+//             //            dd($instances->with('wines'));
+//             return $instances->paginate(50);
+//         }
 
-//        dd($instances);
-        if ($instances instanceof Illuminate\Database\Eloquent\Builder) {
-            return $instances->get()->paginate(10);
-        }
+// //        dd($instances);
+//         if ($instances instanceof Illuminate\Database\Eloquent\Builder) {
+//             return $instances->get()->paginate(10);
+//         }
 
-        return $instances->get();
+//         return $instances->get();
     }
 
     public function loadWithPagination($resource, Request $r)
@@ -337,10 +327,6 @@ class BaseController extends Controller
             }
         }
 
-        // if($instance instanceof \App\Winery) {
-        //     if ($r->has(''))
-        // }
-
         if ($instance->update($r)) {
             return response()->json(['message' => 'Updated succefully'], 203);
         }
@@ -359,8 +345,6 @@ class BaseController extends Controller
             return response()->json(['error' => $resource . ' not found'], 404);
         }
 
-        // \Log::alert('Korisnik'.$model);
-        // dd($instance);
         if ($model == '\App\User') {
             if (!$instance->clear()) {
                 return response()->json(['message' => 'Something went wrong'], 500);

@@ -210,33 +210,6 @@ class Wine extends BaseModel {
         });
         $q->addSelect( app('db')->raw( "avg(rates.rate) as rate,count(rates.rate) as rate_count" ) );
 
-        // // load areas and parent and parent
-        // $q->join('areas', function ($q)use($langId) {
-        //     $q->on('wineries.area_id','=', 'areas.id');
-        //     // join translates
-        //     $q->join('text_fields as areaTransliteration', function($q) use ($langId) {
-        //         $q->on('areas.id', '=', 'areaTransliteration.object_id');
-        //         $q->where('areaTransliteration.object_type', (new Area)->flag);
-        //         $q->where('areaTransliteration.name', 'name');
-        //         if ($langId) {
-        //             $q->where('language_id', $langId);
-        //         }
-        //     });
-        //     $q->join('areas as parent', function($q)use ($langId) {
-        //         $q->on('areas.parent_id', '=', 'parent.id');
-        //         $q->join('text_fields as parentAreaTransliteration', function($q) use ($langId) {
-        //             $q->on('parent.id', '=', 'parentAreaTransliteration.object_id');
-        //             $q->where('parentAreaTransliteration.object_type', (new Area)->flag);
-        //             $q->where('parentAreaTransliteration.name', 'name');
-        //             if ($langId) {
-        //                 $q->where('language_id', $langId);
-        //             }
-        //         });
-        //     });
-        //     return $q;
-        // });
-        // $q->addSelect(['areas.id as id, areaTransliteration.value as area_name, parentAreaTransliteration.value as parent_name']);
-        // print_r($q->toSql());die();
         // filters
         if($req->has('area_id') && !empty($req->area_id) && ctype_digit($req->area_id)) {
             $area_ids=[];
@@ -455,7 +428,7 @@ class Wine extends BaseModel {
             OR p_a.id= $area_id
             OR pp_a.id= $area_id
         ";
-            $areas=\DB::select(\DB::raw($query));
+            $areas= DB::select(DB::raw($query));
             foreach ($areas as $area) {
                 if(is_int($area->a_id))
                     $area_ids[]= $area->a_id;

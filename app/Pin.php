@@ -2,6 +2,8 @@
 
 namespace App;
 
+use DB;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Pin extends Model {
@@ -29,12 +31,10 @@ class Pin extends Model {
 	}
 
 	public function getLogoAttribute($value) {
-        $data= \DB::table('text_fields')->where('value','like','%'.$this->name.'%')->where('object_type',3)->first();
+        $data= DB::table('text_fields')->where('value','like','%'.$this->name.'%')->where('object_type',3)->first();
         if($data!=null) {
-//            dd($data);
             if($this->type==3) {
-                $winery= \App\Winery::where('id',$data->object_id)->first();
-//                \Log::info('VINARIJA',(array)$winery);
+                $winery= Winery::where('id',$data->object_id)->first();
                 if(isset($winery) && !empty($winery) && $winery!=null)
                 {
                     if($winery->logo_image)
@@ -46,15 +46,10 @@ class Pin extends Model {
     }
 
     public function getWineryIdAttribute() {
-        $data= \DB::table('text_fields')->where('value','like','%'.$this->name.'%')->where('object_type',3)->first();
-//        dd($data);
-////        dd($this);
-//        if(strpos($data->name,'Imperator'))
-//            dd($this);
+        $data= DB::table('text_fields')->where('value','like','%'.$this->name.'%')->where('object_type',3)->first();
         if($data!=null) {
             if($data->object_type==3) {
-//                dd($data);
-                $winery= \App\Winery::where('id',$data->object_id)->first();
+                $winery= Winery::where('id',$data->object_id)->first();
                 if($winery!==null)
                 {
                     if($winery->id)

@@ -96,7 +96,7 @@ class Advertising extends BaseModel {
     }
 
     public static function getAll(){
-        $allData=\App\Advertising::get();
+        $allData= Advertising::get();
         foreach($allData as $ads){
 //            $ads->active = static::checkActive($ads->start_date,$ads->end_date);
             if(strlen($ads->image_url)<60)
@@ -148,6 +148,7 @@ class Advertising extends BaseModel {
         $startdate=new Carbon( date($start_date) );
         $enddate=new Carbon( date($end_date) );
         $now=Carbon::now();
+        // check if not expired
         if( $now->lt( $enddate ) && $now->gt($startdate) ){
           return 1;
         }
@@ -161,7 +162,7 @@ class Advertising extends BaseModel {
         return false;
     }
     public static function loadMobile(){
-        $data=\App\Advertising::getAll();
+        $data= Advertising::getAll();
         $allData=collect();
         foreach($data as $ad){
 //            $ad->active = static::checkActive($ad->start_date,$ad->end_date);
@@ -175,7 +176,6 @@ class Advertising extends BaseModel {
     }
 
     public function imagePath() {
-//        \Log::info("Path image: \t\t \n\n",array('path'=>static::$folderPath.'/'.$this->id.'.png'));
         return Storage::disk('local')->path( static::$folderPath.'/'.$this->id.'.png' );
     }
     public function destroyAds()

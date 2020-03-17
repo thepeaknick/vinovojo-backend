@@ -47,7 +47,6 @@
                 $selfInstance=static::where('object_id',$id)->where('object_type',$object_flag)->get();
                 $data=['object_id'=>$id,'object_type'=>$object_flag];
                 $highlighted=$selfInstance->where('type',HIGHLIGHTED)->first();
-//                 dd($highlighted);
                 if($highlighted!==null)
                 {
                     $data['type']=1;
@@ -61,16 +60,14 @@
 
                 }
                 $recommended=$selfInstance->where('type',RECOMMENDED)->first();
-//                 dd($recommended);
                 if($recommended!==null)
                 {
                     \Log::info("RECOMMENDED: ",(array)($recommended));
                     $relationInstance=$recommended->loadRelations();
-//                    dd($relationInstance);
                     $data['type']=RECOMMENDED;
-                    $selfInstance=static::checkExists($data);
-                    \Log::info("Self instance",['instanca'=>(array)($selfInstance)]);
-                    \Log::info("Datum je istekao/nije",['istekao'=>$selfInstance->expired(),'vino'=>$relationInstance->toArray()]);
+                    $selfInstance= static::checkExists($data);
+                    // \Log::info("Self instance",['instanca'=>(array)($selfInstance)]);
+                    // \Log::info("Datum je istekao/nije",['istekao'=>$selfInstance->expired(),'vino'=>$relationInstance->toArray()]);
                     if($selfInstance && isset($selfInstance->start_date) && isset($selfInstance->end_date) && $selfInstance->expired()){
                         $selfInstance->status=0;
                         $relationInstance->recommended=0;
@@ -83,7 +80,7 @@
 
         public static function storeOrChange(Request $r)
         {
-            $instance=new \App\HighLight();
+            $instance=new HighLight;
             $data=$r->only(['object_id','object_type','start_date','end_date','type','status']);
             $exists=static::checkExists($data);
             if($exists && $exists->object_id!==null)
@@ -107,7 +104,7 @@
                 return response()->json(['message' => "Succesifully updated"]);
 
             }else{
-                $success=\App\Highlight::insert((array)($data));
+                $success= Highlight::insert((array)($data));
                 if($success)
                 {
                         $instance=static::all()->where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->first();
@@ -192,7 +189,7 @@
 
         public static function checkExists($newData)
         {
-            $exists=\App\Highlight::all()->where('object_id',$newData['object_id'])->where('object_type',$newData['object_type'])->where('type',$newData['type'])->first();
+            $exists= Highlight::all()->where('object_id',$newData['object_id'])->where('object_type',$newData['object_type'])->where('type',$newData['type'])->first();
             return ($exists && $exists!==null)?$exists:false;
         }
 
@@ -210,11 +207,11 @@
         {
             if($this->object_type==2)
             {
-                $this->wine=\App\Wine::where('id',$this->object_id)->get();
+                $this->wine= Wine::where('id',$this->object_id)->get();
             }
             if($this->object_type==3)
             {
-                $this->winery=\App\Winery::where('id',$this->object_id)->get();
+                $this->winery= Winery::where('id',$this->object_id)->get();
             }
             return $this;
         }
@@ -223,11 +220,11 @@
             $relation=null;
             if($this->object_type==2)
             {
-                $relation=\App\Wine::where('id',$this->object_id)->first();
+                $relation= Wine::where('id',$this->object_id)->first();
             }
             if($this->object_type==3)
             {
-                $relation=\App\Winery::where('id',$this->object_id)->first();
+                $relation= Winery::where('id',$this->object_id)->first();
             }
             return $relation;
         }
@@ -235,9 +232,9 @@
         public function modifyRelations($data)
         {
             if($this->object_type==2)
-                $instance=\App\Wine::find($this->object_id);
+                $instance= Wine::find($this->object_id);
             if($this->object_type==3)
-                $instance=\App\Winery::find($this->object_id);
+                $instance= Winery::find($this->object_id);
             if($this->type==1)
                 $instance->highlighted=$data['status'];
             else if($this->type==2)

@@ -2,6 +2,11 @@
     namespace App\Http\Controllers;
     use Illuminate\Http\Request;
 
+    use App\Wine;
+    use App\Winery;
+    use App\Highlight;
+    use Carbon\Carbon;
+
     define('WINERY_TYPE',3);
     define('WINE_TYPE',2);
 
@@ -14,16 +19,16 @@
 //             $instance=new \App\Highlight;
 
 //            dd($instance);
-            return \App\Highlight::storeOrChange($r);
+            return Highlight::storeOrChange($r);
         }
         public function all()
         {
 
-            return \App\Highlight::getAll();
+            return Highlight::getAll();
         }
         public function insertNeccessaryData()
         {
-            foreach(\App\Wine::all() as $wine)
+            foreach(Wine::all() as $wine)
             {
                 //for Recommended
                 $data=[
@@ -34,13 +39,13 @@
                     'start_date'=>\Carbon\Carbon::create(),
                     'end_date'=>\Carbon\Carbon::create()
                 ];
-                $self=\App\Highlight::where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->where('type',$data['type'])->first();
+                $self= Highlight::where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->where('type',$data['type'])->first();
 //                 dd($self);
                 $request=new \Illuminate\Http\Request($data);
                 if(!$self) {
 
 
-                    $recommended=new \App\Highlight();
+                    $recommended=new Highlight();
                     $recommended->storeOrChange($request);
                 }
 
@@ -49,9 +54,9 @@
 
                     $request['type']=HIGH;
                     $request['status']=$wine->highlighted;
-                $self=\App\Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
+                $self= Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
                 if(!$self) {
-                    $highlighted=new \App\Highlight();
+                    $highlighted=new Highlight();
                     //                    dd($request);
                     $highlighted->storeOrChange($request);
                 }
@@ -67,24 +72,23 @@
                     'object_type'=>WINERY_TYPE,
                     'type'=>REC,
                     'status'=>$winery->recommended,
-                    'start_date'=>\Carbon\Carbon::create(),
-                    'end_date'=>\Carbon\Carbon::create()
+                    'start_date'=> Carbon::create(),
+                    'end_date'=> Carbon::create()
                 ];
 
                 $request=new \Illuminate\Http\Request($data);
-                $self=\App\Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
-                \Log::info("Self: ",(array)($self));
+                $self= Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
                 if(!$self) {
-                    $recommended=new \App\Highlight;
+                    $recommended=new Highlight;
                      $recommended->storeOrChange($request);
                 }
 
                 $request['type']=HIGH;
                 $request['status']=$winery->highlighted;
-                $self=\App\Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
+                $self= Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
                 \Log::info("Self: ",(array)($self));
                 if(!$self) {
-                    $highlighted=new \App\Highlight;
+                    $highlighted=new Highlight;
                     $highlighted->storeOrChange($request);
                 }
 
@@ -95,7 +99,7 @@
             $this->insertNeccessaryData();
             if($r->has(['object_id','object_type','type']))
             {
-                $data=\App\Highlight::where('object_id',$r['object_id'])->where('object_type',$r['object_type'])->where('type',$r['type'])->get();
+                $data= Highlight::where('object_id',$r['object_id'])->where('object_type',$r['object_type'])->where('type',$r['type'])->get();
 //                 dd($r->all());
                 foreach ($data as $highlight)
                 {
