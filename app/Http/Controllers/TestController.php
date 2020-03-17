@@ -47,7 +47,6 @@ class TestController extends Controller {
     public function loadByType(Request $r, $type)
     {
 
-        die();
         $users= User::where('social_type','=',$type)->get();
         return response()->json($users);
     }
