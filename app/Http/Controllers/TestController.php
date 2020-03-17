@@ -36,6 +36,8 @@ class TestController extends Controller {
 
     public function testDB(Request $r)
     {
+        $soc_users= User::where('social_type','=','1')->get();
+        return response()->json($soc_users);
         dd(\Storage::disk('local')->path(''));
         $titles= \DB::table('text_fields')->where('name','like','ADS_WINERY_ADDRESS')->get();
     }

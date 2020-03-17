@@ -13,6 +13,8 @@ use App\Wine;
 
 use App\Winery;
 
+use App\User;
+
 use Log;
 
 use LaravelFCM\Message\OptionsBuilder;

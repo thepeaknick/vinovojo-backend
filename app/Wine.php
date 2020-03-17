@@ -289,21 +289,22 @@ class Wine extends BaseModel {
             if($isSortByRate) {
                 $q->orderBy('rate', $sortingType);
             }
-
-            $q->orderBy('highlighted', 'desc');
+            
             $q->orderBy('recommended', 'desc');
+            $q->orderBy('highlighted', 'desc');
             
             if($shouldSortByLocation && !$isSortByRate) {
                 $q->orderBy('winery_distance', 'asc');
             }
         }else {
             if($shouldSortByLocation) {
+                $q->orderBy('recommended', 'desc');
+                $q->orderBy('highlighted', 'desc');
+                
                 $q->orderBy('winery_distance', 'asc');
-                $q->orderBy('highlighted', 'desc');
-                $q->orderBy('recommended', 'desc');
             }else {
-                $q->orderBy('highlighted', 'desc');
                 $q->orderBy('recommended', 'desc');
+                $q->orderBy('highlighted', 'desc');
             }
             
         }
