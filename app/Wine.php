@@ -276,7 +276,7 @@ class Wine extends BaseModel {
             $q->where('alcohol','=', $req->alcohol);
 
         if($req->has('min_rate')) {
-            $join->having('rates', '>', $req->min_rate);
+            $q->where('rate', '>', $req->min_rate);
         }
 
         // order
@@ -300,7 +300,7 @@ class Wine extends BaseModel {
             if($shouldSortByLocation) {
                 $q->orderBy('recommended', 'desc');
                 $q->orderBy('highlighted', 'desc');
-                
+
                 $q->orderBy('winery_distance', 'asc');
             }else {
                 $q->orderBy('recommended', 'desc');

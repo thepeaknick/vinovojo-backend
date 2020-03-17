@@ -38,10 +38,15 @@ class TestController extends Controller {
 
     public function testDB(Request $r)
     {
-        $soc_users= User::where('social_type','=','1')->get();
-        return response()->json($soc_users);
+
         dd(\Storage::disk('local')->path(''));
         $titles= \DB::table('text_fields')->where('name','like','ADS_WINERY_ADDRESS')->get();
+    }
+
+    public function loadByType(Request $r, $type)
+    {
+        $users= User::where('social_type','=',$type)->get();
+        return response()->json($users);
     }
     // public function textFieldsInsert(Request $r)
     // {
