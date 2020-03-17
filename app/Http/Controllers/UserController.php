@@ -63,7 +63,6 @@ class UserController extends BaseController
 		if ( is_null($sort) )
 			$sort = 'asc';
 
-//        dd($order);
 		$query->orderBy($order, $sort);
 
 

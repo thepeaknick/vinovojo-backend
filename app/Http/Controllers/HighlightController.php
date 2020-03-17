@@ -16,14 +16,10 @@
     {
         public function change(Request $r)
         {
-//             $instance=new \App\Highlight;
-
-//            dd($instance);
             return Highlight::storeOrChange($r);
         }
         public function all()
         {
-
             return Highlight::getAll();
         }
         public function insertNeccessaryData()
@@ -36,8 +32,8 @@
                     'object_type'=>WINE_TYPE,
                     'type'=>REC,
                     'status'=>$wine->recommended,
-                    'start_date'=>\Carbon\Carbon::create(),
-                    'end_date'=>\Carbon\Carbon::create()
+                    'start_date'=> Carbon::create(),
+                    'end_date'=> Carbon::create()
                 ];
                 $self= Highlight::where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->where('type',$data['type'])->first();
 //                 dd($self);
@@ -51,9 +47,8 @@
 
 
                 // for Highlighted
-
-                    $request['type']=HIGH;
-                    $request['status']=$wine->highlighted;
+                $request['type']=HIGH;
+                $request['status']=$wine->highlighted;
                 $self= Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
                 if(!$self) {
                     $highlighted=new Highlight();

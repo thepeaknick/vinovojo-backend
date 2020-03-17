@@ -75,7 +75,7 @@ class PointOfInterest extends BaseModel {
     //      -- CRUD override --
 
     public function postCreation($req = null) {
-        $point = new \App\Pin($req->only(['lat', 'lng']));
+        $point = new Pin($req->only(['lat', 'lng']));
         $point->object_id = $this->id;
         $point->object_type = $this->flag;
         return $point->save();
@@ -83,7 +83,7 @@ class PointOfInterest extends BaseModel {
 
     public static function list($languageId, $sorting = 'asc', $getQuery = false) {
         $q = parent::list($languageId, $sorting, true);
-        $q->join( (new \App\TextField)->getTable() . ' as transliterations', function ($query) {
+        $q->join( (new TextField)->getTable() . ' as transliterations', function ($query) {
             $query->on('transliterations.object_id', '=', (new static)->getTable() . '.id');
             $query->where('transliterations.object_type', (new static)->flag);
             $query->where('transliterations.name', 'name');
@@ -99,7 +99,7 @@ class PointOfInterest extends BaseModel {
         // Add default language for winery list
         $languageId= ($languageId!=null)?$languageId:'1';
 
-        $wineries = \App\Winery::list($languageId, $sorting, true,'');
+        $wineries = Winery::list($languageId, $sorting, true,'');
         $wineries->join('pins', function($query) {
             $query->on('pins.object_id', '=', 'wineries.id');
             $query->where('pins.object_type', (new \App\Winery)->flag);
