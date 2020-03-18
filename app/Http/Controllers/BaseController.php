@@ -223,9 +223,21 @@ class BaseController extends Controller
         $model = $this->resourceClass($resource);
         \Log::info('Zahtev za patch ' . $resource, $r->all());
         if ($r->has('json')) {
-            $r->replace(json_decode($r->json, 1));
-        }
+            $r2= $r->all();
 
+            $r->replace(json_decode($r->json, 1));
+
+            if(array_key_exists('logo', $r2) && $r2['logo']=='null')
+                $r->merge(['logo'=>$r2['logo']]);
+
+            if(array_key_exists('cover', $r2) && $r2['cover']=='null')
+                $r->merge(['cover'=>$r2['cover']]);
+
+            if(array_key_exists('video', $r2) && $r2['logo']=='null')
+                $r->merge(['video'=>$r2['video']]);
+
+        }
+        // dd($r->cover);
         $instance = $model::find($id);
         if (!$instance) {
             return response()->json(['error' => $resource . ' not found'], 404);
