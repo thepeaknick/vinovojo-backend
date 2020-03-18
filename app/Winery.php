@@ -362,6 +362,7 @@ class Winery extends BaseModel {
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
+        \Log::emergency('COVER: ',['cover:366 =>'=> ($req->has('cover') && ($req->cover== null) && !$req->hasFile('cover'))]);
         if( $req->has('cover') && ($req->cover== null) && !$req->hasFile('cover'))
             $this->deleteCoverImage();
 
