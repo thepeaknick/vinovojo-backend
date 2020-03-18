@@ -873,7 +873,9 @@ class BaseController extends Controller
 
     "TABLES_ADS_END_DATE": "Datum završetka",
 
-    "TABLES_ADS_ACTIVE": "Aktivno"
+    "TABLES_ADS_ACTIVE": "Aktivno",
+
+    "WINE_PATH_ADD_SEARCH_WINERY_LABEL": "Pretraži vinarije iz baze"
 
 
 }';

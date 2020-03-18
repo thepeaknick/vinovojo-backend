@@ -1192,7 +1192,8 @@ class Language extends BaseModel {
         'TABLES_ADS_NAME'=> 'required|string',
         'TABLES_ADS_START_DATE'=> 'required|string',
         'TABLES_ADS_END_DATE'=> 'required|string',
-        'TABLES_ADS_ACTIVE'=> 'required|string'
+        'TABLES_ADS_ACTIVE'=> 'required|string',
+        'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'required|string'
     ];
 
 
