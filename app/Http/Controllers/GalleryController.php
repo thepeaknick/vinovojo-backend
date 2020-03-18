@@ -14,8 +14,8 @@ class GalleryController extends Controller {
         if ( !$winery )
             return response()->json(['error' => 'Winery does not exist'], 404);
 
-        if ( !$winery->galleryHas($image) )
-            return response()->json(['error' => 'Image does not exist'], 404);
+        // if ( !$winery->galleryHas($image) )
+        //     return response()->json(['error' => 'Image does not exist'], 404);
 
         return response()->download( $winery->galleryImage($id) );
     }
