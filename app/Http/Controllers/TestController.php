@@ -61,37 +61,37 @@ class TestController extends Controller {
         header('Content-Disposition: attachment; filename=log.log');
         \readfile(storage_path('logs/lumen.log'));
     }
-    public function textFieldsInsert(Request $r)
-    {
-        $fields_sr= [
-            'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'Pretraži vinarije iz baze',
-        ];
-        $fields_en= [
-            'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'Search wineries from database',
-        ];
-        $data_to_insert=[];
-        foreach( $fields_sr as $key=>$val) {
-            $data_to_insert[] =[
-                'object_type'=> '29',
-                'object_id'=> '1',
-                'language_id'=> '1',
-                'name'=> $key,
-                'value'=> $val
-            ];
-        }
-        foreach($fields_en as $key=>$val) {
-            $data_to_insert[] =[
-                'object_type'=> '29',
-                'object_id'=> '4',
-                'language_id'=> '4',
-                'name'=> $key,
-                'value'=> $val
-            ];
-        }
+    // public function textFieldsInsert(Request $r)
+    // {
+    //     $fields_sr= [
+    //         'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'Pretraži vinarije iz baze',
+    //     ];
+    //     $fields_en= [
+    //         'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'Search wineries from database',
+    //     ];
+    //     $data_to_insert=[];
+    //     foreach( $fields_sr as $key=>$val) {
+    //         $data_to_insert[] =[
+    //             'object_type'=> '29',
+    //             'object_id'=> '1',
+    //             'language_id'=> '1',
+    //             'name'=> $key,
+    //             'value'=> $val
+    //         ];
+    //     }
+    //     foreach($fields_en as $key=>$val) {
+    //         $data_to_insert[] =[
+    //             'object_type'=> '29',
+    //             'object_id'=> '4',
+    //             'language_id'=> '4',
+    //             'name'=> $key,
+    //             'value'=> $val
+    //         ];
+    //     }
 
-        $success= \DB::table('text_fields')->insert($data_to_insert);
-        return response()->json(['success'=>$success]);
-    }
+    //     $success= \DB::table('text_fields')->insert($data_to_insert);
+    //     return response()->json(['success'=>$success]);
+    // }
 
 
 }
