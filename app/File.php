@@ -53,18 +53,25 @@ class File extends BaseModel {
 
     public function storeFile($file) {
         try{
-            $extension = pathinfo($file->getClientOriginalName())['extension'];
-            if ($extension == 'jpg' || $extension == 'png') {
-                try {
-                    $image = Image::make($file);
-                    if ($image->width() > 1024)
-                        $image->resize(1024, null, function ($constraint) {
-                            $constraint->aspectRatio();
-                        });
-                    $path = $this->galleryPath( $file->getClientOriginalName() );
-                    $image->save( $path );
-                } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
-                    return false;
+            $name= $file->getClientOriginalName();
+
+            if(\is_string($name)) {
+                $file->storeAs($this->galleryDiskPath(), $file->getClientOriginalName(), $this->storageDisk);
+                $path = $this->galleryPath( $file->getClientOriginalName() );
+            }else if(\is_array($name)) {
+                $extension = pathinfo($file->getClientOriginalName())['extension'];
+                if ($extension == 'jpg' || $extension == 'png') {
+                    try {
+                        $image = Image::make($file);
+                        if ($image->width() > 1024)
+                            $image->resize(1024, null, function ($constraint) {
+                                $constraint->aspectRatio();
+                            });
+                        $path = $this->galleryPath( $file->getClientOriginalName() );
+                        $image->save( $path );
+                    } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
+                        return false;
+                    }
                 }
             }else {
                 $file->storeAs($this->galleryDiskPath(), $file->getClientOriginalName(), $this->storageDisk);

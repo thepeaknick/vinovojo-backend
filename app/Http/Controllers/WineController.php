@@ -195,7 +195,7 @@ class WineController extends Controller {
         $wine_ids=[];
         foreach($wines as $wine)
             $wine_ids[]= $wine->id;
-        // dd($wine_ids);
+
         if($user->type=='winery_admin') 
             $q->whereIn('wines.id',$wine_ids);
         if($user->type=='admin')
@@ -267,10 +267,6 @@ class WineController extends Controller {
 	public function filter(Request $r, $paginate = true) {
 		$lang = $r->header('Accept-Language');
 
-		// if ( $r->has('sort') )
-		// 	$sort = ($r->sort_name == 1) ? 'asc' : 'desc';
-		// else
-        // 	$sort = 'asc';
         if($r->has('sort'))
             $sort= ($r->sort==1)?'asc':'desc';
         else $sort= 'asc';
@@ -339,8 +335,6 @@ class WineController extends Controller {
             }
             $q->whereIn('wines.area_id', array_unique($area_ids));
         }
-
-
 
 		$q->orderBy('harvest_year', 'asc');
 

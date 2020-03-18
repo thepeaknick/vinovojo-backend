@@ -355,12 +355,21 @@ class Winery extends BaseModel {
         if ( $req->hasFile('logo') ) {
             $this->storeLogo($req->logo);
         }
+        
+        if( $req->has('logo') && $req->logo== null && !$req->hasFile('logo'))
+            $this->deleteCoverImage();
 
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
+        if( $req->has('cover') && $req->cover== null && !$req->hasFile('cover'))
+            $this->deleteCoverImage();
+
         if ( $req->hasFile('video') )
             $this->storeVideo($req->video);
+
+        if( $req->has('video') && $req->video== null && !$req->hasFile('video'))
+            $this->deleteCoverImage();
 
 
 

@@ -291,7 +291,7 @@ class BaseModel extends Model
     }
 
     public function storeCover( $image ) {
-        
+
         if($image==null)
             return $this->deleteCoverImage();
 
