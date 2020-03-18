@@ -233,7 +233,7 @@ class BaseController extends Controller
             if(array_key_exists('cover', $r2) && $r2['cover']=='null')
                 $r->merge(['cover'=>$r2['cover']]);
 
-            if(array_key_exists('video', $r2) && $r2['logo']=='null')
+            if(array_key_exists('video', $r2) && $r2['video']=='null')
                 $r->merge(['video'=>$r2['video']]);
 
         }
