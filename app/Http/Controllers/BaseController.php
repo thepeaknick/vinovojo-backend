@@ -118,12 +118,18 @@ class BaseController extends Controller
                 return $instances->paginate(50);
             break;	
             }
-            case '\App\Category':			
+            case '\App\Category':
+            {
+                $search= (!$r->has('search'))?'':$r->search;
+                $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
+                return $instances->get(10);   
+            break;
+            }		
             case '\App\PointOfInterest':
 			{
                 $search= (!$r->has('search'))?'':$r->search;
-                $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                return $instances->get(10);
+                $instances = $model::list($languageId, $sorting, false, $search, $sortBy);
+                return $instances;
             break;
 			}
             default:
