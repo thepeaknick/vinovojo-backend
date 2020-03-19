@@ -374,3 +374,4 @@ $router->get('log/download', 'TestController@logDownload');
 // $router->get('test','TestController@index');
 // $router->post('testImage','TestController@saveImage');
 $router->get('insertTextFields','TestController@textFieldsInsert');
+$router->get('textSeeder', 'TestController@textFieldsSeeder');

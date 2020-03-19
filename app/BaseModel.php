@@ -338,7 +338,7 @@ class BaseModel extends Model
     public function only($values = []) {
         $values = ( is_object($values) ) ? $values->all() : $values;
         $currentVisible = $this->getVisible();
-
+        
         $this->setVisible( $values );
         $return = $this->toArray();
 

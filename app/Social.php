@@ -225,7 +225,7 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
 
     public static function loadFromFacebook(Request $r, $key){
         $soc_user= \Socialite::driver( 'facebook' )->userFromToken($key);
-
+        
         
         if(!$r->has('social_id') || !$r->has('social_type'))
         return false;
