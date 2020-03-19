@@ -305,7 +305,8 @@ class Winery extends BaseModel {
             })->get();
         foreach ($areas as $area){
             $area->name= $area->value;
-            $area->parent= $area->parent->parent;
+            if($area->parent!==null)
+                $area->parent= $area->parent->parent;
         }
         $this->areas=$areas;
 
