@@ -358,6 +358,17 @@ class Wine extends BaseModel {
         $q->addSelect('pins.lng as lng');
 
         $q->with('classes');
+        // join categories
+        $q->join('wine_categories', function($join) {
+            $join->on('wines.category_id','=','wine_categories.id');
+        });
+        $q->join('text_fields as categoryTransliteration', function($join) use($lang){
+            $join->on('wine_categories.id','=','categoryTransliteration.object_id');
+            $join->where('categoryTransliteration.object_type',(new Category)->flag);
+            $join->where('categoryTransliteration.language_id',$lang);
+            $join->where('categoryTransliteration.name','name');
+        });
+        $q->addSelect('categoryTransliteration.value as category_name');
         // join the transliteration table in order to load wine name
         $q->leftJoin('text_fields as wineTransliteration', function ($q) use ($lang,$search) {
             $q->on('wines.id', '=', 'wineTransliteration.object_id');
@@ -404,7 +415,6 @@ class Wine extends BaseModel {
 
         // if($search!=='')
         //     $q->where('wineTransliteration.value','like','%'.$search.'%');
-
 
         if($req->has('category_id') && !empty($req->category_id))
             $q->where('wines.category_id','=',$req->category_id);
