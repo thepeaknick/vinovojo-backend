@@ -86,24 +86,34 @@ class PointOfInterest extends BaseModel {
     }
 
     public static function list($languageId, $sorting = 'asc', $getQuery = false) {
+        $req= app('request');
+        $sort= $req->header('Sorting','asc');
+
         $q = parent::list($languageId, $sorting, true);
-        $q->join( (new TextField)->getTable() . ' as transliterations', function ($query) {
+        $q->join( (new TextField)->getTable() . ' as transliterations', function ($query)use($languageId) {
             $query->on('transliterations.object_id', '=', (new static)->getTable() . '.id');
             $query->where('transliterations.object_type', (new static)->flag);
             $query->where('transliterations.name', 'name');
+            // $query->where('transliterations.language_id',$languageId);
         });
-         
+
+        $q->join('poi_type',function($join) {
+            $join->on('poi_type.id','=','pois.type');
+        });
+        $q->addSelect('poi_type.name as poi_type');
         $q->addSelect('transliterations.value as name');
 
-        $req= app('request');
+        if($req->has('search')) {
+            $q->where('transliterations.value','like','%'.$r->search.'%');
+            $q->orWhere('transliterations.address','like','%'.$r->search.'%');
+        }
+
         if(!empty($req->header('SortPoi')) && $req->header('SortPoi')!=='asc')
         {
-            $sort= $req->header('Sorting','asc');
+
             $column= $req->header('SortPoi');
             if($column=='type'){
-                $q->join('poi_type',function($join) {
-                    $join->on('poi_type.id','=','pois.type');
-                })->orderBy('poi_type.name', $sort);
+                $q->orderBy('poi_type', $sort);
             }else {
                 $q->orderBy($column, $sort);
             }

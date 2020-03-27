@@ -29,7 +29,7 @@ class BaseModel extends Model
 
     public static function list($lang, $sorting = 'asc', $getQuery = false) {
     	$q = static::select( static::$listData )->with( static::$listRelationships );
-        $q->orderBy( static::$listSort, $sorting );
+        //$q->orderBy( static::$listSort, $sorting );
 
         if ($getQuery)
             return $q;
