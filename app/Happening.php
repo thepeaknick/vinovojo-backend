@@ -69,7 +69,6 @@ class Happening extends BaseModel {
 
     public static function list($lang, $sorting = 'desc', $getQuery = false) {
         parent::$listSort='events.start';
-        // dd(static::all());
         $q = parent::list($lang, $sorting, true,'')
                     ->join('text_fields as nameTransliteration', function ($q) use ($lang) {
                             $q->on('nameTransliteration.object_id', '=', 'events.id');
@@ -87,6 +86,11 @@ class Happening extends BaseModel {
         if($req->has('search'))
             $q->where('nameTransliteration.value','like','%'.$req->search.'%');
 
+        if(!empty($req->header('SortBy')) && $req->header('SortBy')!=='asc')
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }
         return ($getQuery) ? $q : $q->paginate(10);
     }
 
