@@ -152,6 +152,12 @@ class TestController extends Controller {
         // \fclose($file);
         // return response()->json($string);
     }
+    public function insertTable(Request $r)
+    {
+        $query= "CREATE TABLE IF NOT EXISTS poi_type (id INT NOT NULL, name VARCHAR(100), PRIMARY KEY (id));";
+        $success= DB::select(DB::raw($query));
+        return response()->json(['message' => $success]);
+    }
 
 
 }
