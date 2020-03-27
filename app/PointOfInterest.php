@@ -70,6 +70,10 @@ class PointOfInterest extends BaseModel {
     	return $this->hasOne('App\Pin', 'object_id')->where('object_type', $this->flag);
     }
 
+    public function type() {
+        return $this->hasOne('App\PoiType', 'id')->where('id', $this->type);
+    }
+
 
 
     //      -- CRUD override --
@@ -91,8 +95,24 @@ class PointOfInterest extends BaseModel {
          
         $q->addSelect('transliterations.value as name');
 
+        $req= app('request');
+        if(!empty($req->header('SortPoi')) && $req->header('SortPoi')!=='asc')
+        {
+            $sort= $req->header('Sorting','asc');
+            $column= $req->header('SortPoi');
+            if($column=='type'){
+                $q->join('poi_type',function($join) {
+                    $join->on('poi_type.id','=','pois.type');
+                })->orderBy('poi_type.name', $sort);
+            }else {
+                $q->orderBy($column, $sort);
+            }
+        }
         if ($getQuery)
             return $q;
+
+ 
+        // dd($q->toSql());
 
         $pois = $q->get();
 

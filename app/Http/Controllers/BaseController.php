@@ -348,6 +348,14 @@ class BaseController extends Controller
         return response()->json($results, 200);
     }
 
+    public function loadPois($resource, Request $r)
+    {
+        $model = $this->resourceClass($resource);  
+        $language= $r->header('language_id','1');
+        $pois= $model::list($language,'',true);
+        return response()->json($pois->paginate(10));
+    }
+
     public function searchByParam($resource, Request $req)
     {
         // dd($req->header('Accept-Language'));

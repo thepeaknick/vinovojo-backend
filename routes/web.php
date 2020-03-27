@@ -277,6 +277,7 @@ $router->post('add/language/{resource}/{resourceId}', 'BaseController@addLanguag
 
 	// -- Miscellaneous --
 
+$router->get('search/{resource}', 'BaseController@loadPois');
 $router->post('search/{resource}', 'BaseController@search');
 
 $router->get('dropdown/{resource}', 'BaseController@dropdown');
