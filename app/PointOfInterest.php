@@ -104,8 +104,8 @@ class PointOfInterest extends BaseModel {
         $q->addSelect('transliterations.value as name');
 
         if($req->has('search')) {
-            $q->where('transliterations.value','like','%'.$r->search.'%');
-            $q->orWhere('transliterations.address','like','%'.$r->search.'%');
+            $q->where('transliterations.value','like','%'.$req->search.'%')
+                ->orWhere('address','like','%'.$req->search.'%');
         }
 
         if(!empty($req->header('SortPoi')) && $req->header('SortPoi')!=='asc')
