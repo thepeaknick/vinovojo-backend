@@ -199,6 +199,31 @@ class Winery extends BaseModel {
         //     }
         //     $q->whereIn('wineries.area_id', array_unique($area_ids));
         // }
+        $q->join('areas as a', function($join) {
+            $join->on('wineries.area_id','=', 'a.id');
+        })->join('text_fields as aTransliteration',function($join)use ($lang) {
+            $join->on('aTransliteration.object_id','=','a.id');
+            $join->where('aTransliteration.object_type','=',(new Area)->flag);
+            $join->where('aTransliteration.name','name');
+            $join->where('aTransliteration.language_id','=',$lang);
+        })->join('areas as p', function($join) {
+                $join->on('p.id','=', 'a.parent_id');
+        })->join('text_fields as pTransliteration',function($join)use ($lang) {
+            $join->on('pTransliteration.object_id','=','p.id');
+            $join->where('pTransliteration.object_type','=',(new Area)->flag);
+            $join->where('pTransliteration.name','name');
+            $join->where('pTransliteration.language_id','=',$lang);
+        })->join('areas as pp', function($join) {
+                $join->on('pp.id','=', 'p.parent_id');
+        })->join('text_fields as ppTransliteration',function($join)use ($lang) {
+            $join->on('ppTransliteration.object_id','=','pp.id');
+            $join->where('ppTransliteration.object_type','=',(new Area)->flag);
+            $join->where('ppTransliteration.name','name');
+            $join->where('ppTransliteration.language_id','=',$lang);
+        });
+        $q->addSelect('aTransliteration.value as area_name');
+        $q->addSelect('pTransliteration.value as area_parent_name');
+        $q->addSelect('ppTransliteration.value as area_parent_parent_name');
 
         if ( $req->has('area_id') )
         {
