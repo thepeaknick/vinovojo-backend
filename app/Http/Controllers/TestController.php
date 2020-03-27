@@ -154,8 +154,17 @@ class TestController extends Controller {
     }
     public function insertTable(Request $r)
     {
-        $query= "CREATE TABLE IF NOT EXISTS poi_type (id INT NOT NULL, name VARCHAR(100), PRIMARY KEY (id));";
-        $success= DB::select(DB::raw($query));
+        // $query= "CREATE TABLE IF NOT EXISTS poi_type (id INT NOT NULL, name VARCHAR(100), PRIMARY KEY (id));";
+        // $success= DB::select(DB::raw($query));
+        $success= DB::table('poi_type')->insert([
+            [
+                'id'=> '20',
+                'name'=> 'Vinoteka'
+            ],[
+                'id'=> '21',
+                'name'=> 'Vinarija'
+            ]
+        ]);
         return response()->json(['message' => $success]);
     }
 
