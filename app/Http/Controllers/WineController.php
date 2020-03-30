@@ -113,15 +113,26 @@ class WineController extends Controller {
         $q= Rate::with('user')->join('wines',function ($query) {
             $query->on('wines.id','=','rates.object_id');
 
-        })->join('text_fields as wineTransliteration',function($join) {
-                $join->on('wines.id','=','wineTransliteration.object_id');
-                $join->where('wineTransliteration.name','=','name');
-                $join->where('wineTransliteration.object_type','=',(new Wine)->flag);
-                $join->where('wineTransliteration.name','=','name');
-            })->join('users',function($join) {
-                $join->on('rates.user_id','=','users.id');
-            })->where('wines.id',$wineId)->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
-                ->orderBy('rates.status','asc');
+        })
+        ->join('text_fields as wineTransliteration',function($join) {
+            $join->on('wines.id','=','wineTransliteration.object_id');
+            $join->where('wineTransliteration.name','=','name');
+            $join->where('wineTransliteration.object_type','=',(new Wine)->flag);
+            $join->where('wineTransliteration.name','=','name');
+        })->join('users',function($join) {
+            $join->on('rates.user_id','=','users.id');
+        })->where('wines.id',$wineId)->select(['wineTransliteration.value as name', 'rates.*', 'rates.status']);
+
+        $req= app('request');
+        if($req->header('SortBy') && !empty($req->header('SortBy')))
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }else {
+            $q->orderBy('rates.updated_at','desc');
+            $q->orderBy('rates.status','asc');
+
+        }
         $data= $q->paginate(10)->toArray();
 
         $data['name']= Wine::where('wines.id',$wineId)->join('text_fields',function($join) {

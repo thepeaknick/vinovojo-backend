@@ -337,6 +337,7 @@ class WineryController extends BaseController
 
     public function loadSuperAdminWineryComments(Request $r, $paginate=true)
     {
+        $req= app('request');
         $q= Rate::with('user')->join('wineries',function ($query) {
             $query->on('wineries.id','=','rates.object_id');
 
@@ -347,9 +348,16 @@ class WineryController extends BaseController
             $join->where('wineryTransliteration.name','=','name');
         })->join('users',function($join) {
             $join->on('rates.user_id','=','users.id');
-        })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
-        ->orderBy('rates.updated_at','desc')
-        ->orderBy('rates.status','asc');
+        })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status']);
+        if($req->header('SortBy') && !empty($req->header('SortBy')))
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }else {
+            $q->orderBy('rates.updated_at','desc');
+            $q->orderBy('rates.status','asc');
+
+        }
         // $q= Rate::with('user')->where('object_type',(new Winery)->flag)->orderBy('status','asc');
         return ($paginate)?$q->paginate(10):$q;
     }
