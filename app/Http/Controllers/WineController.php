@@ -199,9 +199,16 @@ class WineController extends Controller {
             ->join('users',function($join) {
                     $join->on('rates.user_id','=','users.id');
                 })
-            ->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
-            ->orderBy('rates.updated_at','desc')
-            ->orderBy('rates.status','asc');
+            ->select(['wineTransliteration.value as name', 'rates.*', 'rates.status']);
+        $req= app('request');
+        if($req->header('SortBy') && !empty($req->header('SortBy')))
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }else {
+            $q->orderBy('rates.updated_at','desc');
+            $q->orderBy('rates.status','asc');
+        }
         $wines= DB::select(DB::raw($query));
         $wine_ids=[];
         foreach($wines as $wine)
