@@ -323,12 +323,13 @@ class WineryController extends BaseController
     public function loadAllWineryCommentsForAdmin(Request $r, $paginate=true) 
     {
         $user= Auth::user();
-        
+
         if($user==null)
             return $this->loadAllWineryComments($r, $paginate);
-        
-        if($user->type=='admin')
-            return $this->loadSuperAdminWineryComments($r, $paginate);
+        // dd($user->type);
+        $all_comments= $this->loadSuperAdminWineryComments($r,false);
+        if($user->type=='admin' || $user->type=='winery_admin')
+            return $all_comments->paginate(10);
 
         $wineries= $user->winery()->pluck('wineries.id as id')->toArray();
         $q= Rate::with('user')->where('object_type',(new Winery)->flag)->whereIn('object_id',$wineries)->orderBy('rates.updated_at','desc');
