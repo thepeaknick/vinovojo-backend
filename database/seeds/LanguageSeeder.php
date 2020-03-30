@@ -1275,6 +1275,13 @@ class LanguageSeeder extends Seeder
   "TABLES_ADS_END_DATE": "Datum zavrsetka",
   "TABLES_ADS_ACTIVE": "Aktivno",
   "WINE_PATH_ADD_SEARCH_WINERY_LABEL": "Pretraži vinarije iz baze",
+
+  "SETTINGS_CREATE_CARD_NAME": "Kreiranje",
+  "SETTINGS_EDIT_CARD_NAME": "Uređivanje",
+  "FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW" : "Veličina slike je prekoračena. Maksimalna dozvoljena veličina slike je 2MB.",
+  "FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW" : "Veličina video zapisa je prekoračena. Maksimalna dozvoljena veličina video zapisa je 35MB.",
+  "WINERY_TABLE_REONS" : "Regija",
+  "WINERY_TABLE_VINOGORJE" : "Vinogorje",
 }';
 
 }

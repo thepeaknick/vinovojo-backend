@@ -66,10 +66,20 @@ class TestController extends Controller {
     public function textFieldsInsert(Request $r)
     {
         $fields_sr= [
-            'ADS_TITLE'=> 'Naslov'
+            'SETTINGS_CREATE_CARD_NAME'=> 'Kreiranje',
+            'SETTINGS_EDIT_CARD_NAME'=> 'Uređivanje',
+            'FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW'=> 'Veličina slike je prekoračena. Maksimalna dozvoljena veličina slike je 2MB.',
+            'FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW'=> 'Veličina video zapisa je prekoračena. Maksimalna dozvoljena veličina video zapisa je 35MB.',
+            'WINERY_TABLE_REONS'=> 'Regija',
+            'WINERY_TABLE_VINOGORJE'=> 'Vinogorje'
         ];
         $fields_en= [
-            'ADS_TITLE'=> 'Title'
+            'SETTINGS_CREATE_CARD_NAME'=> 'Creating',
+            'SETTINGS_EDIT_CARD_NAME'=> 'Editing',
+            'FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW'=> 'Max size of picture is exceed. Max size of picture is 2MB',
+            'FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW'=> 'Max size of video is exceed. Max size of video is 35MB',
+            'WINERY_TABLE_REONS'=> 'Region',
+            'WINERY_TABLE_VINOGORJE'=> 'Winery area'
         ];
         $data_to_insert=[];
         foreach( $fields_sr as $key=>$val) {

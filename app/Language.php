@@ -1193,7 +1193,13 @@ class Language extends BaseModel {
         'TABLES_ADS_START_DATE'=> 'required|string',
         'TABLES_ADS_END_DATE'=> 'required|string',
         'TABLES_ADS_ACTIVE'=> 'required|string',
-        'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'required|string'
+        'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'required|string',
+        'SETTINGS_CREATE_CARD_NAME'=> 'required|string',
+        'SETTINGS_EDIT_CARD_NAME'=> 'required|string',
+        'FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW'=> 'required|string',
+        'FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW'=> 'required|string',
+        'WINERY_TABLE_REONS'=> 'required|string',
+        'WINERY_TABLE_VINOGORJE'=> 'required|string'
     ];
 
 
