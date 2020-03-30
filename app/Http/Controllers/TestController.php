@@ -63,65 +63,51 @@ class TestController extends Controller {
         header('Content-Disposition: attachment; filename=log.log');
         \readfile(storage_path('logs/lumen.log'));
     }
-    // public function textFieldsInsert(Request $r)
-    // {
-    //     $fields_sr= [
-    //         'TABLES_ADS_STATUS_ACTIVATED'=> 'Aktivno',
-    //         'TABLES_ADS_STATUS_DEACTIVATED'=> 'Neaktivno',
-    //         'TABLES_ADS_IMAGE'=> 'Slika',
-    //         'TABLES_ADS_NAME'=> 'Naziv',
-    //         'TABLES_ADS_START_DATE'=> 'Datum početka',
-    //         'TABLES_ADS_END_DATE'=> 'Datum završetka',
-    //         'TABLES_ADS_ACTIVE'=> 'Aktivno',
-    //         'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'Pretraži vinarije iz baze'
-    //     ];
-    //     $fields_en= [
-    //         'TABLES_ADS_STATUS_ACTIVATED'=> 'Actived',
-    //         'TABLES_ADS_STATUS_DEACTIVATED'=> 'Deactivated',
-    //         'TABLES_ADS_IMAGE'=> 'Image',
-    //         'TABLES_ADS_NAME'=> 'Name',
-    //         'TABLES_ADS_START_DATE'=> 'Start date',
-    //         'TABLES_ADS_END_DATE'=> 'End date',
-    //         'TABLES_ADS_ACTIVE'=> 'Active',
-    //         'WINE_PATH_ADD_SEARCH_WINERY_LABEL'=> 'Search wineries from database'
-    //     ];
-    //     $data_to_insert=[];
-    //     foreach( $fields_sr as $key=>$val) {
-    //         $one_row =[
-    //             'object_type'=> '29',
-    //             'object_id'=> '1',
-    //             'language_id'=> '1',
-    //             'name'=> $key,
-    //             'value'=> $val
-    //         ];
+    public function textFieldsInsert(Request $r)
+    {
+        $fields_sr= [
+            'ADS_TITLE'=> 'Naslov'
+        ];
+        $fields_en= [
+            'ADS_TITLE'=> 'Title'
+        ];
+        $data_to_insert=[];
+        foreach( $fields_sr as $key=>$val) {
+            $one_row =[
+                'object_type'=> '29',
+                'object_id'=> '1',
+                'language_id'=> '1',
+                'name'=> $key,
+                'value'=> $val
+            ];
 
-    //         try{
-    //             \DB::table('text_fields')->insert($one_row);
-    //         }catch(\Exception $e) {
-    //             continue;
-    //         }
-    //         // $data_to_insert[] = $one_row;
-    //     }
-    //     foreach($fields_en as $key=>$val) {
-    //         $one_row =[
-    //             'object_type'=> '29',
-    //             'object_id'=> '4',
-    //             'language_id'=> '4',
-    //             'name'=> $key,
-    //             'value'=> $val
-    //         ];
+            try{
+                \DB::table('text_fields')->insert($one_row);
+            }catch(\Exception $e) {
+                continue;
+            }
+            // $data_to_insert[] = $one_row;
+        }
+        foreach($fields_en as $key=>$val) {
+            $one_row =[
+                'object_type'=> '29',
+                'object_id'=> '4',
+                'language_id'=> '4',
+                'name'=> $key,
+                'value'=> $val
+            ];
 
-    //         try{
-    //             \DB::table('text_fields')->insert($one_row);
-    //         }catch(\Exception $e) {
-    //             continue;
-    //         }
-    //         // $data_to_insert[]= $one_row;
-    //     }
+            // try{
+            //     \DB::table('text_fields')->insert($one_row);
+            // }catch(\Exception $e) {
+            //     continue;
+            // }
+            $data_to_insert[]= $one_row;
+        }
 
-    //     $success= \DB::table('text_fields')->insert($data_to_insert);
-    //     return response()->json(['success'=>$success]);
-    // }
+        $success= \DB::table('text_fields')->insert($data_to_insert);
+        return response()->json(['success'=>$success]);
+    }
 
     public function textFieldsSeeder(Request $r) 
     {
