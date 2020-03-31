@@ -1199,7 +1199,19 @@ class Language extends BaseModel {
         'FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW'=> 'required|string',
         'FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW'=> 'required|string',
         'WINERY_TABLE_REONS'=> 'required|string',
-        'WINERY_TABLE_VINOGORJE'=> 'required|string'
+        'WINERY_TABLE_VINOGORJE'=> 'required|string',
+        'POI_DROPDOWN_TYPES_LABEL'=> 'required|string',
+        'ADS_ADD_TITLE'=> 'required|string',
+        'ADS_EDIT_TITLE'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_NEWS'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_RECOMMENDED'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_FAVOURITE'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_WINE'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_WINERY'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_ROADS'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_EVENTS'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_ALWAYS'=> 'required|string',
+        'ADS_DROPDOWN_ITEM_ONCE'=> 'required|string'
     ];
 
 

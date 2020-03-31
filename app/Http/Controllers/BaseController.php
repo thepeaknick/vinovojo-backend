@@ -915,6 +915,30 @@ class BaseController extends Controller
 
     "WINERY_TABLE_VINOGORJE" : "Vinogorje",
 
+    "POI_DROPDOWN_TYPES_LABEL" : "Tip tačke od interesa",
+
+    "ADS_ADD_TITLE" : "Marketing",
+
+    "ADS_EDIT_TITLE" : "Marketing",
+
+    "ADS_DROPDOWN_ITEM_NEWS" : "Vesti",
+
+    "ADS_DROPDOWN_ITEM_RECOMMENDED" : "Preporučeno",
+
+    "ADS_DROPDOWN_ITEM_FAVOURITE" : "Omiljeno",
+
+    "ADS_DROPDOWN_ITEM_WINE" : "Vina",
+
+    "ADS_DROPDOWN_ITEM_WINERY" : "Vinarije",
+
+    "ADS_DROPDOWN_ITEM_ROADS" : "Putevi",
+
+    "ADS_DROPDOWN_ITEM_EVENTS" : "Dešavanja",
+
+    "ADS_DROPDOWN_ITEM_ALWAYS" : "Stalno",
+
+    "ADS_DROPDOWN_ITEM_ONCE" : "Jednom",
+
 
 }';
 

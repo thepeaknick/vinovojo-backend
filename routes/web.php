@@ -377,3 +377,4 @@ $router->get('log/download', 'TestController@logDownload');
 $router->get('insertTextFields','TestController@textFieldsInsert');
 $router->get('textSeeder', 'TestController@textFieldsSeeder');
 $router->get('insertTable', 'TestController@insertTable');
+$router->get('consoleCheck', 'TestController@consoleindex');

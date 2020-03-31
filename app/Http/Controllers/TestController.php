@@ -15,6 +15,13 @@ use FCM;
 use Laravel\Socialite\Two\GoogleProvider;
 
 class TestController extends Controller {
+    public function consoleindex()
+    {
+        $out=[];
+        $command= "cd ../../ && php artisan check:daily";
+        exec($command,$out);
+        dd($out);
+    }
     public function index(Request $r)
     {
         dd('tu si');
@@ -66,20 +73,37 @@ class TestController extends Controller {
     public function textFieldsInsert(Request $r)
     {
         $fields_sr= [
-            'SETTINGS_CREATE_CARD_NAME'=> 'Kreiranje',
-            'SETTINGS_EDIT_CARD_NAME'=> 'Uređivanje',
-            'FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW'=> 'Veličina slike je prekoračena. Maksimalna dozvoljena veličina slike je 2MB.',
-            'FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW'=> 'Veličina video zapisa je prekoračena. Maksimalna dozvoljena veličina video zapisa je 35MB.',
-            'WINERY_TABLE_REONS'=> 'Regija',
-            'WINERY_TABLE_VINOGORJE'=> 'Vinogorje'
+            'POI_DROPDOWN_TYPES_LABEL'=> 'Tip tačke od interesa',
+            'ADS_ADD_TITLE'=> 'Marketing',
+            'ADS_EDIT_TITLE'=> 'Marketing',
+            'ADS_DROPDOWN_ITEM_NEWS'=> 'Vesti',
+            'ADS_DROPDOWN_ITEM_RECOMMENDED'=> 'Preporučeno',
+            'ADS_DROPDOWN_ITEM_FAVOURITE'=> 'Omiljeno',
+            'ADS_DROPDOWN_ITEM_WINE'=> 'Vina',
+            'ADS_DROPDOWN_ITEM_WINERY'=> 'Vinarije',
+            'ADS_DROPDOWN_ITEM_ROADS'=> 'Putevi',
+            'ADS_DROPDOWN_ITEM_EVENTS'=> 'Desavanja',
+
+            'ADS_DROPDOWN_ITEM_ALWAYS'=> 'Stalno',
+            'ADS_DROPDOWN_ITEM_ONCE'=> 'Jednom'
+
         ];
         $fields_en= [
-            'SETTINGS_CREATE_CARD_NAME'=> 'Creating',
-            'SETTINGS_EDIT_CARD_NAME'=> 'Editing',
-            'FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW'=> 'Max size of picture is exceed. Max size of picture is 2MB',
-            'FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW'=> 'Max size of video is exceed. Max size of video is 35MB',
-            'WINERY_TABLE_REONS'=> 'Region',
-            'WINERY_TABLE_VINOGORJE'=> 'Winery area'
+            'POI_DROPDOWN_TYPES_LABEL'=> 'Poi type',
+            'ADS_ADD_TITLE'=> 'Marketing',
+            'ADS_EDIT_TITLE'=> 'Marketing',
+            'ADS_DROPDOWN_ITEM_NEWS'=> 'News',
+            'ADS_DROPDOWN_ITEM_RECOMMENDED'=> 'Recommended',
+            'ADS_DROPDOWN_ITEM_FAVOURITE'=> 'Favourite',
+            'ADS_DROPDOWN_ITEM_WINE'=> 'Wine',
+            'ADS_DROPDOWN_ITEM_WINERY'=> 'Winery',
+            'ADS_DROPDOWN_ITEM_ROADS'=> 'Roads',
+            'ADS_DROPDOWN_ITEM_EVENTS'=> 'Events',
+
+            'ADS_DROPDOWN_ITEM_ALWAYS'=> 'Always',
+            'ADS_DROPDOWN_ITEM_ONCE'=> 'Once'
+
+
         ];
         $data_to_insert=[];
         foreach( $fields_sr as $key=>$val) {
