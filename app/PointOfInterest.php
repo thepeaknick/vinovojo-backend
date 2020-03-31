@@ -101,6 +101,7 @@ class PointOfInterest extends BaseModel {
             $join->on('poi_type.id','=','pois.type');
         });
         $q->addSelect('poi_type.name as poi_type');
+        $q->addSelect('poi_type.name as type');
         $q->addSelect('transliterations.value as name');
 
         if($req->has('search')) {
