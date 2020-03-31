@@ -221,9 +221,9 @@ class Winery extends BaseModel {
             $join->where('ppTransliteration.name','name');
             $join->where('ppTransliteration.language_id','=',$lang);
         });
-        $q->addSelect('aTransliteration.value as area_name');
+        $q->addSelect('ppTransliteration.value as area_name');
         $q->addSelect('pTransliteration.value as area_parent_name');
-        $q->addSelect('ppTransliteration.value as area_parent_parent_name');
+        $q->addSelect('aTransliteration.value as area_parent_parent_name');
 
         if ( $req->has('area_id') )
         {
