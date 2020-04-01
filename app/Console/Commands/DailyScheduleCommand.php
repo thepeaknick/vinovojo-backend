@@ -90,16 +90,12 @@
                 // \Log::info('date to: ');
                 // \Log::info(print_r($to,true));
             }
-            if($from!==null && $to!==null && isset($from) && isset($to))
-            {
-                $startdate=new Carbon(date($from));
-                $enddate=new Carbon( date($to) );
-                $now=Carbon::now();
-                // if time is not expired
-                if( $now->lt( $enddate ) && $now->gt($startdate)){
+            $startdate=new Carbon(date($from));
+            $enddate=new Carbon( date($to) );
+            $now=Carbon::now();
+            // if time is not expired
+            if( $now->lt( $enddate ) && $now->gt($startdate)){
                 return 0;
-                }
-                return 1;
             }
             return 1;
         }
@@ -126,7 +122,7 @@
                 if($type=='recommended')
                     $wine->recommended= $status;
                 else $wine->highlighted= $status;
-                \Log::info("Winery: ");
+                \Log::info("Wine: ");
                 \Log::info('tip: '.$type);
                 \Log::info('status: '.$status);
                 \Log::info(print_r($wine,true));
