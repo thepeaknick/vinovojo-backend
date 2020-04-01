@@ -85,6 +85,7 @@
             $exists=static::checkExists($data);
             if($exists && $exists->object_id!==null)
             {
+                static::removeDuplicates($data);
                 $instance=static::findOrFail($exists->id);
                 if($data['start_date']!==null)
                 {
@@ -119,6 +120,19 @@
                     return response()->json(['message'=>'Error',404]);
                 }
 
+            }
+        }
+
+        public static function removeDuplicates($data)
+        {
+            $q= static::where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->where('type',$data['type']);
+            $data= $q->get();
+            $first= $q->first();
+            if($data->count()>1) {
+                foreach($data as $single) {
+                    if($single->id!==$first->id)
+                        $single->delete();
+                }
             }
         }
 
