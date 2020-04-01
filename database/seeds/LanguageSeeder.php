@@ -1282,6 +1282,19 @@ class LanguageSeeder extends Seeder
   "FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW" : "Veličina video zapisa je prekoračena. Maksimalna dozvoljena veličina video zapisa je 35MB.",
   "WINERY_TABLE_REONS" : "Regija",
   "WINERY_TABLE_VINOGORJE" : "Vinogorje",
+
+  "POI_DROPDOWN_TYPES_LABEL" : "Tip tačke od interesa",
+  "ADS_ADD_TITLE" : "Marketing",
+  "ADS_EDIT_TITLE" : "Marketing",
+  "ADS_DROPDOWN_ITEM_NEWS" : "Vesti",
+  "ADS_DROPDOWN_ITEM_RECOMMENDED" : "Preporučeno",
+  "ADS_DROPDOWN_ITEM_FAVOURITE" : "Omiljeno",
+  "ADS_DROPDOWN_ITEM_WINE" : "Vina",
+  "ADS_DROPDOWN_ITEM_WINERY" : "Vinarije",
+  "ADS_DROPDOWN_ITEM_ROADS" : "Putevi",
+  "ADS_DROPDOWN_ITEM_EVENTS" : "Dešavanja",
+  "ADS_DROPDOWN_ITEM_ALWAYS" : "Stalno",
+  "ADS_DROPDOWN_ITEM_ONCE" : "Jednom",
 }';
 
 }

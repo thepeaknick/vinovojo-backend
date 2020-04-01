@@ -174,14 +174,14 @@
              if($this->start_date!==null && $this->end_date!==null && isset($this->start_date) && isset($this->end_date))
              {
                 $startdate=new Carbon(date($this->start_date));
-                  $enddate=new Carbon( date($this->end_date) );
+                $enddate=new Carbon( date($this->end_date) );
 
-                  $now=Carbon::now();
-                  // if time is not expired
-                  if( $now->lt( $enddate ) && $now->gt($startdate)){
-                      return 0;
-                  }
-                  return 1;
+                $now=Carbon::now();
+                // if time is not expired
+                if( $now->lt( $enddate ) && $now->gt($startdate)){
+                    return 0;
+                }
+                return 1;
              }
 
              return 1;
@@ -205,11 +205,11 @@
 
         public function loadRelation()
         {
-            if($this->object_type==2)
+            if($this->object_type== WINE_FLAG)
             {
                 $this->wine= Wine::where('id',$this->object_id)->get();
             }
-            if($this->object_type==3)
+            if($this->object_type== WINERY_FLAG)
             {
                 $this->winery= Winery::where('id',$this->object_id)->get();
             }
@@ -231,13 +231,13 @@
 
         public function modifyRelations($data)
         {
-            if($this->object_type==2)
+            if($this->object_type== WINE_FLAG)
                 $instance= Wine::find($this->object_id);
-            if($this->object_type==3)
+            if($this->object_type== WINERY_FLAG)
                 $instance= Winery::find($this->object_id);
-            if($this->type==1)
+            if($this->type== HIGHLIGHTED)
                 $instance->highlighted=$data['status'];
-            else if($this->type==2)
+            else if($this->type== RECOMMENDED)
                 $instance->recommended=$data['status'];
             if($instance->save())
                 return true;
@@ -249,6 +249,39 @@
             $instance=$this->getExpandedClass();
             $this->checkInstance($instance);
         }
+
+        public function changeHighlightedStatus()
+        {
+            $relation= $this->loadRelations();
+            if($relation==null){
+                // delete this model
+                // if wine or winery
+                // does not exists
+                $this->delete();
+                return false;
+            }
+
+            switch($this->type)
+            {
+                case HIGHLIGHTED:
+                {
+                    if($this->status==1 && !$this->expired())
+                        $relation->highlighted= $this->status;
+                    else $relation->highlighted= 0;
+                break;
+                }
+                case RECOMMENDED:
+                {
+                    if($this->status==1 && !$this->expired())
+                        $relation->recommended= $this->status;
+                    else $relation->recommended= 0;
+                break;
+                }
+            }
+            return $relation->save();
+        }
+
+
 
     }
 
