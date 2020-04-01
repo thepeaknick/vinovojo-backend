@@ -378,3 +378,5 @@ $router->get('insertTextFields','TestController@textFieldsInsert');
 $router->get('textSeeder', 'TestController@textFieldsSeeder');
 $router->get('insertTable', 'TestController@insertTable');
 $router->get('consoleCheck', 'TestController@consoleindex');
+$router->get('pathCheck', 'TestController@checkPath');
+$router->get('runArt', 'TestController@runArtisan');

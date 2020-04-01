@@ -143,6 +143,25 @@ class TestController extends Controller {
         return response()->json(['success'=>$success]);
     }
 
+    public function checkPath()
+    {
+        $data= [
+            'path'=>__DIR__,
+            'php'=> ''
+        ];
+        $out= [];
+        \exec('which php', $out);
+        $data['php']= $out;
+        return response()->json($data);
+    }
+    public function runArtisan()
+    {
+        $out= [];
+        $exec= "cd ../../ && php artisan check:daily";
+        \exec($exec,$out);
+        dd($out);
+    }
+
     public function textFieldsSeeder(Request $r) 
     {
         // $fields= \DB::table('text_fields')->where('language_id','1')->where('object_id','1')->where('object_type','=','29')->get();
