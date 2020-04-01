@@ -99,8 +99,11 @@ class Happening extends BaseModel {
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
-        $this->start= new Carbon(date($req->start));
-        $this->end= new Carbon(date($req->end));
+        if($req->has('start') && $req->has('end')) {
+            $this->start= new Carbon(date($req->start));
+            $this->end= new Carbon(date($req->end));
+            $this->save();
+        }
 
         return true;
     }
@@ -109,11 +112,13 @@ class Happening extends BaseModel {
     public function update($req = [], $options = []) {
         if ( !parent::update($req) )
             return response()->json(['error ' => 'Something went wrong'], 500);
-
-        $this->start= new Carbon(date($req->start));
-        $this->end= new Carbon(date($req->end));
-        $this->save();
-        // dd($this);
+        
+        if($req->has('start') && $req->has('end')) {
+            $this->start= new Carbon(date($req->start));
+            $this->end= new Carbon(date($req->end));
+            $this->save();
+        }
+        
         if($req->has('active')) {
             $this->active= $req->active;
             $this->save();
