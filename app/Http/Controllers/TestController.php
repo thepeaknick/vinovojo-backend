@@ -154,13 +154,6 @@ class TestController extends Controller {
         $data['php']= $out;
         return response()->json($data);
     }
-    public function runArtisan()
-    {
-        $out= [];
-        $exec= "cd ../../ && php artisan check:daily";
-        \exec($exec,$out);
-        dd($out);
-    }
 
     public function textFieldsSeeder(Request $r) 
     {
@@ -206,6 +199,34 @@ class TestController extends Controller {
         ]);
         return response()->json(['message' => $success]);
     }
+
+    public function carbonCheck(Request $r) 
+    {
+        // dd($r->all());
+        $start= new \Carbon\Carbon($r['start_date']);
+        $end= new \Carbon\Carbon($r['end_date']);
+        dd($start);
+    }
+
+    public function removeDuplicates()
+    {
+        $dupl= [];
+        foreach(\App\Highlight::orderBy('id','asc')->get() as $highlight) {
+            $duplicates= \App\Highlight::where('object_id',$highlight->object_id)
+                                    ->where('object_type',$highlight->object_type)
+                                    ->where('type',$highlight->type)
+                                    ->where('id','>',$highlight->id)
+                                    ->get();
+            foreach($duplicates as $duplicate) {
+                $dupl[]= $duplicate;
+                if($duplicate->id!==$highlight->id)
+                    $duplicate->delete();
+            }
+        }
+        return response()->json($dupl);
+    }
+
+
 
 
 }

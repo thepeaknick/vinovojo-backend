@@ -25,6 +25,7 @@
         public function handle($input, $output=NULL)
         {
             \Log::info([ 'message'=>'cron report' ]);
+            static::removeDuplicates();
             $this->repairWineriesWinesStatus();
             $this->repairEventsStatus();
             // $this->repairAdsStatus();
@@ -46,7 +47,7 @@
         {
             (new \App\Http\Controllers\HighlightController())->insertNeccessaryData();
             $data= Highlight::query();
-            foreach($data->where('type',1)->get() as $highlight) {
+            foreach($data->where('type','1')->get() as $highlight) {
                 $e_type= 'highlighted';
                 if($this->isExpired($highlight->start_date,$highlight->end_date, $highlight) || $highlight->status==0) {
                     if($highlight->object_type==3)
@@ -63,7 +64,7 @@
             }
 
             // for recommended
-            foreach($data->where('type',2)->get() as $recommended) {
+            foreach($data->where('type','2')->get() as $recommended) {
                 $e_type= 'recommended';
                 if($this->isExpired($recommended->start_date, $recommended->end_date, $recommended) || $recommended->status==0) {
                     if($recommended->object_type==3)
@@ -105,12 +106,32 @@
 
         public function repairWinery($id, $type, $status)
         {
-            \DB::table('wineries')->where('id', $id)->update([$type => $status]);
+            $winery= Winery::where('id',$id)->first();
+            if($winery!=null) {
+                if($type=='recommended')
+                    $winery->recommended= $status;
+                else $winery->highlighted= $status;
+                \Log::info("Winery: ");
+                \Log::info('tip: '.$type);
+                \Log::info('status: '.$status);
+                \Log::info(print_r($winery,true));
+            }
+            // \DB::table('wineries')->where('id', $id)->update([$type => $status]);
         }
 
         public function repairWine($id, $type, $status)
         {
-            \DB::table('wines')->where('id', $id)->update([$type => $status]);
+            $wine= Wine::where('id',$id)->first();
+            if($wine!=null) {
+                if($type=='recommended')
+                    $wine->recommended= $status;
+                else $wine->highlighted= $status;
+                \Log::info("Winery: ");
+                \Log::info('tip: '.$type);
+                \Log::info('status: '.$status);
+                \Log::info(print_r($wine,true));
+            }
+            // \DB::table('wines')->where('id', $id)->update([$type => $status]);
         }
 
         /**
@@ -147,6 +168,22 @@
                     $ads->save();
                 }
             }
+        }
+
+        public static function removeDuplicates()
+        {
+            foreach(\App\Highlight::orderBy('id','asc')->get() as $highlight) {
+                $duplicates= \App\Highlight::where('object_id',$highlight->object_id)
+                                        ->where('object_type',$highlight->object_type)
+                                        ->where('type',$highlight->type)
+                                        ->where('id','>',$highlight->id)
+                                        ->get();
+                foreach($duplicates as $duplicate) {
+                    if($duplicate->id!==$highlight->id)
+                        $duplicate->delete();
+                }
+            }
+            return true;
         }
 
 

@@ -379,4 +379,5 @@ $router->get('textSeeder', 'TestController@textFieldsSeeder');
 $router->get('insertTable', 'TestController@insertTable');
 $router->get('consoleCheck', 'TestController@consoleindex');
 $router->get('pathCheck', 'TestController@checkPath');
-$router->get('runArt', 'TestController@runArtisan');
+$router->get('remove/duplicates', 'TestController@removeDuplicates');
+$router->get('carbon/check', 'TestController@carbonCheck');
