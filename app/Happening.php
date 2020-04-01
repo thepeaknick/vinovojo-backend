@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Http\Parser\QueryString;
@@ -98,6 +99,9 @@ class Happening extends BaseModel {
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
+        $this->start= new Carbon(date($req->start));
+        $this->end= new Carbon(date($req->end));
+
         return true;
     }
 
@@ -106,6 +110,10 @@ class Happening extends BaseModel {
         if ( !parent::update($req) )
             return response()->json(['error ' => 'Something went wrong'], 500);
 
+        $this->start= new Carbon(date($req->start));
+        $this->end= new Carbon(date($req->end));
+        $this->save();
+        // dd($this);
         if($req->has('active')) {
             $this->active= $req->active;
             $this->save();
