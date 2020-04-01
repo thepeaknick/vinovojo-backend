@@ -28,7 +28,7 @@
             static::removeDuplicates();
             $this->repairWineriesWinesStatus();
             $this->repairEventsStatus();
-            // $this->repairAdsStatus();
+            $this->repairAdsStatus();
         }
 
         /**
@@ -46,8 +46,9 @@
         public function repairWineriesWinesStatus()
         {
             (new \App\Http\Controllers\HighlightController())->insertNeccessaryData();
-            $data= Highlight::query();
-            foreach($data->where('type','1')->get() as $highlight) {
+            $highlighted= Highlight::where('type','1')->get();
+            $all_recommended= Highlight::where('type','2')->get();
+            foreach($highlighted as $highlight) {
                 $e_type= 'highlighted';
                 if($this->isExpired($highlight->start_date,$highlight->end_date, $highlight) || $highlight->status==0) {
                     if($highlight->object_type==3)
@@ -63,8 +64,10 @@
                 }
             }
 
+            \Log::info('recommended su: ');
+            \Log::info(print_r($all_recommended,true));
             // for recommended
-            foreach($data->where('type','2')->get() as $recommended) {
+            foreach($all_recommended as $recommended) {
                 $e_type= 'recommended';
                 if($this->isExpired($recommended->start_date, $recommended->end_date, $recommended) || $recommended->status==0) {
                     if($recommended->object_type==3)
@@ -107,10 +110,11 @@
                 if($type=='recommended')
                     $winery->recommended= $status;
                 else $winery->highlighted= $status;
-                \Log::info("Winery: ");
-                \Log::info('tip: '.$type);
-                \Log::info('status: '.$status);
-                \Log::info(print_r($winery,true));
+                $winery->save();
+                // \Log::info("Winery: ");
+                // \Log::info('tip: '.$type);
+                // \Log::info('status: '.$status);
+                // \Log::info(print_r($winery,true));
             }
             // \DB::table('wineries')->where('id', $id)->update([$type => $status]);
         }
@@ -122,10 +126,11 @@
                 if($type=='recommended')
                     $wine->recommended= $status;
                 else $wine->highlighted= $status;
-                \Log::info("Wine: ");
-                \Log::info('tip: '.$type);
-                \Log::info('status: '.$status);
-                \Log::info(print_r($wine,true));
+                $wine->save();
+                // \Log::info("Wine: ");
+                // \Log::info('tip: '.$type);
+                // \Log::info('status: '.$status);
+                // \Log::info(print_r($wine,true));
             }
             // \DB::table('wines')->where('id', $id)->update([$type => $status]);
         }
@@ -160,7 +165,7 @@
                 $start_date= new Carbon(date($ads->start_date));
                 $end_date= new Carbon(date($ads->end_date));
                 if($now->gt($end_date)) {
-                    $ads->status=0;
+                    $ads->active = 0;
                     $ads->save();
                 }
             }
