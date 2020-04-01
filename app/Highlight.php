@@ -89,11 +89,11 @@
                 $instance=static::findOrFail($exists->id);
                 if($data['start_date']!==null)
                 {
-                    $instance->start_date=$data['start_date'];
+                    $instance->start_date= new Carbon(date($data['start_date']));
                 }
                 if($data['end_date']!==null)
                 {
-                    $instance->end_date=$data['end_date'];
+                    $instance->end_date= new Carbon(date($data['end_date']));
                 }
                 $instance->status=$data['status'];
 //                 dd($instance->end_date);

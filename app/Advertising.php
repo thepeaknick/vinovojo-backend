@@ -58,8 +58,8 @@ class Advertising extends BaseModel {
     public static function store(Request $r){
         $ad=new Advertising($r->all());
 
-        $ad->start_date=( $ad->start_date!=='null' )?$ad->start_date:Carbon::now();
-        $ad->end_date=( $r->end_date!=='null' )?$r->end_date:Carbon::now()->addDays(7);
+        $ad->start_date=( $ad->start_date!=='null' )?(new Carbon(date($ad->start_date))):Carbon::now();
+        $ad->end_date=( $r->end_date!=='null' )?(new Carbon(date($ad->end_date))):Carbon::now()->addDays(7);
 
         if( $ad->save() && $r->has('image_url') )
             $ad->image_url=$ad->storeImage( $ad->id,$r );
@@ -133,8 +133,8 @@ class Advertising extends BaseModel {
             }
         }
         $ads->name=$r->name;
-        $ads->start_date=$r->start_date;
-        $ads->end_date=$r->end_date;
+        $ads->start_date= new Carbon(date($r->start_date));
+        $ads->end_date= new Carbon(date($r->end_date));
         $ads->active=$r->active;
         @$ads->repeating=@$r->repeating;
         @$ads->section= @$r->section;
