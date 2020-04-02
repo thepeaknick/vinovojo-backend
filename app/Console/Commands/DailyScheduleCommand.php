@@ -64,8 +64,8 @@
                 }
             }
 
-            \Log::info('recommended su: ');
-            \Log::info(print_r($all_recommended,true));
+            // \Log::info('recommended su: ');
+            // \Log::info(print_r($all_recommended,true));
             // for recommended
             foreach($all_recommended as $recommended) {
                 $e_type= 'recommended';

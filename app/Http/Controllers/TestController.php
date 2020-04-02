@@ -73,37 +73,14 @@ class TestController extends Controller {
     public function textFieldsInsert(Request $r)
     {
         $fields_sr= [
-            'POI_DROPDOWN_TYPES_LABEL'=> 'Tip tačke od interesa',
-            'ADS_ADD_TITLE'=> 'Marketing',
-            'ADS_EDIT_TITLE'=> 'Marketing',
-            'ADS_DROPDOWN_ITEM_NEWS'=> 'Vesti',
-            'ADS_DROPDOWN_ITEM_RECOMMENDED'=> 'Preporučeno',
-            'ADS_DROPDOWN_ITEM_FAVOURITE'=> 'Omiljeno',
-            'ADS_DROPDOWN_ITEM_WINE'=> 'Vina',
-            'ADS_DROPDOWN_ITEM_WINERY'=> 'Vinarije',
-            'ADS_DROPDOWN_ITEM_ROADS'=> 'Putevi',
-            'ADS_DROPDOWN_ITEM_EVENTS'=> 'Desavanja',
+            'EVENTS_ACTIVE_LABEL'=> 'Aktivno',
+            'EVENTS_ACTIVE_HINT'=> 'Nakon isteka datuma završetka, dešavanje će se automatski deaktivirati'
 
-            'ADS_DROPDOWN_ITEM_ALWAYS'=> 'Stalno',
-            'ADS_DROPDOWN_ITEM_ONCE'=> 'Jednom'
 
         ];
         $fields_en= [
-            'POI_DROPDOWN_TYPES_LABEL'=> 'Poi type',
-            'ADS_ADD_TITLE'=> 'Marketing',
-            'ADS_EDIT_TITLE'=> 'Marketing',
-            'ADS_DROPDOWN_ITEM_NEWS'=> 'News',
-            'ADS_DROPDOWN_ITEM_RECOMMENDED'=> 'Recommended',
-            'ADS_DROPDOWN_ITEM_FAVOURITE'=> 'Favourite',
-            'ADS_DROPDOWN_ITEM_WINE'=> 'Wine',
-            'ADS_DROPDOWN_ITEM_WINERY'=> 'Winery',
-            'ADS_DROPDOWN_ITEM_ROADS'=> 'Roads',
-            'ADS_DROPDOWN_ITEM_EVENTS'=> 'Events',
-
-            'ADS_DROPDOWN_ITEM_ALWAYS'=> 'Always',
-            'ADS_DROPDOWN_ITEM_ONCE'=> 'Once'
-
-
+            'EVENTS_ACTIVE_LABEL'=> 'Active',
+            'EVENTS_ACTIVE_HINT'=> 'After time has expired, event will be deactivated'
         ];
         $data_to_insert=[];
         foreach( $fields_sr as $key=>$val) {
@@ -205,6 +182,9 @@ class TestController extends Controller {
         // dd($r->all());
         $start= new \Carbon\Carbon($r['start_date']);
         $end= new \Carbon\Carbon($r['end_date']);
+        $now= \Carbon\Carbon::now();
+        dd($start);
+        dd($now->gt($start));
         dd($start);
     }
 

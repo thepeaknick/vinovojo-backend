@@ -31,7 +31,6 @@ class BaseController extends Controller
             $r->replace(json_decode($r->json, 1));
         }
 
-//        dd($r->all());
         \Log::info('Zahtev za create ' . $resource, $r->all());
 
         $model = $this->resourceClass($resource);
@@ -243,7 +242,6 @@ class BaseController extends Controller
                 $r->merge(['video'=>$r2['video']]);
 
         }
-        // dd($r->cover);
         $instance = $model::find($id);
         if (!$instance) {
             return response()->json(['error' => $resource . ' not found'], 404);
@@ -937,7 +935,7 @@ class BaseController extends Controller
 
     "ADS_DROPDOWN_ITEM_ALWAYS" : "Stalno",
 
-    "ADS_DROPDOWN_ITEM_ONCE" : "Jednom",
+    "ADS_DROPDOWN_ITEM_ONCE" : "Jednom"
 
 
 }';
