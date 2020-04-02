@@ -1211,7 +1211,9 @@ class Language extends BaseModel {
         'ADS_DROPDOWN_ITEM_ROADS'=> 'required|string',
         'ADS_DROPDOWN_ITEM_EVENTS'=> 'required|string',
         'ADS_DROPDOWN_ITEM_ALWAYS'=> 'required|string',
-        'ADS_DROPDOWN_ITEM_ONCE'=> 'required|string'
+        'ADS_DROPDOWN_ITEM_ONCE'=> 'required|string',
+        'EVENTS_ACTIVE_LABEL' => 'required|string', 
+        'EVENTS_ACTIVE_HINT' => 'required|string'
     ];
 
 

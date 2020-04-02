@@ -371,13 +371,13 @@ $router->get('testStorage', 'TestController@testDB');
 
 $router->get('getUserByType/{userType}','TestController@loadByType');
 
-$router->get('log/download', 'TestController@logDownload');
+// $router->get('log/download', 'TestController@logDownload');
 // $router->get('test','TestController@index');
 // $router->post('testImage','TestController@saveImage');
-$router->get('insertTextFields','TestController@textFieldsInsert');
-$router->get('textSeeder', 'TestController@textFieldsSeeder');
-$router->get('insertTable', 'TestController@insertTable');
-$router->get('consoleCheck', 'TestController@consoleindex');
-$router->get('pathCheck', 'TestController@checkPath');
-$router->get('remove/duplicates', 'TestController@removeDuplicates');
-$router->get('carbon/check', 'TestController@carbonCheck');
+// $router->get('insertTextFields','TestController@textFieldsInsert');
+// $router->get('textSeeder', 'TestController@textFieldsSeeder');
+// $router->get('insertTable', 'TestController@insertTable');
+// $router->get('consoleCheck', 'TestController@consoleindex');
+// $router->get('pathCheck', 'TestController@checkPath');
+// $router->get('remove/duplicates', 'TestController@removeDuplicates');
+// $router->get('carbon/check', 'TestController@carbonCheck');

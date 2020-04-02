@@ -935,7 +935,11 @@ class BaseController extends Controller
 
     "ADS_DROPDOWN_ITEM_ALWAYS" : "Stalno",
 
-    "ADS_DROPDOWN_ITEM_ONCE" : "Jednom"
+    "ADS_DROPDOWN_ITEM_ONCE" : "Jednom",
+
+    "EVENTS_ACTIVE_LABEL" : "Aktivno", 
+
+    "EVENTS_ACTIVE_HINT" : "Nakon isteka datuma završetka, dešavanje će se automatski deaktivirati"
 
 
 }';

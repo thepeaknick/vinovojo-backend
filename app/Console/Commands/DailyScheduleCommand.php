@@ -147,6 +147,8 @@
             foreach(Happening::all() as $event) {
                 $now= Carbon::now();
                 $end= new Carbon (date($event->end));
+                // \Log::info($now);
+                // \Log::info($end);
                 // if is event finished
                 if($now->gt($end)) {
                     // \Log::info('Veci je datum');

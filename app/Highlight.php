@@ -62,7 +62,7 @@
                 $recommended=$selfInstance->where('type',RECOMMENDED)->first();
                 if($recommended!==null)
                 {
-                    \Log::info("RECOMMENDED: ",(array)($recommended));
+                    //\Log::info("RECOMMENDED: ",(array)($recommended));
                     $relationInstance=$recommended->loadRelations();
                     $data['type']=RECOMMENDED;
                     $selfInstance= static::checkExists($data);
@@ -97,7 +97,7 @@
                 }
                 $instance->status=$data['status'];
 //                 dd($instance->end_date);
-                \Log::info('Zahtjev za create Marketing-a',(array)$r->all());
+                //\Log::info('Zahtjev za create Marketing-a',(array)$r->all());
                 if(! $instance->save())
                     return response()->json(['message'=>'Cannot update'],404);
                 $instance->makeExpanded($data);
