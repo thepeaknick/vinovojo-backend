@@ -102,7 +102,7 @@ class PointOfInterest extends BaseModel {
         });
         $q->addSelect('poi_type.name as poi_type');
         $q->addSelect('poi_type.name as type');
-        $q->addSelect('poi_type.type as poi_type_id');
+        $q->addSelect('poi_type.id as poi_type_id');
         $q->addSelect('transliterations.value as name');
 
         if($req->has('search')) {
