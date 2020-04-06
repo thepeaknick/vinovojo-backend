@@ -271,7 +271,35 @@ class WineController extends Controller {
                 $query->where('transliteration.language_id', $langId);
 //                        $query->select('transliteration.name','name');
                 return $query;
-            })->get();
+            });
+        $wine_ids= Wine::pluck('id')->toArray();
+
+        $not_empty_areas_query= "
+            SELECT
+                a.id as a_id,
+                p_a.id as p_id,
+                pp_a.id as pp_id
+            FROM wines w
+            JOIN areas a
+            INNER JOIN areas p_a
+                ON a.parent_id=p_a.id
+            INNER JOIN areas pp_a
+                ON p_a.parent_id= pp_a.id
+            WHERE a.id= w.area_id
+            OR p_a.id= w.area_id
+            OR pp_a.id= w.area_id  
+        ";
+        $not_empty_areas= DB::select(DB::raw($not_empty_areas_query));
+        $area_ids=[];
+        foreach($not_empty_areas as $area) {
+            if($area->a_id!==null)
+                $area_ids[]= $area->a_id;
+            if($area->p_id!==null)
+                $area_ids[]= $area->p_id;
+            if($area->pp_id!==null)
+                $area_ids[]= $area->pp_id;
+        }
+        $areas= $areas->whereIn('areas.id', array_unique($area_ids))->get();
         foreach ($areas as $area){
             $area->name= $area->value;
             if($area !==null && $area->parent !==null) {

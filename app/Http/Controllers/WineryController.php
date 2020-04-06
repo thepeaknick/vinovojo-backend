@@ -132,7 +132,7 @@ class WineryController extends BaseController
                 $area->parent= $area->parent->parent;
             }
         }
-        $areas= $areas->whereIn('areas.id', $area_ids)->get();
+        $areas= $areas->whereIn('areas.id', array_unique($area_ids))->get();
         return response()->json(['areas' => $areas], 200);
     }
 
