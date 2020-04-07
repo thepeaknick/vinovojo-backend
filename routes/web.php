@@ -332,6 +332,8 @@ $router->post('push/critical', 'SocialController@criticalNotification');
 
 $router->post('route/auto', 'PathController@generatePath');
 
+$router->post('route/autogenerate', 'PathController@calculateRoute');
+
 $router->post('poi/range', 'PathController@inRange');
 
 
@@ -373,7 +375,7 @@ $router->get('testStorage', 'TestController@testDB');
 
 $router->get('getUserByType/{userType}','TestController@loadByType');
 
-$router->post('testWineryRoute', 'TestController@CalculateRoute');
+// $router->post('testWineryRoute', 'TestController@calculateRoute');
 
 // $router->get('log/download', 'TestController@logDownload');
 // $router->get('test','TestController@index');

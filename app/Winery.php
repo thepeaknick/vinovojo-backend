@@ -23,7 +23,7 @@ class Winery extends BaseModel {
     ];
 
     protected static $listData = [
-        'wineries.id as id', 'wineries.address as address', 'recommended', 'transliteration.value as name', 'wineries.highlighted as highlighted'
+        'wineries.id as id', 'wineries.address as address', 'wineries.recommended as recommended', 'transliteration.value as name', 'wineries.highlighted as highlighted'
     ];
 
     protected $appends = [
@@ -388,7 +388,7 @@ class Winery extends BaseModel {
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
-        
+
         // dd($req->has('cover') && ($req->cover== 'null') && !$req->hasFile('cover'));
         \Log::emergency('COVER: ',['cover:366 =>'=> ($req->has('cover') && ($req->cover== 'null') && !$req->hasFile('cover'))]);
         if( $req->has('cover') && ($req->cover== 'null') && !$req->hasFile('cover'))
@@ -586,7 +586,7 @@ class Winery extends BaseModel {
     public function storeVideo($video) {
         if($video==null)
             return $this->deleteVideo();
-            
+
         return $video->storeAs( '', $this->videoDiskPath(), $this->storageDisk );
     }
 

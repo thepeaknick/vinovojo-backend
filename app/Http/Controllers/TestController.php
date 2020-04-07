@@ -11,6 +11,8 @@ use App\User;
 use App\Winery;
 use App\Wine;
 
+use GuzzleHttp\Client;
+
 use App\TextField;
 use DB;
 use FCM;
@@ -208,7 +210,7 @@ class TestController extends Controller {
         return response()->json($dupl);
     }
 
-    public function CalculateRoute(Request $r)
+    public function calculateRoute(Request $r)
     {
       /*
       | Override app real request
@@ -294,7 +296,18 @@ class TestController extends Controller {
             return $this->CalculateDistance($current_node, $d1)- $this->CalculateDistance($current_node, $d2);
           });
           $points[]= $new_point= array_shift($distances)['id'];
-          $time+= $this->checkDistance($current_node, $new_point);
+          // $curr= [
+          //   'lng'=> $current_node['lng'],
+          //   'lat'=> $current_node['lat']
+          // ];
+          // $new= [
+          //   'lng'=> $new_point['lng'],
+          //   'lat'=> $new_point['lat']
+          // ];
+          // try{
+          //   $time+= $this->checkDistance($curr, $new);
+          // }catch(\Exception $e) {
+          // }
         }
 
         $order_string= implode(',',$points);
@@ -302,20 +315,21 @@ class TestController extends Controller {
       $q->whereIn('wineries.id', $points);
       $q->orderByRaw(DB::raw("FIELD(wineries.id, $order_string)"));
       $q->limit($limit);
-      // return response()->json($q->get());
-      return response()->json(['distances'=> $points, 'wineries'=> $q->get(), 'time'=> $time]);
-      $coords= $q->get()->toArray();
-      $coord_arr= array_map(function($coord) {
-        return ['lat'=> $coord['lat'],'lng'=> $coord['lng'], 'id'=>$coord['id']];
-      },$coords);
-      $reference= $coord_arr[1];
-      $distances= [];
-      foreach($coord_arr as $index=>$val) {
-        if($index!==1) {
-          $distances[]= ['id'=> $val['id'], 'distance'=> $this->CalculateDistance($reference,$coord_arr[$index])];
-        }
-      }
-      return response()->json(['distances'=>$distances,'coords'=>$coord_arr, 'current_nodes'=>$current_nodes]);
+      return response()->json(['time'=>$time, 'points'=>$q->get()]);
+
+      // return response()->json(['distances'=> $points, 'wineries'=> $q->get(), 'time'=> $time]);
+      // $coords= $q->get()->toArray();
+      // $coord_arr= array_map(function($coord) {
+      //   return ['lat'=> $coord['lat'],'lng'=> $coord['lng'], 'id'=>$coord['id']];
+      // },$coords);
+      // $reference= $coord_arr[1];
+      // $distances= [];
+      // foreach($coord_arr as $index=>$val) {
+      //   if($index!==1) {
+      //     $distances[]= ['id'=> $val['id'], 'distance'=> $this->CalculateDistance($reference,$coord_arr[$index])];
+      //   }
+      // }
+      // return response()->json(['distances'=>$distances,'coords'=>$coord_arr, 'current_nodes'=>$current_nodes]);
 
     }
 
