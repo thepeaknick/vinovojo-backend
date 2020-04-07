@@ -144,6 +144,8 @@ $router->get('{object}/{id}/rate/{type}', 'RateController@filter');
 
 $router->get('feed/news', 'FeedController@loadNewsList');
 
+$router->get('feed/news/{id}', 'FeedController@loadSingleNews');
+
 $router->get('feed/recommended/', 'FeedController@loadRecommendations');
 
 $router->post('feed/favourites', 'FeedController@loadFavourites');
@@ -370,6 +372,8 @@ $router->get('getSettingGoogle','SettingsController@getAll');
 $router->get('testStorage', 'TestController@testDB');
 
 $router->get('getUserByType/{userType}','TestController@loadByType');
+
+$router->post('testWineryRoute', 'TestController@CalculateRoute');
 
 // $router->get('log/download', 'TestController@logDownload');
 // $router->get('test','TestController@index');
