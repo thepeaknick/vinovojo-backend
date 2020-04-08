@@ -160,7 +160,7 @@ class PathController extends BaseController
           $join->on('wines.winery_id','wineries.id');
         });
         $q->join('classes_wines', function($join) {
-            $q->where('wines.id','=','classes_wines.wine_id');
+            $join->where('wines.id','=','classes_wines.wine_id');
         });
         if(is_array($req->class_id)) {
             $classes= [];
