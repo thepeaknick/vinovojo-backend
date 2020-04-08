@@ -162,7 +162,15 @@ class PathController extends BaseController
         $q->join('classes_wines', function($join) {
             $q->where('wines.id','=','classes_wines.wine_id');
         });
-        $q->where('classes_wines.class_id', $req->class_id);
+        if(is_array($req->class_id)) {
+            $classes= [];
+            foreach($req->class_id as $class_id) {
+                $classes[]= $class_id;
+            }
+            $q->whereIn('classes_wines.class_id', $classes);
+        }else {
+            $q->where('classes_wines.class_id', $req->class_id);
+        }
         $q->addSelect('wines.recommended as w_rec');
       }
 
