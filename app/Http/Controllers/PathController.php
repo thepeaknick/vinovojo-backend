@@ -160,7 +160,7 @@ class PathController extends BaseController
           $join->on('wines.winery_id','wineries.id');
         });
         $q->join('classes_wines', function($join) {
-            $join->where('wines.id','=','classes_wines.wine_id');
+            $join->on('wines.id','=','classes_wines.wine_id');
         });
         if(is_array($req->class_id)) {
             $classes= [];
@@ -232,8 +232,10 @@ class PathController extends BaseController
         }
 
         $order_string= implode(',',$points);
-      $q->whereIn('wineries.id', $points);
-      $q->orderByRaw(DB::raw("FIELD(wineries.id, $order_string)"));
+      if(!empty($points)) {
+          $q->whereIn('wineries.id', $points);
+          $q->orderByRaw(DB::raw("FIELD(wineries.id, $order_string)"));
+      }
       $q->limit($limit);
       return response()->json(['time'=>$time, 'points'=>$q->get()]);
       // $coords= $q->get()->toArray();
