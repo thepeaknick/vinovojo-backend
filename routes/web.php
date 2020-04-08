@@ -375,7 +375,7 @@ $router->get('testStorage', 'TestController@testDB');
 
 $router->get('getUserByType/{userType}','TestController@loadByType');
 
-// $router->post('testWineryRoute', 'TestController@calculateRoute');
+$router->post('testWineryRoute', 'TestController@calculateRoute');
 
 // $router->get('log/download', 'TestController@logDownload');
 // $router->get('test','TestController@index');

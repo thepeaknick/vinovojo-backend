@@ -6,6 +6,8 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 
 use Illuminate\Http\Request;
 
+use DB;
+
 use App\WinePath;
 
 use App\Winery;
@@ -152,13 +154,16 @@ class PathController extends BaseController
       $q->addSelect('wineries.recommended as winery_recommended');
       $q->addSelect('pins.lat as lat');
       $q->addSelect('pins.lng as lng');
-      if($req->has('sort') && !empty($req->sort))
+      if($req->has('class_id') && !empty($req->class_id))
       {
         $q->leftJoin('wines', function($join) {
           $join->on('wines.winery_id','wineries.id');
         });
+        $q->join('classes_wines', function($join) {
+            $q->where('wines.id','=','classes_wines.wine_id');
+        });
+        $q->where('classes_wines.class_id', $req->class_id);
         $q->addSelect('wines.recommended as w_rec');
-        $q->where('wines.category_id',$req->sort);
       }
 
       $distances= [];
@@ -192,6 +197,7 @@ class PathController extends BaseController
       | of points
       */
       $current_nodes= [];
+      $time=0;
       for($x=0; $x<count($distances) && count($points)<$limit; $x++) {
           $current_node= $distances[$x];
           array_push($current_nodes, $current_node['id']);

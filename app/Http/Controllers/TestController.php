@@ -243,13 +243,16 @@ class TestController extends Controller {
       $q->addSelect('wineries.recommended as winery_recommended');
       $q->addSelect('pins.lat as lat');
       $q->addSelect('pins.lng as lng');
-      if($req->has('sort') && !empty($req->sort))
+      if($req->has('class_id') && !empty($req->class_id))
       {
         $q->leftJoin('wines', function($join) {
           $join->on('wines.winery_id','wineries.id');
         });
+        $q->join('classes_wines', function($join) {
+            $q->where('wines.id','=','classes_wines.wine_id');
+        });
+        $q->where('classes_wines.class_id', $req->class_id);
         $q->addSelect('wines.recommended as w_rec');
-        $q->where('wines.category_id',$req->sort);
       }
 
       $distances= [];
