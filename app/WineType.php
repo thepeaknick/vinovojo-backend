@@ -73,6 +73,8 @@ class WineType extends BaseModel {
         foreach ($transliterations as $transliteration) {
             if($transliteration->name=='name') {
                 $this->attributes['name']= $transliteration->value;
+            }else if($transliteration->name=='description') {
+                $this->attributes['description']= $transliteration->value;
             }
         }
 //        if($name!=null)
