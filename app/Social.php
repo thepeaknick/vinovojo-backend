@@ -225,17 +225,18 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
 
     public static function loadFromFacebook(Request $r, $key){
         $soc_user= \Socialite::driver( 'facebook' )->userFromToken($key);
-        
-        
+
+
         if(!$r->has('social_id') || !$r->has('social_type'))
         return false;
-        
+
+        $soc_type= static::convertType($r->social_type);
         $user= User::where('social_id',$r->social_id)
-                    ->where('social_type',$r->social_type)
+                    ->where('social_type',$soc_type)
                     ->first();
 
-        \Log::info('Soc_user: ',(array)$soc_user);
-        \Log::info('User prije: ',(array)$user);
+//        \Log::info('Soc_user: ',(array)$soc_user);
+//        \Log::info('User prije: ',(array)$user);
 
         if($user==null)
         {
@@ -246,18 +247,22 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
             $user->full_name=$soc_user->user['name'];
             $user->social_key=$r->social_key;
             $user->social=1;
-            if($user->profile_picture==null)
-                $user->profile_picture= $soc_user->avatar;
+//            if($user->hasProfile()) {
+//                \Log::info('Profilna user-a: ',['profile'=> $user->profile_picture]);
+//            }
+//            if(!$user->hasProfile())
+            $user->save();
+                $user->saveProfile($soc_user->avatar);
             if(!$user->save())
                 return false;
-                
+
         }
-        
+
         if($user!==null){
             $user->social_type= '1';
             $user->save();
         }
-        \Log::info('User poslije: ',(array)$user);
+//        \Log::info('User poslije: ',(array)$user);
 
         return $user;
     }

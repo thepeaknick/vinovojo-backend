@@ -147,8 +147,13 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         }
 //        if($this->profileExists());
 //        dd($this->profileFullPath(true));
-        if(file_exists($this->profileFullPath(true)))
-            unlink($this->profileFullPath(true));
+        if(file_exists($this->profileFullPath(true))) {
+            try {
+                unlink($this->profileFullPath(true));
+            }catch (\Exception $e) {
+
+            }
+        }
         return $image->save( $this->profileFullPath(true) );
     }
 

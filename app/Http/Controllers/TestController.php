@@ -255,7 +255,8 @@ class TestController extends Controller {
         $q->addSelect('wines.recommended as w_rec');
       }
 
-      $distances= [];
+      $all_points= [];
+      $all_distances= [];
       $wineries= $q->get();
       $point_num=0;
       foreach($wineries as $winery) {
@@ -267,54 +268,67 @@ class TestController extends Controller {
         ];
         $distance= $this->CalculateDistance($point, $start);
         if($distance<$max_dist) {
-          // $point['distance']=$distance;
-          $distances[]= $point;
+          // $all_distances[] = $distance;
+          $all_points[]= $point;
         }
       }
+      // for($x=0;$x<count($all_points);$x++) {
+      //     for($y=$x;$y<count($all_points);$y++) {
+      //         $all_distances[$x][$y]= $this->CalculateDistance($all_points[$x], $all_points[$y]);
+      //     }
+      // }
+      // die();
+      // $this->dijkstraAlgo($all_distances);
+      //die();
       $points=[];
       /*
       | Find the first nearest node
       */
-      usort($distances, function($d1, $d2)use($start) {
+      usort($all_points, function($d1, $d2)use($start) {
         return $this->CalculateDistance($start, $d1)-$this->CalculateDistance($start, $d2);
       });
-      $current_node= array_shift($distances);
-      $points[] = $current_node['id'];
+      // $current_node= array_shift($all_points);
+      // $points[] = $current_node['id'];
       /*
       |-------------------------------------------------------------
       | Do it untill point length is smaller than requested number
       | of points
       */
-
-      // print_r($points);die();
-      /*
-      | finding first nearest point
-      */
-      $current_nodes= [];
+      $distance= [];
+      $matrix= [];
+      $visited= [];
       $time=0;
-      for($x=0; $x<count($distances) && count($points)<$limit; $x++) {
-          $current_node= $distances[$x];
-          array_push($current_nodes, $current_node['id']);
-          usort($distances, function($d1,$d2)use($current_node) {
+
+      $all_distances= [];
+      for($x=0;$x<(count($all_points)-1); $x++) {
+          for($y=0;$y<(count($all_points)-1); $y++) {
+              // print_r($x,$y);
+              if($x!==$y) {
+                  // $point= [
+                  //     'from'=> $all_points[$x]['id'],
+                  //     'to' => $all_points[$y]['id'],
+                  //     'distance' => $this->CalculateDistance($all_points[$x], $all_points[$y])
+                  // ];
+                  // $all_distances[]= $point;
+                  $all_distances[$all_points[$x]['id']][$all_points[$y]['id']]= $this->CalculateDistance($all_points[$x], $all_points[$y]);
+              }
+              usort($all_distances[$all_points[$x]['id']][$all_points[$y]['id']], function($x1,$x2) {
+                  return $x1-$x2;
+              })
+          }
+      }
+      dd($all_distances);
+
+      for($x=0; $x<count($all_points) && count($points)<$limit; $x++) {
+          $current_node= $all_points[$x];
+          array_push($visited, $current_node['id']);
+          usort($all_points, function($d1,$d2)use($current_node) {
             return $this->CalculateDistance($current_node, $d1)- $this->CalculateDistance($current_node, $d2);
           });
-          $points[]= $new_point= array_shift($distances)['id'];
-          // $curr= [
-          //   'lng'=> $current_node['lng'],
-          //   'lat'=> $current_node['lat']
-          // ];
-          // $new= [
-          //   'lng'=> $new_point['lng'],
-          //   'lat'=> $new_point['lat']
-          // ];
-          // try{
-          //   $time+= $this->checkDistance($curr, $new);
-          // }catch(\Exception $e) {
-          // }
+          $points[]= $new_point= array_shift($all_points)['id'];
         }
 
         $order_string= implode(',',$points);
-        // die();
       $q->whereIn('wineries.id', $points);
       $q->orderByRaw(DB::raw("FIELD(wineries.id, $order_string)"));
       $q->limit($limit);
@@ -377,6 +391,53 @@ class TestController extends Controller {
         {
         return $miles;
         }
+    }
+
+    public function findRouteWeight($p1, $p2, $all) {
+
+        foreach($all as $point) {
+
+        }
+    }
+
+    public function dijkstraAlgo(array $_distArr)
+    {
+
+        $a = 1;
+        $b = 5;
+
+        //initialize the array for storing
+        $S = array();//the nearest path with its parent and weight
+        $Q = array();//the left nodes without the nearest path
+        foreach(array_keys($_distArr) as $val) $Q[$val] = 99999;
+        $Q[$a] = 0;
+        //start calculating
+        while(!empty($Q)){
+            $min = array_search(min($Q), $Q);//the most min weight
+            if($min == $b) break;
+            foreach($_distArr[$min] as $key=>$val)
+                if(!empty($Q[$key]) && $Q[$min] + $val < $Q[$key]) {
+                    $Q[$key] = $Q[$min] + $val;
+                    $S[$key] = array($min, $Q[$key]);
+            }
+            unset($Q[$min]);
+        }
+
+        //list the path
+        $path = array();
+        $pos = $b;
+        while($pos != $a){
+            $path[] = $pos;
+            $pos = $S[$pos][0];
+        }
+        $path[] = $a;
+        $path = array_reverse($path);
+
+        //print result
+        // echo "<img src='http://www.you4be.com/dijkstra_algorithm.png'>";
+        echo "<br />From $a to $b";
+        echo "<br />The length is ".$S[$b][1];
+        echo "<br />Path is ".implode('->', $path);
     }
 
     private function checkDistance($origin, $destination) {
