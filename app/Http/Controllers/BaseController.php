@@ -939,7 +939,17 @@ class BaseController extends Controller
 
     "EVENTS_ACTIVE_LABEL" : "Aktivno", 
 
-    "EVENTS_ACTIVE_HINT" : "Nakon isteka datuma završetka, dešavanje će se automatski deaktivirati"
+    "EVENTS_ACTIVE_HINT" : "Nakon isteka datuma završetka, dešavanje će se automatski deaktivirati",
+
+    "WINES_ADD_TEMP_SERVING_START_LABEL" : "Temperatura serviranja od",
+
+    "WINES_ADD_TEMP_SERVING_END_LABEL" : "Temperatura serviranja do",
+
+    "WINES_EDIT_TEMP_SERVING_START_LABEL" : "Temperatura serviranja od",
+
+    "WINES_EDIT_TEMP_SERVING_END_LABEL" : "Temperatura serviranja do",
+
+    "WINE_PREVIEW_WINE_TEMP_LABEL" : "Temperatura serviranja"
 
 
 }';

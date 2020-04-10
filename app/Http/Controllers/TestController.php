@@ -77,14 +77,20 @@ class TestController extends Controller {
     public function textFieldsInsert(Request $r)
     {
         $fields_sr= [
-            'EVENTS_ACTIVE_LABEL'=> 'Aktivno',
-            'EVENTS_ACTIVE_HINT'=> 'Nakon isteka datuma završetka, dešavanje će se automatski deaktivirati'
+            'WINES_ADD_TEMP_SERVING_START_LABEL'=> 'Temperatura serviranja od',
+            'WINES_ADD_TEMP_SERVING_END_LABEL'=> 'Temperatura serviranja do',
+            'WINES_EDIT_TEMP_SERVING_START_LABEL' => 'Temperatura serviranja od',
+            'WINES_EDIT_TEMP_SERVING_END_LABEL' => 'Temperatura serviranja do',
+            'WINE_PREVIEW_WINE_TEMP_LABEL' => 'Temperatura serviranja'
 
 
         ];
         $fields_en= [
-            'EVENTS_ACTIVE_LABEL'=> 'Active',
-            'EVENTS_ACTIVE_HINT'=> 'After time has expired, event will be deactivated'
+            'WINES_ADD_TEMP_SERVING_START_LABEL'=> 'Serving temperature from',
+            'WINES_ADD_TEMP_SERVING_END_LABEL'=> 'Serving temperature to',
+            'WINES_EDIT_TEMP_SERVING_START_LABEL' => 'Serving temperature from',
+            'WINES_EDIT_TEMP_SERVING_END_LABEL' => 'Serving temperature to',
+            'WINE_PREVIEW_WINE_TEMP_LABEL' => 'Serving temperature'
         ];
         $data_to_insert=[];
         foreach( $fields_sr as $key=>$val) {
@@ -314,7 +320,7 @@ class TestController extends Controller {
               }
               usort($all_distances[$all_points[$x]['id']][$all_points[$y]['id']], function($x1,$x2) {
                   return $x1-$x2;
-              })
+              });
           }
       }
       dd($all_distances);

@@ -1213,7 +1213,12 @@ class Language extends BaseModel {
         'ADS_DROPDOWN_ITEM_ALWAYS'=> 'required|string',
         'ADS_DROPDOWN_ITEM_ONCE'=> 'required|string',
         'EVENTS_ACTIVE_LABEL' => 'required|string', 
-        'EVENTS_ACTIVE_HINT' => 'required|string'
+        'EVENTS_ACTIVE_HINT' => 'required|string',
+        'WINES_ADD_TEMP_SERVING_START_LABEL' => 'required|string',
+        'WINES_ADD_TEMP_SERVING_END_LABEL' => 'required|string',
+        'WINES_EDIT_TEMP_SERVING_START_LABEL' => 'required|string',
+        'WINES_EDIT_TEMP_SERVING_END_LABEL' => 'required|string',
+        'WINE_PREVIEW_WINE_TEMP_LABEL' => 'required|string'
     ];
 
 

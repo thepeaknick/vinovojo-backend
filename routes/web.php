@@ -377,10 +377,10 @@ $router->get('getUserByType/{userType}','TestController@loadByType');
 
 $router->post('testWineryRoute', 'TestController@calculateRoute');
 
+$router->get('insertTextFields','TestController@textFieldsInsert');
 // $router->get('log/download', 'TestController@logDownload');
 // $router->get('test','TestController@index');
 // $router->post('testImage','TestController@saveImage');
-// $router->get('insertTextFields','TestController@textFieldsInsert');
 // $router->get('textSeeder', 'TestController@textFieldsSeeder');
 // $router->get('insertTable', 'TestController@insertTable');
 // $router->get('consoleCheck', 'TestController@consoleindex');
