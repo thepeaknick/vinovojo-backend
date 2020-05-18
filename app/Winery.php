@@ -19,7 +19,7 @@ class Winery extends BaseModel {
     ];
 
     protected $hidden = [
-        'area_id', 'transliterations', 'rates'
+        'area_id','transliterations', 'rates'
     ];
 
     protected static $listData = [
@@ -79,6 +79,10 @@ class Winery extends BaseModel {
 
                                         ->groupBy('id');
         return $relation;
+    }
+
+    public function wines() {
+        return $this->hasMany('App\Wine');
     }
 
     public function area() {
@@ -714,6 +718,54 @@ class Winery extends BaseModel {
         if($rates->count()>0)
             return floatval($rates->count());
         else return 0;
+    }
+
+    public function getCategoriesAttribute()
+    {
+        $categories = $this->wines->pluck('category_id')->toArray();
+        return array_values(array_unique($categories,SORT_NUMERIC));
+    }
+
+    public function getClassesAttribute()
+    {
+        $wines = $this->wines->pluck('id')->toArray();
+        $classes = DB::table('classes_wines')->whereIn('wine_id', $wines)->select('class_id')->get()->toArray();
+        $ids=[];
+        foreach ($classes as $class) {
+            $ids[]= $class->class_id;
+        }
+        return array_values(array_unique($ids));
+    }
+
+    public function getAlcoholAttribute()
+    {
+        $alcohol = $this->wines->pluck('alcohol')->toArray();
+        return array_values(array_unique($alcohol));
+    }
+
+    public function getHarvestYearAttribute()
+    {
+        $year = $this->wines->pluck('harvest_year')->toArray();
+        return array_values(array_unique($year));
+    }
+
+    public function getAreaIdAttribute()
+    {
+        return $this->attributes['area_id'];
+    }
+
+    public static function dropdown($langId = null)
+    {
+        if(!isset($langId))
+            $langId = 1;
+
+        $data = parent::dropdown($langId);
+        $data->each(function($item) {
+            $item->append('categories' , 'harvest_year', 'alcohol' , 'classes');
+            $item->makeVisible('area_id');
+        });
+        $data->setVisible('id', 'name', 'categories', 'harvest_year', 'alcohol' , 'classes', 'area_id');
+        return $data;
     }
 
 

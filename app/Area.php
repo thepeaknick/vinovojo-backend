@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Support\Facades\Storage;
@@ -64,6 +65,18 @@ class Area extends BaseModel {
 
     public function children() {
         return $this->hasMany(static::class, 'parent_id');
+    }
+
+    public function wines() {
+        $rel = $this->hasMany('App\Wine', 'area_id');
+        $rel->where(function($q) {
+            $q->where('area_id', $this->id);
+            if($this->parent_id != null)
+                $q->orWhere('area_id', $this->parent_id);
+            if($this->parent != null)
+                $q->orWhereIn('area_id', $this->parend()->pluck('id'));
+        });
+        return $rel;
     }
 
 
@@ -190,6 +203,42 @@ class Area extends BaseModel {
 
     public function getFlagAttribute() {
         return 9;
+    }
+
+    public function getClassesAttribute()
+    {
+        $wines = $this->wines->pluck('id')->toArray();
+        $classes = DB::table('classes_wines')->whereIn('wine_id', $wines)->select('class_id')->get()->toArray();
+        $ids=[];
+        foreach ($classes as $class) {
+            $ids[]= $class->class_id;
+        }
+        return array_values(array_unique($ids));
+    }
+
+    public function getHarvestYearAttribute()
+    {
+        $years = $this->wines->pluck('harvest_year')->toArray();
+        return array_values(array_unique($years));
+    }
+
+    public function getAlcoholAttribute()
+    {
+        $alcohol = $this->wines->pluck('alcohol')->toArray();
+        return array_values(array_unique($alcohol));
+    }
+
+    public static function dropdown($langId = null)
+    {
+        if($langId == null)
+            $langId = 1;
+
+        $data = parent::dropdown($langId);
+        $data->each(function ($item) {
+            $item->append('classes', 'harvest_year', 'alcohol');
+        });
+        $data->setVisible('id','name','classes', 'harvest_year', 'alcohol');
+        return $data;
     }
 
 }

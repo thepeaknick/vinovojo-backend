@@ -410,7 +410,7 @@ class Wine extends BaseModel {
         // $q->addSelect('pins.lat as lat');
         // $q->addSelect('pins.lng as lng');
 
-        if($req->has('search'))
+        if($req->has('search')) 
             $q->where('wineTransliteration.value','like','%'.$req->search.'%');
 
         // if($search!=='')
@@ -519,7 +519,6 @@ class Wine extends BaseModel {
                         $query->where('transliteration.object_type', (new \App\Area)->flag);
                         $query->where('transliteration.name', 'name');
                         $query->where('transliteration.language_id', $languageId);
-//                        $query->select('transliteration.name','name');
                         return $query;
                     })->get();
         foreach ($areas as $area){

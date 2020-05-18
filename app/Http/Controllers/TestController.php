@@ -102,12 +102,12 @@ class TestController extends Controller {
                 'value'=> $val
             ];
 
-            try{
-                \DB::table('text_fields')->insert($one_row);
-            }catch(\Exception $e) {
-                continue;
-            }
-            // $data_to_insert[] = $one_row;
+            // try{
+            //     \DB::table('text_fields')->insert($one_row);
+            // }catch(\Exception $e) {
+            //     continue;
+            // }
+            $data_to_insert[] = $one_row;
         }
         foreach($fields_en as $key=>$val) {
             $one_row =[
