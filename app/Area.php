@@ -228,6 +228,12 @@ class Area extends BaseModel {
         return array_values(array_unique($alcohol));
     }
 
+    public function getWineriesAttribute()
+    {
+        $wineries = $this->wines()->pluck('winery_id')->toArray();
+        return array_values(array_unique($wineries));
+    }
+
     public static function dropdown($langId = null)
     {
         if($langId == null)
@@ -235,9 +241,9 @@ class Area extends BaseModel {
 
         $data = parent::dropdown($langId);
         $data->each(function ($item) {
-            $item->append('classes', 'harvest_year', 'alcohol');
+            $item->append('classes', 'harvest_year', 'alcohol', 'wineries');
         });
-        $data->setVisible('id','name','classes', 'harvest_year', 'alcohol');
+        $data->setVisible('id','name','classes', 'harvest_year', 'alcohol', 'wineries');
         return $data;
     }
 

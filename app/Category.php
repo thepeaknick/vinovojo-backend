@@ -151,9 +151,9 @@ class Category extends BaseModel {
 
         $data = parent::dropdown($langId);
         $data->each(function ($item) {
-            $item->append('harvest_year', 'classes');
+            $item->append('harvest_year', 'classes', 'alcohol');
         });
-        $data->setVisible('id', 'name','harvest_year', 'classes');
+        $data->setVisible('id', 'name','harvest_year', 'classes', 'alcohol');
 
         return $data;
     }
