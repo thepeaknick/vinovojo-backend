@@ -236,11 +236,8 @@ class WineController extends Controller {
         }
 		$alcoholl = (array)($wines->pluck('alcohol')->unique()->toArray());
 		$alcohol=[];
-		foreach ($alcoholl as $alc) {
-            $data = [];
-            $data['alcohol'] = $alc;
-            $data['harvest_year'] = (array_unique(Wine::where('alcohol', $alc)->get()->pluck('harvest_year')->toArray()));
-            $alcohol[] = $data;
+        foreach ($alcoholl as $alc) {
+            $alcohol[] = $alc;
         }
 
 		return response()->json( compact('wineries', 'categories', 'years', 'alcohol', 'classes', 'areas'), 200 );
@@ -262,7 +259,10 @@ class WineController extends Controller {
         $alcoholl = (array)($wines->pluck('alcohol')->unique()->toArray());
         $alcohol=[];
         foreach ($alcoholl as $alc) {
-            $alcohol[] = $alc;
+            $data = [];
+            $data['alcohol'] = $alc;
+            $data['harvest_year'] = array_values(array_unique(Wine::where('alcohol', $alc)->get()->pluck('harvest_year')->toArray()));
+            $alcohol[] = $data;
         }
 
         $areas= Area::with('parent')
