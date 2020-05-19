@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Auth;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class Winery extends BaseModel {
-
     protected $fillable = [
         'address', 'recommended', 'background', 'webpage', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday','saturday', 'sunday', 'area_id', 'contact_person', 'contact', 'name', 'description', 'highlighted', 'admin_id'
     ];
@@ -751,7 +750,7 @@ class Winery extends BaseModel {
 
     public function getAreaIdAttribute()
     {
-        return $this->attributes['area_id'];
+        return static::find($this->id)->attributes['area_id'];
     }
 
     public static function dropdown($langId = null)
@@ -761,7 +760,7 @@ class Winery extends BaseModel {
 
         $data = parent::dropdown($langId);
         $data->each(function($item) {
-            $item->append('categories' , 'harvest_year', 'alcohol' , 'classes');
+            $item->append('categories' , 'harvest_year', 'alcohol' , 'classes', 'area_id');
             $item->makeVisible('area_id');
         });
         $data->setVisible('id', 'name', 'categories', 'harvest_year', 'alcohol' , 'classes', 'area_id');
