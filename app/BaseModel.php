@@ -83,7 +83,6 @@ class BaseModel extends Model
             $data->setVisible(['id', 'name']);
             return $data;
         }
-
         return static::select('name', 'id')->orderBy('name', 'asc')->get();
     }
 

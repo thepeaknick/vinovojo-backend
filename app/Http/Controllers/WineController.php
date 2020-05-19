@@ -237,7 +237,10 @@ class WineController extends Controller {
 		$alcoholl = (array)($wines->pluck('alcohol')->unique()->toArray());
 		$alcohol=[];
 		foreach ($alcoholl as $alc) {
-            $alcohol[] = $alc;
+            $data = [];
+            $data['alcohol'] = $alc;
+            $data['harvest_year'] = (array_unique(Wine::where('alcohol', $alc)->get()->pluck('harvest_year')->toArray()));
+            $alcohol[] = $data;
         }
 
 		return response()->json( compact('wineries', 'categories', 'years', 'alcohol', 'classes', 'areas'), 200 );
@@ -318,7 +321,6 @@ class WineController extends Controller {
         else $sort= 'asc';
 
         $q = Wine::list($lang, $sort, true);
-        // print_r($q->toSql());die();
 		if ( $r->has('min_rate') )
 			$q->having( app('db')->raw('avg(rates.rate)'), '>', $r->min_rate);
 
