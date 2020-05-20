@@ -266,6 +266,16 @@ class WineryController extends BaseController
         if ( $r->has('min_rate') )
             $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
 
+        $q->join('wines as w', 'w.winery_id', 'wineries.id');
+        
+        if($r->has('category_id'))
+            $q->where('w.category_id', '=', $r->category_id);
+
+        if($r->has('class_id')) {
+            $q->join('classes_wines as cw' , 'cw.wine_id', 'w.id');
+            $q->where('class_id', $r->class_id);
+        }
+
 //         if ( $r->has('sort') ) {
 //             $q->getQuery()->orders = null;
 //             $sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
