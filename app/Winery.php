@@ -719,7 +719,7 @@ class Winery extends BaseModel {
         else return 0;
     }
 
-    public function getCategoriesAttribute()
+    public function getCategoriesIdsAttribute()
     {
         $categories = $this->wines->pluck('category_id')->toArray();
         return array_values(array_unique($categories,SORT_NUMERIC));
@@ -760,10 +760,10 @@ class Winery extends BaseModel {
 
         $data = parent::dropdown($langId);
         $data->each(function($item) {
-            $item->append('categories' , 'harvest_year', 'alcohol' , 'classes', 'area_id');
+            $item->append('categories_ids' , 'harvest_year', 'alcohol' , 'classes', 'area_id');
             $item->makeVisible('area_id');
         });
-        $data->setVisible('id', 'name', 'categories', 'harvest_year', 'alcohol' , 'classes', 'area_id');
+        $data->setVisible('id', 'name', 'categories_ids', 'harvest_year', 'alcohol' , 'classes', 'area_id');
         return $data;
     }
 
