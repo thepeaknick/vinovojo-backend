@@ -336,9 +336,15 @@ class TestController extends Controller {
           //  then break 
           // if(count($current_point_waypoints) > count($top_points))
           //   break;
+          $current = null;
+          if(count($current_point_waypoints) == 0) {
+            $current = $currentPoint;
+          }else {
+            $current = $current_point_waypoints[count($current_point_waypoints)-1];
+          }
 
-          usort($rest_waypoints, function($x1, $x2) use($currentPoint) {
-            return $this->CalculateDistance($currentPoint, $x1) - $this->CalculateDistance($currentPoint, $x2);
+          usort($rest_waypoints, function($x1, $x2) use($current) {
+            return $this->CalculateDistance($current, $x1) - $this->CalculateDistance($current, $x2);
           });
 
           // We must here include current_start_waypoint
@@ -356,12 +362,14 @@ class TestController extends Controller {
           'sum' => $path_sum,
           'waypoints' => array_merge([$currentPoint], $current_point_waypoints)
         ];
-
       }
 
       // First we need to check if all array is empty
-      if(empty($all))
-        return response()->json([], 200);
+      // if(empty($all))
+      if(empty($all)) {
+        echo "{}";
+        die();
+      }
 
       usort($all, function($p1, $p2) {
         return $p1['sum'] - $p2['sum'];
