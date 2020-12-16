@@ -28,10 +28,8 @@ $app = new Laravel\Lumen\Application(
 $app->configure('filesystems');
 $app->configure('services');
 $app->configure('view');
-<<<<<<< HEAD
+
 $app->configure('debug');
-=======
->>>>>>> 8aebaa49c7f70d2dcf4ac27bdff6c32f01b18208
 
 $app->withFacades();
 
