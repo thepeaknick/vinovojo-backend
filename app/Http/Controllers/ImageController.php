@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Wine;
+
 use App\Article;
 
 use App\Happening;
-use http\Env\Request;
+
+use App\Advertising;
+
+// use http\Env\Request;
+
+use Illuminate\Http\Request;
 
 class ImageController extends Controller
 {
@@ -60,7 +67,7 @@ class ImageController extends Controller
     }
 
     public function loadBottleImage($id, $antiCache = null) {
-        $instance = \App\Wine::find($id);
+        $instance = Wine::find($id);
 
         if (!$instance)
             return response()->json("Not found", 404);
@@ -68,8 +75,8 @@ class ImageController extends Controller
         return response()->download($instance->bottleFullPath() );
     }
 
-    public function loadAdImage(\Illuminate\Http\Request $r, $id){
-        $instance = \App\Advertising::find($id);
+    public function loadAdImage(Request $r, $id){
+        $instance = Advertising::find($id);
         if(!$instance)
             return response()->json("Not found",404);
 

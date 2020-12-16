@@ -13,17 +13,16 @@ use Illuminate\Support\Facades\Auth;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class Winery extends BaseModel {
-
     protected $fillable = [
         'address', 'recommended', 'background', 'webpage', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday','saturday', 'sunday', 'area_id', 'contact_person', 'contact', 'name', 'description', 'highlighted', 'admin_id'
     ];
 
     protected $hidden = [
-        'area_id', 'transliterations', 'rates'
+        'area_id','transliterations', 'rates'
     ];
 
     protected static $listData = [
-        'wineries.id as id', 'wineries.address as address', 'recommended', 'transliteration.value as name', 'wineries.highlighted as highlighted'
+        'wineries.id as id', 'wineries.address as address', 'wineries.recommended as recommended', 'transliteration.value as name', 'wineries.highlighted as highlighted'
     ];
 
     protected $appends = [
@@ -82,6 +81,10 @@ class Winery extends BaseModel {
         return $relation;
     }
 
+    public function wines() {
+        return $this->hasMany('App\Wine');
+    }
+
     public function area() {
         $languageId = app('translator')->getLocale();
         $area= $this->belongsTo('App\Area')->select('areas.id as id', 'transliteration.value as name', 'areas.type as type', 'areas.parent_id as area_parent_id')
@@ -132,7 +135,8 @@ class Winery extends BaseModel {
     public static function list($lang, $sorting = 'asc', $getQuery = false,$search='') {
         $q = static::select( static::$listData );
 
-        $q->addSelect( app('db')->raw( "avg(rates.rate) as rate, count(IFNULL(rates.id,'')) as rate_count" ) );
+        // $q->addSelect( app('db')->raw( "avg(rates.rate) as rate, count(IFNULL(rates.id,'')) as rate_count" ) );
+        // $q->addSelect('areaTransliteration.value as area');
         $q->addSelect('wineries.area_id as area_id');
 
         // Load area, rates, pin, translates
@@ -141,9 +145,10 @@ class Winery extends BaseModel {
         $q->leftJoin('rates', function ($q) {
             $q->on('wineries.id', '=', 'rates.object_id');
             $q->where('rates.object_type', (new static)->flag );
-            $q->where('status', 'approved');
-            $q->addSelect(app('db')->raw("avg(rates.rate as rate, count(IFNULL(rates.id,'')) as rate_count"));
+            $q->where('rates.status', 'approved');
+            // $q->addSelect(app('db')->raw("avg(IIF(rates.status LIKE approved)rates.rate as rate), count(IFNULL(rates.id,'')) as rate_count"));
         });
+        // print_r($q->toSql());die();
         $q->with('pin');
 
         $q->join('text_fields as transliteration', function ($q) use ($lang,$search) {
@@ -163,7 +168,49 @@ class Winery extends BaseModel {
         if($req->has('winery_id'))
             $q->where('wineries.id','=',$req->winery_id);
 
-        // Load areas nested
+
+        // if ( $req->has('area_id') )
+        // {
+        //     $area_ids=[];
+        //     $area= Area::where('id',$req->area_id)->first();
+        //     if($area!==null) {
+        //         $area_ids[] =$area->id;
+        //         if($area->parent_id!=null)
+        //         {
+        //             $area_ids[]= $area->parent_id;
+        //             $parent= Area::where('id',$area->parent_id)->first();
+        //             if($parent->parent_id!==null)
+        //                 $area_ids[]= $parent->parent_id;
+        //         }
+        //     }
+        //     $q->whereIn('wineries.area_id', array_unique($area_ids));
+        // }
+        $q->join('areas as a', function($join) {
+            $join->on('wineries.area_id','=', 'a.id');
+        })->join('text_fields as aTransliteration',function($join)use ($lang) {
+            $join->on('aTransliteration.object_id','=','a.id');
+            $join->where('aTransliteration.object_type','=',(new Area)->flag);
+            $join->where('aTransliteration.name','name');
+            $join->where('aTransliteration.language_id','=',$lang);
+        })->join('areas as p', function($join) {
+                $join->on('p.id','=', 'a.parent_id');
+        })->join('text_fields as pTransliteration',function($join)use ($lang) {
+            $join->on('pTransliteration.object_id','=','p.id');
+            $join->where('pTransliteration.object_type','=',(new Area)->flag);
+            $join->where('pTransliteration.name','name');
+            $join->where('pTransliteration.language_id','=',$lang);
+        })->join('areas as pp', function($join) {
+                $join->on('pp.id','=', 'p.parent_id');
+        })->join('text_fields as ppTransliteration',function($join)use ($lang) {
+            $join->on('ppTransliteration.object_id','=','pp.id');
+            $join->where('ppTransliteration.object_type','=',(new Area)->flag);
+            $join->where('ppTransliteration.name','name');
+            $join->where('ppTransliteration.language_id','=',$lang);
+        });
+        $q->addSelect('ppTransliteration.value as area_name');
+        $q->addSelect('pTransliteration.value as area_parent_name');
+        $q->addSelect('aTransliteration.value as area_parent_parent_name');
+
         if ( $req->has('area_id') )
         {
             $area_ids=[];
@@ -193,8 +240,9 @@ class Winery extends BaseModel {
             }
             $q->whereIn('wineries.area_id', array_unique($area_ids));
         }
-        
-        if(!empty($req->header('SortBy')))
+        // $sortBy = $req->header('Sort-By', static::$listSort);
+        // dd($req->header('SortBy'));
+        if(!empty($req->header('SortBy')) && $req->header('SortBy')!=='asc')
         {
             $sort= $req->header('Sorting','asc');
             if($req->header('SortBy')=='region') {
@@ -217,7 +265,6 @@ class Winery extends BaseModel {
         $q->groupBy('wineries.id');
         if ($getQuery)
             return $q;
-
         $data = $q->paginate(10);
         foreach ($data as $singleData) {
             $marketing=new \App\Highlight();
@@ -262,7 +309,8 @@ class Winery extends BaseModel {
             })->get();
         foreach ($areas as $area){
             $area->name= $area->value;
-            $area->parent= $area->parent->parent;
+            if($area->parent!==null)
+                $area->parent= $area->parent->parent;
         }
         $this->areas=$areas;
 
@@ -308,11 +356,23 @@ class Winery extends BaseModel {
             $this->storeLogo($req->logo);
         }
 
+        if( $req->has('logo') && ($req->logo== 'null') && !$req->hasFile('logo'))
+            $this->deleteLogoImage();
+
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 
+
+        // dd($req->has('cover') && ($req->cover== 'null') && !$req->hasFile('cover'));
+        \Log::emergency('COVER: ',['cover:366 =>'=> ($req->has('cover') && ($req->cover== 'null') && !$req->hasFile('cover'))]);
+        if( $req->has('cover') && ($req->cover== 'null') && !$req->hasFile('cover'))
+            $this->deleteCoverImage();
+
         if ( $req->hasFile('video') )
             $this->storeVideo($req->video);
+
+        if( $req->has('video') && ($req->video== 'null') && !$req->hasFile('video'))
+            $this->deleteVideo();
 
 
 
@@ -461,6 +521,9 @@ class Winery extends BaseModel {
         // } catch(Intervention\Image\Facades\Image\NotReadableException $e) {
         //     return false;
         // }
+        if($image==null)
+            return $this->deleteLogoImage();
+
         return $image->storeAs( '', $this->logoDiskPath(), $this->storageDisk );
         return $image->save( $this->logoFullPath() );
     }
@@ -485,6 +548,9 @@ class Winery extends BaseModel {
     }
 
     public function storeVideo($video) {
+        if($video==null)
+            return $this->deleteVideo();
+
         return $video->storeAs( '', $this->videoDiskPath(), $this->storageDisk );
     }
 
@@ -601,17 +667,65 @@ class Winery extends BaseModel {
     }
     public function getRateAttribute()
     {
-        $rate= $this->rates()->whereNotNull('rate');
+        $rate= $this->approvedRates()->whereNotNull('rate');
         if($rate->count()>0)
             return floatval($rate->sum('rate')/$rate->count());
         else return 0;
     }
     public function getRateCountAttribute()
     {
-        $rates= $this->rates()->whereNotNull('rate');
+        $rates= $this->approvedRates()->whereNotNull('rate');
         if($rates->count()>0)
             return floatval($rates->count());
         else return 0;
+    }
+
+    public function getCategoriesIdsAttribute()
+    {
+        $categories = $this->wines->pluck('category_id')->toArray();
+        return array_values(array_unique($categories,SORT_NUMERIC));
+    }
+
+    public function getClassesAttribute()
+    {
+        $wines = $this->wines->pluck('id')->toArray();
+        $classes = DB::table('classes_wines')->whereIn('wine_id', $wines)->select('class_id')->get()->toArray();
+        $ids=[];
+        foreach ($classes as $class) {
+            $ids[]= $class->class_id;
+        }
+        return array_values(array_unique($ids));
+    }
+
+    public function getAlcoholAttribute()
+    {
+        $alcohol = $this->wines->pluck('alcohol')->toArray();
+        return array_values(array_unique($alcohol));
+    }
+
+    public function getHarvestYearAttribute()
+    {
+        $year = $this->wines->pluck('harvest_year')->toArray();
+        return array_values(array_unique($year));
+    }
+
+    public function getAreaIdAttribute()
+    {
+        return static::find($this->id)->attributes['area_id'];
+    }
+
+    public static function dropdown($langId = null)
+    {
+        if(!isset($langId))
+            $langId = 1;
+
+        $data = parent::dropdown($langId);
+        $data->each(function($item) {
+            $item->append('categories_ids' , 'harvest_year', 'alcohol' , 'classes', 'area_id');
+            $item->makeVisible('area_id');
+        });
+        $data->setVisible('id', 'name', 'categories_ids', 'harvest_year', 'alcohol' , 'classes', 'area_id');
+        return $data;
     }
 
 

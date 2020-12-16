@@ -41,7 +41,7 @@ class BaseModel extends Model
     **/
     public static function list($lang, $sorting = 'asc', $getQuery = false) {
     	$q = static::select( static::$listData )->with( static::$listRelationships );
-        $q->orderBy( static::$listSort, $sorting );
+        //$q->orderBy( static::$listSort, $sorting );
 
         if ($getQuery)
             return $q;
@@ -111,7 +111,6 @@ class BaseModel extends Model
             $data->setVisible(['id', 'name']);
             return $data;
         }
-
         return static::select('name', 'id')->orderBy('name', 'asc')->get();
     }
 
@@ -420,6 +419,10 @@ class BaseModel extends Model
      * @return void
      */
     public function storeCover( $image ) {
+
+        if($image==null)
+            return $this->deleteCoverImage();
+
         try {
             $image = Image::make($image);
             $image->resize(480, null, function ($constraint) {
@@ -472,7 +475,7 @@ class BaseModel extends Model
     public function only($values = []) {
         $values = ( is_object($values) ) ? $values->all() : $values;
         $currentVisible = $this->getVisible();
-
+        
         $this->setVisible( $values );
         $return = $this->toArray();
 

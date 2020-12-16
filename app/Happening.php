@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Http\Parser\QueryString;
@@ -20,7 +21,7 @@ class Happening extends BaseModel {
     // ];
 
     protected $fillable = [
-        'name', 'description', 'start', 'end', 'location', 'lat', 'lng', 'link', 'active'
+        'name', 'description', 'start', 'end', 'location', 'lat', 'lng', 'link', 'actives'
     ];
 
     protected $appends = [
@@ -86,12 +87,23 @@ class Happening extends BaseModel {
         if($req->has('search'))
             $q->where('nameTransliteration.value','like','%'.$req->search.'%');
 
+        if(!empty($req->header('SortBy')) && $req->header('SortBy')!=='asc')
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }
         return ($getQuery) ? $q : $q->paginate(10);
     }
 
     public function postCreation($req = null) {
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
+
+        if($req->has('start') && $req->has('end')) {
+            $this->start= new Carbon(date($req->start));
+            $this->end= new Carbon(date($req->end));
+            $this->save();
+        }
 
         return true;
     }
@@ -100,7 +112,17 @@ class Happening extends BaseModel {
     public function update($req = [], $options = []) {
         if ( !parent::update($req) )
             return response()->json(['error ' => 'Something went wrong'], 500);
-
+        
+        if($req->has('start') && $req->has('end')) {
+            $this->start= new Carbon(date($req->start));
+            $this->end= new Carbon(date($req->end));
+            $this->save();
+        }
+        
+        if($req->has('active')) {
+            $this->active= $req->active;
+            $this->save();
+        }
         if ( $req->hasFile('cover') )
             $this->storeCover($req->cover);
 

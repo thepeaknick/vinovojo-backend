@@ -131,8 +131,6 @@ $router->get('wine/filter/initialize/mobile', 'WineController@initalizeFilterMob
 
 $router->get('winery/filter/initialize/mobile', 'WineryController@initializeFilterMobile');
 
-
-
 //		-- Rates --
 
 $router->get('rate/approve/{id}', 'SocialController@approveComment');
@@ -148,6 +146,8 @@ $router->get('{object}/{id}/rate/{type}', 'RateController@filter');
 //		-- Feed --
 
 $router->get('feed/news', 'FeedController@loadNewsList');
+
+$router->get('feed/news/{id}', 'FeedController@loadSingleNews');
 
 $router->get('feed/recommended/', 'FeedController@loadRecommendations');
 
@@ -177,6 +177,8 @@ $router->get('bottle/{id}/{antiCache}', ['uses' => 'ImageController@loadBottleIm
 
 //		-- Wine --
 
+$router->get('mobile/get/wine', 'WineController@loadWinesForMobile');
+
 $router->get('wine/category/{categoryId}', 'WineController@categoryWines');
 
 $router->get('wine/winery/{wineryId}/{categoryId}', 'WineController@wineryWines');
@@ -205,11 +207,14 @@ $router->get('get/category/paginate', 'WineController@paginateAllCategories');
 
 //		-- Winery --
 
+
 $router->get('winery/comments/panel', 'WineryController@loadAllWineryComments');
 
 // $router->get('winery/comments/panel/admin', 'WineryController@loadAllWineryCommentsForAdmin');
 
 $router->get('winery/comments/{wineryId}', 'WineryController@loadWineryComments');
+
+$router->get('winery/comments/all/admin', 'WineryController@loadAllWineryCommentsForAdmin');
 
 $router->get('winery/comments/{wineId}/admin', 'WineryController@loadWineryCommentsForAdmin');
 
@@ -277,6 +282,7 @@ $router->post('add/language/{resource}/{resourceId}', 'BaseController@addLanguag
 
 	// -- Miscellaneous --
 
+$router->get('search/{resource}', 'BaseController@loadPois');
 $router->post('search/{resource}', 'BaseController@search');
 
 $router->get('dropdown/{resource}', 'BaseController@dropdown');
@@ -329,6 +335,8 @@ $router->post('push/critical', 'SocialController@criticalNotification');
 
 $router->post('route/auto', 'PathController@generatePath');
 
+$router->post('route/autogenerate', 'PathController@calculateRoute');
+
 $router->post('poi/range', 'PathController@inRange');
 
 
@@ -367,5 +375,19 @@ $router->post('settings/createOrPatch','SettingsController@makeOrEdit');
 $router->get('getSettingGoogle','SettingsController@getAll');
 
 $router->get('testStorage', 'TestController@testDB');
-$router->get('test','TestController@index');
-$router->post('testImage','TestController@saveImage');
+
+$router->get('getUserByType/{userType}','TestController@loadByType');
+
+$router->post('testWineryRoute', 'TestController@calculateRoute');
+$router->post('testPointsDistances', 'TestController@testPointsDistance');
+
+$router->get('insertTextFields','TestController@textFieldsInsert');
+// $router->get('log/download', 'TestController@logDownload');
+// $router->get('test','TestController@index');
+// $router->post('testImage','TestController@saveImage');
+// $router->get('textSeeder', 'TestController@textFieldsSeeder');
+// $router->get('insertTable', 'TestController@insertTable');
+// $router->get('consoleCheck', 'TestController@consoleindex');
+// $router->get('pathCheck', 'TestController@checkPath');
+// $router->get('remove/duplicates', 'TestController@removeDuplicates');
+// $router->get('carbon/check', 'TestController@carbonCheck');

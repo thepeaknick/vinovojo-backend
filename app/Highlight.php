@@ -62,10 +62,12 @@
                 $recommended=$selfInstance->where('type',RECOMMENDED)->first();
                 if($recommended!==null)
                 {
-                    \Log::info("RECOMMENDED: ",(array)($recommended));
+                    //\Log::info("RECOMMENDED: ",(array)($recommended));
                     $relationInstance=$recommended->loadRelations();
                     $data['type']=RECOMMENDED;
-                    $selfInstance=static::checkExists($data);
+                    $selfInstance= static::checkExists($data);
+                    // \Log::info("Self instance",['instanca'=>(array)($selfInstance)]);
+                    // \Log::info("Datum je istekao/nije",['istekao'=>$selfInstance->expired(),'vino'=>$relationInstance->toArray()]);
                     if($selfInstance && isset($selfInstance->start_date) && isset($selfInstance->end_date) && $selfInstance->expired()){
                         $selfInstance->status=0;
                         $relationInstance->recommended=0;
@@ -78,22 +80,24 @@
 
         public static function storeOrChange(Request $r)
         {
-            $instance=new \App\HighLight();
+            $instance=new HighLight;
             $data=$r->only(['object_id','object_type','start_date','end_date','type','status']);
             $exists=static::checkExists($data);
             if($exists && $exists->object_id!==null)
             {
+                static::removeDuplicates($data);
                 $instance=static::findOrFail($exists->id);
                 if($data['start_date']!==null)
                 {
-                    $instance->start_date=$data['start_date'];
+                    $instance->start_date= new Carbon(date($data['start_date']));
                 }
                 if($data['end_date']!==null)
                 {
-                    $instance->end_date=$data['end_date'];
+                    $instance->end_date= new Carbon(date($data['end_date']));
                 }
                 $instance->status=$data['status'];
-                \Log::info('Zahtev za create Marketing-a',(array)$r->all());
+//                 dd($instance->end_date);
+                //\Log::info('Zahtjev za create Marketing-a',(array)$r->all());
                 if(! $instance->save())
                     return response()->json(['message'=>'Cannot update'],404);
                 $instance->makeExpanded($data);
@@ -101,7 +105,7 @@
                 return response()->json(['message' => "Succesifully updated"]);
 
             }else{
-                $success=\App\Highlight::insert((array)($data));
+                $success= Highlight::insert((array)($data));
                 if($success)
                 {
                         $instance=static::all()->where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->first();
@@ -115,6 +119,19 @@
                     return response()->json(['message'=>'Error',404]);
                 }
 
+            }
+        }
+
+        public static function removeDuplicates($data)
+        {
+            $q= static::where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->where('type',$data['type']);
+            $data= $q->get();
+            $first= $q->first();
+            if($data->count()>1) {
+                foreach($data as $single) {
+                    if($single->id!==$first->id)
+                        $single->delete();
+                }
             }
         }
 
@@ -168,14 +185,14 @@
              if($this->start_date!==null && $this->end_date!==null && isset($this->start_date) && isset($this->end_date))
              {
                 $startdate=new Carbon(date($this->start_date));
-                  $enddate=new Carbon( date($this->end_date) );
+                $enddate=new Carbon( date($this->end_date) );
 
-                  $now=Carbon::now();
-                  // if time is not expired
-                  if( $now->lt( $enddate ) && $now->gt($startdate)){
-                      return 0;
-                  }
-                  return 1;
+                $now=Carbon::now();
+                // if time is not expired
+                if( $now->lt( $enddate ) && $now->gt($startdate)){
+                    return 0;
+                }
+                return 1;
              }
 
              return 1;
@@ -183,7 +200,7 @@
 
         public static function checkExists($newData)
         {
-            $exists=\App\Highlight::all()->where('object_id',$newData['object_id'])->where('object_type',$newData['object_type'])->where('type',$newData['type'])->first();
+            $exists= Highlight::all()->where('object_id',$newData['object_id'])->where('object_type',$newData['object_type'])->where('type',$newData['type'])->first();
             return ($exists && $exists!==null)?$exists:false;
         }
 
@@ -199,13 +216,13 @@
 
         public function loadRelation()
         {
-            if($this->object_type==2)
+            if($this->object_type== WINE_FLAG)
             {
-                $this->wine=\App\Wine::where('id',$this->object_id)->get();
+                $this->wine= Wine::where('id',$this->object_id)->get();
             }
-            if($this->object_type==3)
+            if($this->object_type== WINERY_FLAG)
             {
-                $this->winery=\App\Winery::where('id',$this->object_id)->get();
+                $this->winery= Winery::where('id',$this->object_id)->get();
             }
             return $this;
         }
@@ -214,11 +231,11 @@
             $relation=null;
             if($this->object_type==2)
             {
-                $relation=\App\Wine::where('id',$this->object_id)->first();
+                $relation= Wine::where('id',$this->object_id)->first();
             }
             if($this->object_type==3)
             {
-                $relation=\App\Winery::where('id',$this->object_id)->first();
+                $relation= Winery::where('id',$this->object_id)->first();
             }
             return $relation;
         }
@@ -233,13 +250,13 @@
          */
         public function modifyRelations($data)
         {
-            if($this->object_type==2)
-                $instance=\App\Wine::find($this->object_id);
-            if($this->object_type==3)
-                $instance=\App\Winery::find($this->object_id);
-            if($this->type==1)
+            if($this->object_type== WINE_FLAG)
+                $instance= Wine::find($this->object_id);
+            if($this->object_type== WINERY_FLAG)
+                $instance= Winery::find($this->object_id);
+            if($this->type== HIGHLIGHTED)
                 $instance->highlighted=$data['status'];
-            else if($this->type==2)
+            else if($this->type== RECOMMENDED)
                 $instance->recommended=$data['status'];
             if($instance->save())
                 return true;
@@ -251,6 +268,39 @@
             $instance=$this->getExpandedClass();
             $this->checkInstance($instance);
         }
+
+        public function changeHighlightedStatus()
+        {
+            $relation= $this->loadRelations();
+            if($relation==null){
+                // delete this model
+                // if wine or winery
+                // does not exists
+                $this->delete();
+                return false;
+            }
+
+            switch($this->type)
+            {
+                case HIGHLIGHTED:
+                {
+                    if($this->status==1 && !$this->expired())
+                        $relation->highlighted= $this->status;
+                    else $relation->highlighted= 0;
+                break;
+                }
+                case RECOMMENDED:
+                {
+                    if($this->status==1 && !$this->expired())
+                        $relation->recommended= $this->status;
+                    else $relation->recommended= 0;
+                break;
+                }
+            }
+            return $relation->save();
+        }
+
+
 
     }
 

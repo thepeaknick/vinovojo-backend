@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        'schedule:run'=> '\App\Console\Commands\DailyScheduleCommand'
     ];
 
     /**
@@ -23,12 +24,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function () {
-            \Illuminate\Support\Facades\Log::error('deleting comments');
-            $older = (new \Carbon\Carbon)->subDays(15)->toDateTimeString();
-            \App\Rate::where('status', '!=', 'approved')->where('created_at', '<=', $older)->delete();
-        })->everyMinute()->when(function() {
-            return true;
-        });
+        // $schedule->call(function () {
+        //     \Illuminate\Support\Facades\Log::error('deleting comments');
+        //     $older = (new \Carbon\Carbon)->subDays(15)->toDateTimeString();
+        //     \App\Rate::where('status', '!=', 'approved')->where('created_at', '<=', $older)->delete();
+        // })->everyMinute()->when(function() {
+        //     return true;
+        // });
     }
 }

@@ -88,9 +88,6 @@ class BaseController extends Controller
      */
     public function loadAll($resource, Request $r)
     {
-
-        $result = WineType::get();
-        //  $sorting = $r->header('Sorting', 'asc');
         $languageId = $r->header('Accept-Language');
 
 		$model = $this->resourceClass($resource);
@@ -117,18 +114,13 @@ class BaseController extends Controller
                 $search= (!$r->has('search'))?'':$r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
                 return $instances->paginate(10);
-				break;
-			};
-            case '\App\Article':
-			{
-				
-				break;
+            break;
 			};
 			case '\App\User':
 			{
                 $search= (!$r->has('search'))?'':$r->search;
 				$instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
-				break;
+            break;
 			}
 			case '\App\Happening':
             {
@@ -139,101 +131,34 @@ class BaseController extends Controller
             break;
             }			
             case '\App\WinePath':
-                {
-                    $instances = $model::list($languageId, $sorting, true);
-                    return $instances->paginate(50);
-                    break;	
-                }
-                case '\App\Category':			
-                case '\App\PointOfInterest':
-			{
+            {
+                $instances = $model::list($languageId, $sorting, true);
+                return $instances->paginate(50);
+            break;	
+            }
+            case '\App\Category':
+            {
                 $search= (!$r->has('search'))?'':$r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                return $instances->get(10);
-				break;
+                return $instances->get(10);   
+            break;
+            }		
+            case '\App\PointOfInterest':
+			{
+                $search= (!$r->has('search'))?'':$r->search;
+                $instances = $model::list($languageId, $sorting, false, $search, $sortBy);
+                return $instances;
+            break;
 			}
             default:
 			{
                 $search= (!$r->has('search'))?'':$r->search;
 				$instances= $model::list($languageId, $sorting, true, $search, $sortBy);
 				return $instances->get();
-				break;
+            break;
 			};
 			return $instances;
         }
-        if ($model == '\App\Happening') {
-            $sorting = $r->header('Sorting', 'desc');
-        } else {
-            $sorting = $r->header('Sorting', 'asc');
-        }
-
-        $sortBy = '';
-        if ($r->header('Sort-By')) {
-            $sortBy = $r->header('Sort-By');
-        }
-        if ($r->has('search')) {
-            $search = $r->search;
-            if ($model == '\App\Wine' || $model == '\App\Winery') {
-                $instances = $model::listWithLiked($languageId, $sorting, false, $search, $sortBy);
-            } else if ($model == '\App\User') {
-                $instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
-                return $instances;
-            } else {
-                if ($model == '\App\WinePath') {
-                    $instances = $model::list($languageId, $sorting, true);
-                } else {
-                    $instances = $model::list($languageId, $sorting, false, $search, $sortBy);
-                    if ($model == '\App\Article') {
-                        return $instances;
-                    }
-
-                }
-            }
-
-        } else {
-            $search = '';
-            if ($model == '\App\Wine' || $model == '\App\Winery') {
-                $instances = $model::listWithLiked($languageId, $sorting, false, $search, $sortBy);
-                return response()->json($instances->paginate(12));
-            } else if ($model == '\App\User') {
-                $instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
-                return $instances;
-            } else {
-                if ($model == '\App\WinePath') {
-                    $instances = $model::list($languageId, $sorting, true);
-                } else if ($model == '\App\PointOfInterest') {
-                    $instances = $model::list($languageId, $sorting);
-                    return response()->json($instances);
-                } else {
-                    $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                }
-            }
-
-        }
-        if ($model == '\App\Category' || $model == '\App\PointOfInterest') {
-            return $instances->get();
-        }
-
-//        Manually sort  rates
-        if ($model == '\App\Wine' || $model == '\App\Winery') {
-            foreach ($instances as $instance) {
-                if (isset(((object) $instance)->rate_count)) {
-                    $count = \App\Rate::where('object_id', $instance['id'])->where('rates.status', '=', 'approved')->whereNotNull('rates.rate')->get()->count();
-                    $instance['rate_count'] = $count;
-                }
-            }
-            return $instances;
-        }
-
-        if ($resource == 'winePath' || $model == '\App\WinePath') {
-            return $instances->paginate(50);
-        }
-
-        if ($instances instanceof Illuminate\Database\Eloquent\Builder) {
-            return $instances->get()->paginate(10);
-        }
-
-        return $instances->get();
     }
     
     /**
@@ -328,9 +253,20 @@ class BaseController extends Controller
         $model = $this->resourceClass($resource);
         \Log::info('Zahtev za patch ' . $resource, $r->all());
         if ($r->has('json')) {
-            $r->replace(json_decode($r->json, 1));
-        }
+            $r2= $r->all();
 
+            $r->replace(json_decode($r->json, 1));
+
+            if(array_key_exists('logo', $r2) && $r2['logo']=='null')
+                $r->merge(['logo'=>$r2['logo']]);
+
+            if(array_key_exists('cover', $r2) && $r2['cover']=='null')
+                $r->merge(['cover'=>$r2['cover']]);
+
+            if(array_key_exists('video', $r2) && $r2['video']=='null')
+                $r->merge(['video'=>$r2['video']]);
+
+        }
         $instance = $model::find($id);
         if (!$instance) {
             return response()->json(['error' => $resource . ' not found'], 404);
@@ -432,6 +368,14 @@ class BaseController extends Controller
         $model = $this->resourceClass($resource);
         $results = $model::search($req->search, $languageId);
         return response()->json($results, 200);
+    }
+
+    public function loadPois($resource, Request $r)
+    {
+        $model = $this->resourceClass($resource);  
+        $language= $r->header('language_id','1');
+        $pois= $model::list($language,'',true);
+        return response()->json($pois->paginate(10));
     }
 
     public function searchByParam($resource, Request $req)
@@ -965,11 +909,77 @@ class BaseController extends Controller
 
 	"TABLES_ARTICLE_SEARCH_FIELD_LABEL": "Pretraga vesti",
 
-    "TABLES_EVENTS_SEARCH_FIELD_LABEL": "Pretraga dešavanja"
+    "TABLES_EVENTS_SEARCH_FIELD_LABEL": "Pretraga dešavanja",
     
-    "RATE_WINERY_TABLE_NAME": "Naziv vinarije"
+    "RATE_WINERY_TABLE_NAME": "Naziv vinarije",
     
-    "RATE_WINE_TABLE_NAME": "Naziv vina" 
+    "RATE_WINE_TABLE_NAME": "Naziv vina",
+
+    "TABLES_ADS_STATUS_ACTIVATED": "Aktivno",
+    
+    "TABLES_ADS_STATUS_DEACTIVATED": "Neaktivno",
+
+    "TABLES_ADS_IMAGE": "Slika",
+    
+    "TABLES_ADS_NAME": "Naziv",
+
+    "TABLES_ADS_START_DATE": "Datum početka",
+
+    "TABLES_ADS_END_DATE": "Datum završetka",
+
+    "TABLES_ADS_ACTIVE": "Aktivno",
+
+    "WINE_PATH_ADD_SEARCH_WINERY_LABEL": "Pretraži vinarije iz baze",
+
+    "SETTINGS_CREATE_CARD_NAME": "Kreiranje",
+    
+    "SETTINGS_EDIT_CARD_NAME": "Uređivanje",
+
+    "FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW" : "Veličina slike je prekoračena. Maksimalna dozvoljena veličina slike je 2MB.",
+
+    "FILES_ALERT_MAX_VIDEO_SIZE_OVERFLOW" : "Veličina video zapisa je prekoračena. Maksimalna dozvoljena veličina video zapisa je 35MB.",
+
+    "WINERY_TABLE_REONS" : "Regija",
+
+    "WINERY_TABLE_VINOGORJE" : "Vinogorje",
+
+    "POI_DROPDOWN_TYPES_LABEL" : "Tip tačke od interesa",
+
+    "ADS_ADD_TITLE" : "Marketing",
+
+    "ADS_EDIT_TITLE" : "Marketing",
+
+    "ADS_DROPDOWN_ITEM_NEWS" : "Vesti",
+
+    "ADS_DROPDOWN_ITEM_RECOMMENDED" : "Preporučeno",
+
+    "ADS_DROPDOWN_ITEM_FAVOURITE" : "Omiljeno",
+
+    "ADS_DROPDOWN_ITEM_WINE" : "Vina",
+
+    "ADS_DROPDOWN_ITEM_WINERY" : "Vinarije",
+
+    "ADS_DROPDOWN_ITEM_ROADS" : "Putevi",
+
+    "ADS_DROPDOWN_ITEM_EVENTS" : "Dešavanja",
+
+    "ADS_DROPDOWN_ITEM_ALWAYS" : "Stalno",
+
+    "ADS_DROPDOWN_ITEM_ONCE" : "Jednom",
+
+    "EVENTS_ACTIVE_LABEL" : "Aktivno", 
+
+    "EVENTS_ACTIVE_HINT" : "Nakon isteka datuma završetka, dešavanje će se automatski deaktivirati",
+
+    "WINES_ADD_TEMP_SERVING_START_LABEL" : "Temperatura serviranja od",
+
+    "WINES_ADD_TEMP_SERVING_END_LABEL" : "Temperatura serviranja do",
+
+    "WINES_EDIT_TEMP_SERVING_START_LABEL" : "Temperatura serviranja od",
+
+    "WINES_EDIT_TEMP_SERVING_END_LABEL" : "Temperatura serviranja do",
+
+    "WINE_PREVIEW_WINE_TEMP_LABEL" : "Temperatura serviranja"
 
 
 }';

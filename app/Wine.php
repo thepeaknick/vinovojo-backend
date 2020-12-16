@@ -2,6 +2,10 @@
 
 namespace App;
 
+use DB;
+
+use Illuminate\Http\Request;
+
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Support\Facades\Storage;
@@ -141,6 +145,183 @@ class Wine extends BaseModel {
         else return static::list($language,$sorting,$getQuery,$search,$orderBy);
     }
 
+    public static function listByWineryDistance(Request $req, $langId)
+    {
+        $shouldSortByLocation= true;
+        $q= $q = static::select( static::$listData );
+        
+        $q->join('wineries','wineries.id','=','wines.winery_id');
+        $q->addSelect('wineries.id as winery_id');
+
+        // $q->with('areas');
+        
+        if($req->has('lng') && $req->has('lat')) {
+            // join pins
+            $q->join('pins', function($join) {
+                $join->on('wineries.id','=','pins.object_id');
+                $join->where('pins.object_type','=',(new Winery)->flag);
+            });
+    
+            $lng= $req->lng;
+            $lat= $req->lat;
+            // distance calculation
+            $distanceCalculation = "( 111.111 * DEGREES(ACOS(COS(RADIANS(pins.lat))
+                                        * COS(RADIANS({$lat}))
+                                        * COS(RADIANS(pins.lng - {$lng}))
+                                        + SIN(RADIANS(pins.lat))
+                                        * SIN(RADIANS({$lat})))) ) as winery_distance";
+            $q->addSelect(app('db')->raw($distanceCalculation));
+        }else {
+            $q->join('pins', function($join) {
+                $join->on('wineries.id','=','pins.object_id');
+                $join->where('pins.object_type','=',(new Winery)->flag);
+            });
+            $shouldSortByLocation= false;
+        }
+
+        // translates
+        $q->leftJoin('text_fields as wineTransliteration', function($join) use($langId,$req) {
+            $join->on('wineTransliteration.object_id','=','wines.id');
+            $join->where('wineTransliteration.object_type','=',(new Wine)->flag);
+            $join->where('wineTransliteration.name','name');
+            $join->where('wineTransliteration.language_id','=',$langId);
+        });
+        
+        $q->leftJoin('text_fields as wineryTransliteration', function ($q) use ($langId) {
+            $q->on('wineries.id', '=', 'wineryTransliteration.object_id');
+            $q->where('wineryTransliteration.object_type', (new \App\Winery)->flag);
+            $q->where('wineryTransliteration.name', 'name');
+            $q->where('wineryTransliteration.language_id', $langId);
+        });
+
+        // load rates
+        $q->leftJoin('rates', function($join)use ($req) {
+            $join->on('rates.object_id','=', 'wines.id');
+            $join->where('rates.object_type','=', (new Wine)->flag);
+            $join->where('rates.status','=','approved');
+        });
+        $q->addSelect( app('db')->raw( "avg(rates.rate) as rate,count(rates.rate) as rate_count" ) );
+
+        // filters
+        if($req->has('area_id') && !empty($req->area_id) && ctype_digit($req->area_id)) {
+            $area_ids=[];
+            $area_id= $req->area_id;
+            $query="SELECT a.id as a_id, p_a.id as p_id, pp_a.id as pp_id FROM areas a INNER JOIN areas p_a ON a.parent_id=p_a.id INNER JOIN areas pp_a ON p_a.parent_id= pp_a.id WHERE a.id= $area_id OR p_a.id= $area_id OR pp_a.id= $area_id";
+            $areas= DB::select(DB::raw($query));
+            foreach ($areas as $area) {
+                if(is_int($area->a_id))
+                    $area_ids[]= $area->a_id;
+                if(is_int($area->p_id))
+                    $area_ids[]= $area->p_id;
+                if(is_int($area->pp_id))
+                    $area_ids[]= $area->pp_id;
+            }
+            $q->whereIn('wines.area_id', array_unique($area_ids));
+        }
+        
+        if($req->has('category_id')) 
+            $q->where('category_id',$req->category_id);
+
+        if($req->has('class_id')) {
+            $q->join('classes_wines as classes', function($join)use ($req) {
+                $join->on('wines.id','=','classes.wine_id');
+                $join->where('classes.class_id','=',$req->class_id);
+            });
+        }
+
+        if($req->has('harvest_year')) 
+            $q->where('harvest_year','=',$req->harvest_year);
+
+        if($req->has('winery_id')) {
+            $shouldSortByLocation=false;
+            $q->where('winery_id','=', $req->winery_id);
+        }
+
+        if($req->has('alcohol')) 
+            $q->where('alcohol','=', $req->alcohol);
+
+        if($req->has('min_rate')) {
+            $q->where('rate', '>', $req->min_rate);
+        }
+
+        // order
+        if(!empty($req->header('SortBy')))
+        {
+            $SortBy= $req->header('SortBy');
+            $sortingType= ($req->header('Sorting')=='1')?'asc':'desc';
+            $isSortByRate= $SortBy==='rate';
+            // dd($isSortByRate);
+            if($isSortByRate) {
+                $q->orderBy('rate', $sortingType);
+            }
+            
+            $q->orderBy('recommended', 'desc');
+            $q->orderBy('highlighted', 'desc');
+            
+            if($shouldSortByLocation && !$isSortByRate) {
+                $q->orderBy('winery_distance', 'asc');
+            }
+        }else {
+            if($shouldSortByLocation) {
+                $q->orderBy('recommended', 'desc');
+                $q->orderBy('highlighted', 'desc');
+
+                $q->orderBy('winery_distance', 'asc');
+            }else {
+                $q->orderBy('recommended', 'desc');
+                $q->orderBy('highlighted', 'desc');
+            }
+            
+        }
+
+        $q->groupBy('wines.id');
+        $q->with(['classes','area','area.parent']);
+
+
+        // handle search
+        if($req->has('search'))
+            $q->where('wineTransliteration.value','like','%'.$req->search.'%');
+
+        $q->addSelect('pins.lat as lat');
+        $q->addSelect('pins.lng as lng');
+
+
+        return $q;
+    }
+
+    public function listMobile(Request $r, $lang)
+    {
+        $q= $q = static::select( static::$listData );
+        
+        $q->join('wineries','wineries.id','=','wines.winery_id');
+        
+        // join pins
+        $q->join('pins', function($join) {
+            $join->on('wineries.id','=','pins.object_id');
+            $join->where('pins.object_type','=',(new Winery)->flag);
+        });
+
+        // translates
+        $q->leftJoin('text_fields as wineTransliteration', function($join) use($langId,$req) {
+            $join->on('wineTransliteration.object_id','=','wines.id');
+            $join->where('wineTransliteration.object_type','=',(new Wine)->flag);
+            $join->where('wineTransliteration.name','name');
+            $join->where('wineTransliteration.language_id','=',$langId);
+        });
+        
+        $q->leftJoin('text_fields as wineryTransliteration', function ($q) use ($langId) {
+            $q->on('wineries.id', '=', 'wineryTransliteration.object_id');
+            $q->where('wineryTransliteration.object_type', (new \App\Winery)->flag);
+            $q->where('wineryTransliteration.name', 'name');
+            $q->where('wineryTransliteration.language_id', $langId);
+        });
+
+        $q->orderBy('winery_distance','asc');
+        $q->addSelect('pins.lat as lat');
+        $q->addSelect('pins.lng as lng');
+
+    }
+
 
 
     //      -- CRUD override --
@@ -155,11 +336,31 @@ class Wine extends BaseModel {
             $q->on('wines.id', '=', 'rates.object_id');
             $q->where('rates.object_type', (new static)->flag );
             $q->where('status', 'approved');
-            $q->orderBy('rates.rate', $sorting);
+            // $q->orderBy('rates.rate', $sorting);
         });
         // join wineries
         $q->leftJoin('wineries', 'wines.winery_id', '=', 'wineries.id');
+
+        // add pins lng and lat
+        $q->join('pins', function($join) {
+            $join->on('wineries.id','=','pins.object_id');
+            $join->where('pins.object_type','=',(new Winery)->flag);
+        });
+        $q->addSelect('pins.lat as lat');
+        $q->addSelect('pins.lng as lng');
+
         $q->with('classes');
+        // join categories
+        $q->join('wine_categories', function($join) {
+            $join->on('wines.category_id','=','wine_categories.id');
+        });
+        $q->join('text_fields as categoryTransliteration', function($join) use($lang){
+            $join->on('wine_categories.id','=','categoryTransliteration.object_id');
+            $join->where('categoryTransliteration.object_type',(new Category)->flag);
+            $join->where('categoryTransliteration.language_id',$lang);
+            $join->where('categoryTransliteration.name','name');
+        });
+        $q->addSelect('categoryTransliteration.value as category_name');
         // join the transliteration table in order to load wine name
         $q->leftJoin('text_fields as wineTransliteration', function ($q) use ($lang,$search) {
             $q->on('wines.id', '=', 'wineTransliteration.object_id');
@@ -191,10 +392,21 @@ class Wine extends BaseModel {
             $q->where('wineryTransliteration.name', 'name');
             $q->where('wineryTransliteration.language_id', $lang);
         });
+        /**
+         *  WIne list problem
+         */
+        // $q->join('pins', function($q) {
+        //     $q->on('pins.object_id','=','wineries.id');
+        //     $q->where('pins.object_type','=',(new Winery)->flag);
+        // });
+        // $q->addSelect('pins.lat as lat');
+        // $q->addSelect('pins.lng as lng');
 
-        if($req->has('search'))
+        if($req->has('search')) 
             $q->where('wineTransliteration.value','like','%'.$req->search.'%');
 
+        // if($search!=='')
+        //     $q->where('wineTransliteration.value','like','%'.$search.'%');
 
         if($req->has('category_id') && !empty($req->category_id))
             $q->where('wines.category_id','=',$req->category_id);
@@ -218,7 +430,7 @@ class Wine extends BaseModel {
             OR p_a.id= $area_id
             OR pp_a.id= $area_id
         ";
-            $areas=\DB::select(\DB::raw($query));
+            $areas= DB::select(DB::raw($query));
             foreach ($areas as $area) {
                 if(is_int($area->a_id))
                     $area_ids[]= $area->a_id;
@@ -232,7 +444,8 @@ class Wine extends BaseModel {
         // group by wines
         $q->groupBy('wines.id');
 
-        if(!empty($req->header('SortBy')))
+        // dd($req->SortBy);
+        if(!empty($req->header('SortBy')) && $req->header('SortBy')!=='asc')
         {
             $sort= $req->header('Sorting','asc');
             $q->orderBy($req->header('SortBy'), $sort);
@@ -343,7 +556,7 @@ class Wine extends BaseModel {
 
     public function getBottleImageAttribute() {
         // return ( $this->hasBottleImage() ) ? route('bottle_image', ['id' => $this->id, 'antiCache' => time()]) : null;
-        // dd($app->url)
+        // dd($_SERVER['SERVER_NAME']);
         return ( $this->hasBottleImage() ) ? url('/bottle/'.$this->id.'/'.time()) : null;
     }
 
@@ -375,7 +588,7 @@ class Wine extends BaseModel {
     }
 
     public function bottleFullPath() {
-        return Storage::disk('wines')->url( $this->bottleDiskPath() );
+        return Storage::disk('wines')->path( $this->bottleDiskPath() );
     }
 
     public function storeBottle($image) {

@@ -30,20 +30,29 @@ class FeedController extends Controller
         //
     }
 
-    
+
     public function loadNewsList(Request $r) {
         $languageId = $r->header('Accept-Language');
 
         $json = Article::list($languageId, 'asc', true)->get();//->toBase()->merge( Happening::list($languageId, 'asc', true)->get()->toBase() );
         $json = $json->sortByDesc('created_at')->values();
-        
+
         $paginated = $json->paginate(10);
         $paginated->setPath('feed/news');
 
         $languageId = $r->header('Accept-Language');
         $paginated->getCollection()->transliterate($languageId);
-        
+
         return response()->json($paginated, 200);
+    }
+
+    public function loadSingleNews(Request $r, $id) {
+      $langId= $r->header('Accept-Language', 1);
+
+      $single_instance= Article::list($langId, 'asc', true)->where('articles.id',$id)->first();
+      if(empty($single_instance))
+        return response()->json(['message'=> 'not found'], 404);
+      else return response()->json($single_instance);
     }
 
     public function loadRecommendations(Request $r) {
@@ -52,13 +61,13 @@ class FeedController extends Controller
         $wines = Wine::list($languageId, 'asc', true)->where('wines.recommended', 1)->get();
 
         $wineries = Winery::list($languageId, 'asc', true)->where('recommended', 1)->get();
-        
+
         $json = $wines->toBase()->merge( $wineries->toBase() );
         $json = $json->sortByDesc('highlighted')->values();
-        
+
         $paginated = $json->paginate(10);
         $paginated->setPath('feed/recommended');
-        
+
         return response()->json($paginated, 200);
     }
 
@@ -116,7 +125,7 @@ class FeedController extends Controller
         \Log::info('remove vino', $req->all());
         if ( !$req->has(['object_id', 'object_type']) )
             return response()->json(['error' => 'Incomplete request'], 422);
- 
+
         $constraints = $req->only(['object_id', 'object_type']);
         $constraints['social_id'] = app('auth')->user()->id;
 

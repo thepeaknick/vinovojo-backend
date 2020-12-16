@@ -58,6 +58,14 @@ class Article extends BaseModel
         // Search
         if($req->has('search'))
             $q->where('nameTransliteration.value', 'like', '%'.$req->search.'%');
+            
+        if($req->header('SortBy') && !empty($req->header('SortBy')))
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }else {
+            $q->orderBy('created_at','desc');
+        }
 
         return ($getQuery) ? $q : $q->paginate(10);
     }

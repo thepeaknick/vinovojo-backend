@@ -14,8 +14,9 @@ class UserController extends BaseController
 {
 
 	public function register(Request $req) {
-		\Log::info('Register zahtev', $req->all());
-		if ($req->social == 1) {
+//	    dd($req->all());
+		if ($req->social == 1 || $req->social == '1') {
+			\Log::info('Register zahtev', $req->all());
 			return (new SocialController)->register($req);
 		}
 		if ( !$req->has(['full_name', 'email', 'password']) )
@@ -62,7 +63,6 @@ class UserController extends BaseController
 		if ( is_null($sort) )
 			$sort = 'asc';
 
-//        dd($order);
 		$query->orderBy($order, $sort);
 
 

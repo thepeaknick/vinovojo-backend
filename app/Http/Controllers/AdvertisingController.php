@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 
+use App\Advertising;
+
 class AdvertisingController extends Controller {
 
     const MODEL = "App\AdsController";
@@ -9,12 +11,12 @@ class AdvertisingController extends Controller {
     //use RESTActions;
 
     public function store(Request $r){
-        return \App\Advertising::store($r);
+        return Advertising::store($r);
     }
 
 
     public function all(){
-        $data=\App\Advertising::getAll();
+        $data= Advertising::getAll();
         if($data)
             return $data->paginate(10);
     }
@@ -26,7 +28,8 @@ class AdvertisingController extends Controller {
     }
 
     public function patchAdsMobile(Request $r){
-        $data=\App\Advertising::loadMobile();
+//        \App\Advertising::correctActive();
+        $data= Advertising::loadMobile();
         if($data){
             return response()->json($data,200);
         }
@@ -35,7 +38,7 @@ class AdvertisingController extends Controller {
 
     public function deleteAds(Request $r,$id)
     {
-        $ads=\App\Advertising::findOrFail($id);
+        $ads= Advertising::findOrFail($id);
         if($ads->destroyAds())
             return response()->json("Successifully deleted",200);
         return response()->json("Failed!",404);
@@ -52,7 +55,7 @@ class AdvertisingController extends Controller {
     public function loadBySection(Request $r,$section)
     {
         $mobile=strpos($_SERVER['REQUEST_URI'],'mobile');
-        $advert=new\App\Advertising;
+        $advert=new Advertising;
         $ads=$advert->filterBySection($section,$mobile);
         return response()->json($ads,200);
     }

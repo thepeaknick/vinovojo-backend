@@ -106,12 +106,44 @@ class WineController extends Controller {
         if($wineId==='panel' || $wineId==='all')
             return $this->loadAllWineCommentsForAdmin($r);
 
-        $wine = Wine::where('id', $wineId)->first();
-		if (!$wine)
-			return response()->json(['error' => 'Wine not found'], 404);
-        $rates = $wine->rates()->with('user')->paginate();
+        $rates = Wine::where('id', $wineId)->first();
+		if (!$rates)
+            return response()->json(['error' => 'Wine not found'], 404);
 
-		return response()->json($rates, 200);
+        $q= Rate::with('user')->join('wines',function ($query) {
+            $query->on('wines.id','=','rates.object_id');
+
+        })
+        ->join('text_fields as wineTransliteration',function($join) {
+            $join->on('wines.id','=','wineTransliteration.object_id');
+            $join->where('wineTransliteration.name','=','name');
+            $join->where('wineTransliteration.object_type','=',(new Wine)->flag);
+            $join->where('wineTransliteration.name','=','name');
+        })->join('users',function($join) {
+            $join->on('rates.user_id','=','users.id');
+        })->where('wines.id',$wineId)->select(['wineTransliteration.value as name', 'rates.*', 'rates.status']);
+
+        $req= app('request');
+        if($req->header('SortBy') && !empty($req->header('SortBy')))
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }else {
+            $q->orderBy('rates.updated_at','desc');
+            $q->orderBy('rates.status','asc');
+
+        }
+        $data= $q->paginate(10)->toArray();
+
+        $data['name']= Wine::where('wines.id',$wineId)->join('text_fields',function($join) {
+            $join->on('wines.id','=','text_fields.object_id');
+            $join->where('text_fields.object_type',(new Wine)->flag);
+            $join->where('text_fields.name','name');
+        })->first()->value;
+        return response()->json($data);
+        // $rates = $wine->rates()->with('user')->paginate();
+
+		return response()->json($data, 200);
     }
     
     public function loadAllWineComments(Request $r, $paginate=true) 
@@ -129,7 +161,7 @@ class WineController extends Controller {
                 $join->on('rates.user_id','=','users.id');
             })->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
         ->orderBy('rates.status','asc');
-        if($user!==null && $user->type=='admin') {
+        if($user!==null && ($user->type=='admin' || $user->type=='winery_admin')) {
             return ($paginate)?$q->paginate(10):$q;
         }
         $q->where('rates.status','approved');
@@ -167,8 +199,16 @@ class WineController extends Controller {
             ->join('users',function($join) {
                     $join->on('rates.user_id','=','users.id');
                 })
-            ->select(['wineTransliteration.value as name', 'rates.*', 'rates.status'])
-            ->orderBy('rates.status','asc');
+            ->select(['wineTransliteration.value as name', 'rates.*', 'rates.status']);
+        $req= app('request');
+        if($req->header('SortBy') && !empty($req->header('SortBy')))
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }else {
+            $q->orderBy('rates.updated_at','desc');
+            $q->orderBy('rates.status','asc');
+        }
         $wines= DB::select(DB::raw($query));
         $wine_ids=[];
         foreach($wines as $wine)
@@ -195,7 +235,7 @@ class WineController extends Controller {
         }
 		$alcoholl = (array)($wines->pluck('alcohol')->unique()->toArray());
 		$alcohol=[];
-		foreach ($alcoholl as $alc) {
+        foreach ($alcoholl as $alc) {
             $alcohol[] = $alc;
         }
 
@@ -218,7 +258,10 @@ class WineController extends Controller {
         $alcoholl = (array)($wines->pluck('alcohol')->unique()->toArray());
         $alcohol=[];
         foreach ($alcoholl as $alc) {
-            $alcohol[] = $alc;
+            $data = [];
+            $data['alcohol'] = $alc;
+            $data['harvest_year'] = array_values(array_unique(Wine::where('alcohol', $alc)->get()->pluck('harvest_year')->toArray()));
+            $alcohol[] = $data;
         }
 
         $areas= Area::with('parent')
@@ -229,7 +272,35 @@ class WineController extends Controller {
                 $query->where('transliteration.name', 'name');
                 $query->where('transliteration.language_id', $langId);
                 return $query;
-            })->get();
+            });
+        $wine_ids= Wine::pluck('id')->toArray();
+
+        $not_empty_areas_query= "
+            SELECT
+                a.id as a_id,
+                p_a.id as p_id,
+                pp_a.id as pp_id
+            FROM wines w
+            JOIN areas a
+            INNER JOIN areas p_a
+                ON a.parent_id=p_a.id
+            INNER JOIN areas pp_a
+                ON p_a.parent_id= pp_a.id
+            WHERE a.id= w.area_id
+            OR p_a.id= w.area_id
+            OR pp_a.id= w.area_id  
+        ";
+        $not_empty_areas= DB::select(DB::raw($not_empty_areas_query));
+        $area_ids=[];
+        foreach($not_empty_areas as $area) {
+            if($area->a_id!==null)
+                $area_ids[]= $area->a_id;
+            if($area->p_id!==null)
+                $area_ids[]= $area->p_id;
+            if($area->pp_id!==null)
+                $area_ids[]= $area->pp_id;
+        }
+        $areas= $areas->whereIn('areas.id', array_unique($area_ids))->get();
         foreach ($areas as $area){
             $area->name= $area->value;
             if($area !==null && $area->parent !==null) {
@@ -248,7 +319,6 @@ class WineController extends Controller {
         else $sort= 'asc';
 
         $q = Wine::list($lang, $sort, true);
-        // print_r($q->toSql());die();
 		if ( $r->has('min_rate') )
 			$q->having( app('db')->raw('avg(rates.rate)'), '>', $r->min_rate);
 
@@ -307,8 +377,6 @@ class WineController extends Controller {
             }
             $q->whereIn('wines.area_id', array_unique($area_ids));
         }
-
-
 
 		$q->orderBy('harvest_year', 'asc');
 
@@ -409,6 +477,13 @@ class WineController extends Controller {
 				'name' => $win->name
 			];
 		});
-	}
+    }
+    
+    public function loadWinesForMobile(Request $req)
+    {
+        $languageId= $req->header('Accept-Language','1');
+        $q= Wine::listByWineryDistance($req, $languageId);
+        return response()->json($q->paginate(10));
+    }
 
 }

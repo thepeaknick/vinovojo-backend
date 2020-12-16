@@ -2,6 +2,7 @@
 
 namespace App;
 
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
 class WineClass extends BaseModel {
@@ -41,6 +42,26 @@ class WineClass extends BaseModel {
     public function getFlagAttribute() {
     	return 4;
     }
+
+    //      -- Wine properties
+    public function getHarvestYearAttribute() {
+        $year = $this->wines->pluck('harvest_year')->toArray();
+        return array_values(array_unique($year));
+    }
+
+    public function getCategoriesAttribute()
+    {
+        $categories = $this->wines->pluck('category_id')->toArray();
+        return array_values(array_unique($categories,SORT_NUMERIC));
+    }
+
+    public function getAlcoholAttribute()
+    {
+        $alcohol = $this->wines->pluck('alcohol')->toArray();
+        return array_values(array_unique($alcohol, SORT_NUMERIC));
+    }
+
+
 
     public static $language= 1;
 
@@ -87,6 +108,18 @@ class WineClass extends BaseModel {
 
     //      -- CRUD complements --
 
+    public static function dropdown($langId = null)
+    {
+        if($langId == null)
+            $langId = 1;
 
+        $data = parent::dropdown($langId);
+        $data->each(function ($item) {
+            $item->append('harvest_year', 'categories', 'alcohol');
+        });
+        $data->setVisible('id', 'name', 'harvest_year' , 'categories', 'alcohol');
+
+        return $data;
+    }
 
 }

@@ -4,7 +4,6 @@
 
 
 require_once __DIR__.'/../vendor/autoload.php';
-
 try {
     (new Dotenv\Dotenv(__DIR__.'/../'))->load();
 } catch (Dotenv\Exception\InvalidPathException $e) {
@@ -29,7 +28,10 @@ $app = new Laravel\Lumen\Application(
 $app->configure('filesystems');
 $app->configure('services');
 $app->configure('view');
+<<<<<<< HEAD
 $app->configure('debug');
+=======
+>>>>>>> 8aebaa49c7f70d2dcf4ac27bdff6c32f01b18208
 
 $app->withFacades();
 
@@ -56,7 +58,6 @@ $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
     App\Exceptions\Handler::class
 );
-
 $app->singleton(
     Illuminate\Contracts\Console\Kernel::class,
     App\Console\Kernel::class

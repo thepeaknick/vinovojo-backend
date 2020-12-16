@@ -58,8 +58,8 @@ class Advertising extends BaseModel {
     public static function store(Request $r){
         $ad=new Advertising($r->all());
 
-        $ad->start_date=( $ad->start_date!=='null' )?$ad->start_date:Carbon::now();
-        $ad->end_date=( $r->end_date!=='null' )?$r->end_date:Carbon::now()->addDays(7);
+        $ad->start_date=( $ad->start_date!=='null' )?(new Carbon(date($ad->start_date))):Carbon::now();
+        $ad->end_date=( $r->end_date!=='null' )?(new Carbon(date($ad->end_date))):Carbon::now()->addDays(7);
 
         if( $ad->save() && $r->has('image_url') )
             $ad->image_url=$ad->storeImage( $ad->id,$r );
@@ -96,7 +96,7 @@ class Advertising extends BaseModel {
     }
 
     public static function getAll(){
-        $allData=\App\Advertising::get();
+        $allData= Advertising::get();
         foreach($allData as $ads){
 //            $ads->active = static::checkActive($ads->start_date,$ads->end_date);
             if(strlen($ads->image_url)<60)
@@ -133,8 +133,8 @@ class Advertising extends BaseModel {
             }
         }
         $ads->name=$r->name;
-        $ads->start_date=$r->start_date;
-        $ads->end_date=$r->end_date;
+        $ads->start_date= new Carbon(date($r->start_date));
+        $ads->end_date= new Carbon(date($r->end_date));
         $ads->active=$r->active;
         @$ads->repeating=@$r->repeating;
         @$ads->section= @$r->section;
@@ -148,6 +148,7 @@ class Advertising extends BaseModel {
         $startdate=new Carbon( date($start_date) );
         $enddate=new Carbon( date($end_date) );
         $now=Carbon::now();
+        // check if not expired
         if( $now->lt( $enddate ) && $now->gt($startdate) ){
           return 1;
         }
@@ -161,7 +162,7 @@ class Advertising extends BaseModel {
         return false;
     }
     public static function loadMobile(){
-        $data=\App\Advertising::getAll();
+        $data= Advertising::getAll();
         $allData=collect();
         foreach($data as $ad){
 //            $ad->active = static::checkActive($ad->start_date,$ad->end_date);
@@ -175,7 +176,6 @@ class Advertising extends BaseModel {
     }
 
     public function imagePath() {
-//        \Log::info("Path image: \t\t \n\n",array('path'=>static::$folderPath.'/'.$this->id.'.png'));
         return Storage::disk('local')->path( static::$folderPath.'/'.$this->id.'.png' );
     }
     public function destroyAds()

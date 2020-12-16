@@ -236,22 +236,47 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
     }
 
     public static function loadFromFacebook(Request $r, $key){
-        $user=\App\User::firstOrNew($r->only(['social_id,social_type']));
         $soc_user= \Socialite::driver( 'facebook' )->userFromToken($key);
 
-        $user->social_id=$r->social_id;
-        $user->email=(isset($soc_user->email))?$soc_user->email:'null';
-        $user->full_name=$soc_user->user['name'];
-        $user->social_key=$r->social_key;
-        $user->social=1;
-        if($user->profile_picture==null)
-            $user->profile_picture= $soc_user->avatar;
-        if(!$user->save())
-            return false;
+
+        if(!$r->has('social_id') || !$r->has('social_type'))
+        return false;
+
+        $soc_type= static::convertType($r->social_type);
+        $user= User::where('social_id',$r->social_id)
+                    ->where('social_type',$soc_type)
+                    ->first();
+
+//        \Log::info('Soc_user: ',(array)$soc_user);
+//        \Log::info('User prije: ',(array)$user);
+
+        if($user==null)
+        {
+            $user= new User;
+            $user->social_type= $r->social_type;
+            $user->social_id=$r->social_id;
+            $user->email=(isset($soc_user->email))?$soc_user->email:null;
+            $user->full_name=$soc_user->user['name'];
+            $user->social_key=$r->social_key;
+            $user->social=1;
+//            if($user->hasProfile()) {
+//                \Log::info('Profilna user-a: ',['profile'=> $user->profile_picture]);
+//            }
+//            if(!$user->hasProfile())
+            $user->save();
+                $user->saveProfile($soc_user->avatar);
+            if(!$user->save())
+                return false;
+
+        }
+
+        if($user!==null){
+            $user->social_type= '1';
+            $user->save();
+        }
+//        \Log::info('User poslije: ',(array)$user);
+
         return $user;
-
-        $user->profile_picture=$user->profile_picture;
-
     }
 
     private static function instantiateSocialFromUser($ref_user, $type) {

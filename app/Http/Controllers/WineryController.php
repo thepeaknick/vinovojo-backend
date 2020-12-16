@@ -38,21 +38,35 @@ class WineryController extends BaseController
             $admin= $this->loadAllWineryCommentsForAdmin($r, false);
             $all_comments= $this->loadAllWineryComments($r, false)->get();
             $coll= collect();
-            foreach($admin as $admins_comm) 
-                $coll->push($admins_comm);
+            if($admin!==NULL) {
+                foreach($admin as $admins_comm) 
+                    $coll->push($admins_comm);
+            }
             foreach($all_comments as $comments) 
                 $coll->push($comments);
             return $coll->paginate(10);
         }
+        // $rates= $this->loadAllWineryCommentsForAdmin($r, false)->where('wineries.id','=',$wineId)->paginate(10);
+        $q= Rate::with('user')->join('wineries',function ($query) {
+            $query->on('wineries.id','=','rates.object_id');
 
-		$winery = Winery::where('id', $wineId)->first();
-
-		if (!$winery)
-			return response()->json(['error' => 'Wine not found'], 404);
-
-		$rates = $winery->rates()->with('user')->latest('created_at')->paginate(10);
-
-		return response()->json($rates, 200);
+        })->join('text_fields as wineryTransliteration',function($join) {
+            $join->on('wineries.id','=','wineryTransliteration.object_id');
+            $join->where('wineryTransliteration.name','=','name');
+            $join->where('wineryTransliteration.object_type','=',(new Winery)->flag);
+            $join->where('wineryTransliteration.name','=','name');
+        })->join('users',function($join) {
+            $join->on('rates.user_id','=','users.id');
+        })->where('wineries.id','=',$wineId)->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
+            ->orderBy('rates.updated_at','desc')
+            ->orderBy('rates.status','asc');
+        $data= $q->paginate(10)->toArray();
+        $data['name']= Winery::where('wineries.id',$wineId)->join('text_fields',function($join) {
+            $join->on('wineries.id','=','text_fields.object_id');
+            $join->where('text_fields.object_type',(new Winery)->flag);
+            $join->where('text_fields.name','name');
+        })->first()->value;
+        return response()->json($data);
 	}
 
 	public function loadVideo($wineryId) {
@@ -84,13 +98,40 @@ class WineryController extends BaseController
                 $query->where('transliteration.name', 'name');
                 $query->where('transliteration.language_id', $langId);
                 return $query;
-            })->get();
+            });
+        $winery_ids= Winery::pluck('id')->toArray();
+        $not_empty_areas_query= "
+            SELECT
+                a.id as a_id,
+                p_a.id as p_id,
+                pp_a.id as pp_id
+            FROM wineries w
+            JOIN areas a
+            INNER JOIN areas p_a
+                ON a.parent_id=p_a.id
+            INNER JOIN areas pp_a
+                ON p_a.parent_id= pp_a.id
+            WHERE a.id= w.area_id
+            OR p_a.id= w.area_id
+            OR pp_a.id= w.area_id  
+        ";
+        $not_empty_areas= DB::select(DB::raw($not_empty_areas_query));
+        $area_ids=[];
+        foreach($not_empty_areas as $area) {
+            if($area->a_id!==null)
+                $area_ids[]= $area->a_id;
+            if($area->p_id!==null)
+                $area_ids[]= $area->p_id;
+            if($area->pp_id!==null)
+                $area_ids[]= $area->pp_id;
+        }
         foreach ($areas as $area){
             $area->name= $area->value;
             if($area !==null && $area->parent !==null) {
                 $area->parent= $area->parent->parent;
             }
         }
+        $areas= $areas->whereIn('areas.id', array_unique($area_ids))->get();
         return response()->json(['areas' => $areas], 200);
     }
 
@@ -182,6 +223,13 @@ class WineryController extends BaseController
             $q = Winery::list($langId, $sort, true);
         }
         $q->with('area');
+        /**
+         * Mobile phone sort By rate
+         */
+        if(!empty($r->header('SortBy'))) {
+            if($r->header('SortBy')==='rate') 
+                $q->orderBy('rates.rate', $r->header('Sorting'));
+        }
         if ( $r->has('area_id') )
         {
             $area_ids=[];
@@ -210,9 +258,28 @@ class WineryController extends BaseController
             }
             $q->whereIn('wineries.area_id', array_unique($area_ids));
         }
+
+        
         if ( $r->has('min_rate') )
             $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
 
+        $q->join('wines as w', 'w.winery_id', 'wineries.id');
+        
+        if($r->has('category_id'))
+            $q->where('w.category_id', '=', $r->category_id);
+
+        if($r->has('class_id')) {
+            $q->join('classes_wines as cw' , 'cw.wine_id', 'w.id');
+            $q->where('class_id', $r->class_id);
+        }
+
+//         if ( $r->has('sort') ) {
+//             $q->getQuery()->orders = null;
+//             $sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
+
+// //			$q->orderBy('winery.name','DESC');
+//             $q->orderBy('rate', $sort);
+//        }
         return response()->json($q->get());
     }
 
@@ -264,6 +331,48 @@ class WineryController extends BaseController
     public function loadAllWineryComments(Request $r, $paginate=true)
     {
         $user= Auth::user();
+        
+        $q= Rate::with('user')->join('wineries',function ($query) {
+            $query->on('wineries.id','=','rates.object_id');
+
+        })->join('text_fields as wineryTransliteration',function($join) {
+            $join->on('wineries.id','=','wineryTransliteration.object_id');
+            $join->where('wineryTransliteration.name','=','name');
+            $join->where('wineryTransliteration.object_type','=',(new Winery)->flag);
+            $join->where('wineryTransliteration.name','=','name');
+        })->join('users',function($join) {
+            $join->on('rates.user_id','=','users.id');
+        })
+        ->orderBy('rates.status', 'asc')
+        ->orderBy('rates.updated_at', 'desc')
+        ->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status']);
+        if($user!==null && ($user->type!=='admin' || $user->type=='winery_admin'))
+            return ($paginate)?$q->paginate(10):$q;
+        
+        // $q=$q->where('status','approved');
+        return ($paginate)?$q->paginate(10):$q;
+
+    }
+
+    public function loadAllWineryCommentsForAdmin(Request $r, $paginate=true) 
+    {
+        $user= Auth::user();
+
+        if($user==null)
+            return $this->loadAllWineryComments($r, $paginate);
+        // dd($user->type);
+        $all_comments= $this->loadSuperAdminWineryComments($r,false);
+        if($user->type=='admin' || $user->type=='winery_admin')
+            return $all_comments->paginate(10);
+
+        $wineries= $user->winery()->pluck('wineries.id as id')->toArray();
+        $q= Rate::with('user')->where('object_type',(new Winery)->flag)->whereIn('object_id',$wineries)->orderBy('rates.updated_at','desc');
+        return ($paginate)?$q->paginate(10):$q;
+    }
+
+    public function loadSuperAdminWineryComments(Request $r, $paginate=true)
+    {
+        $req= app('request');
         $q= Rate::with('user')->join('wineries',function ($query) {
             $query->on('wineries.id','=','rates.object_id');
 
@@ -275,42 +384,17 @@ class WineryController extends BaseController
         })->join('users',function($join) {
             $join->on('rates.user_id','=','users.id');
         })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status']);
-        if($user==null || $user->type!=='admin')
-            $q=$q->where('status','approved');
+        if($req->header('SortBy') && !empty($req->header('SortBy')))
+        {
+            $sort= $req->header('Sorting','asc');
+            $q->orderBy($req->header('SortBy'), $sort);
+        }else {
+            $q->orderBy('rates.updated_at','desc');
+            $q->orderBy('rates.status','asc');
 
+        }
+        // $q= Rate::with('user')->where('object_type',(new Winery)->flag)->orderBy('status','asc');
         return ($paginate)?$q->paginate(10):$q;
     }
-
-    public function loadAllWineryCommentsForAdmin(Request $r, $paginate=true) 
-    {
-        $user= Auth::user();
-        
-        if($user==null)
-            return $this->loadAllWineryComments($r, $paginate);
-        
-        if($user->type=='admin')
-            return $this->loadSuperAdminWineryComments($r, $paginate);
-
-        $wineries= $user->winery()->pluck('wineries.id as id')->toArray();
-        $q= Rate::with('user')->where('object_type',(new Winery)->flag)->whereIn('object_id',$wineries);
-        return ($paginate)?$q->paginate(10):$q;
-    }
-
-    public function loadSuperAdminWineryComments(Request $r, $paginate=true)
-    {
-        $q= Rate::with('user')->join('wineries',function ($query) {
-            $query->on('wineries.id','=','rates.object_id');
-
-        })->join('text_fields as wineryTransliteration',function($join) {
-            $join->on('wineries.id','=','wineryTransliteration.object_id');
-            $join->where('wineryTransliteration.name','=','name');
-            $join->where('wineryTransliteration.object_type','=',(new Winery)->flag);
-            $join->where('wineryTransliteration.name','=','name');
-        })->join('users',function($join) {
-            $join->on('rates.user_id','=','users.id');
-        })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
-        ->orderBy('rates.status','asc');
-        ($paginate)?$q->paginate(10):$q;
-    }
-
+    
 }

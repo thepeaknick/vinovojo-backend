@@ -70,37 +70,68 @@ class PointOfInterest extends BaseModel {
     	return $this->hasOne('App\Pin', 'object_id')->where('object_type', $this->flag);
     }
 
+    public function type() {
+        return $this->hasOne('App\PoiType', 'id')->where('id', $this->type);
+    }
+
 
 
     //      -- CRUD override --
     //      -- Update pin --
     public function postCreation($req = null) {
-        $point = new \App\Pin($req->only(['lat', 'lng']));
+        $point = new Pin($req->only(['lat', 'lng']));
         $point->object_id = $this->id;
         $point->object_type = $this->flag;
         return $point->save();
     }
 
     public static function list($languageId, $sorting = 'asc', $getQuery = false) {
+        $req= app('request');
+        $sort= $req->header('Sorting','asc');
+
         $q = parent::list($languageId, $sorting, true);
-        $q->join( (new \App\TextField)->getTable() . ' as transliterations', function ($query) {
+        $q->join( (new TextField)->getTable() . ' as transliterations', function ($query)use($languageId) {
             $query->on('transliterations.object_id', '=', (new static)->getTable() . '.id');
             $query->where('transliterations.object_type', (new static)->flag);
             $query->where('transliterations.name', 'name');
+            // $query->where('transliterations.language_id',$languageId);
         });
-         
+
+        $q->join('poi_type',function($join) {
+            $join->on('poi_type.id','=','pois.type');
+        });
+        $q->addSelect('poi_type.name as poi_type');
+        $q->addSelect('poi_type.name as type');
+        $q->addSelect('poi_type.id as poi_type_id');
         $q->addSelect('transliterations.value as name');
 
+        if($req->has('search')) {
+            $q->where('transliterations.value','like','%'.$req->search.'%')
+                ->orWhere('address','like','%'.$req->search.'%');
+        }
+
+        if(!empty($req->header('SortPoi')) && $req->header('SortPoi')!=='asc')
+        {
+
+            $column= $req->header('SortPoi');
+            if($column=='type'){
+                $q->orderBy('poi_type', $sort);
+            }else {
+                $q->orderBy($column, $sort);
+            }
+        }
         if ($getQuery)
             return $q;
+
+ 
+        // dd($q->toSql());
 
         $pois = $q->get();
 
         // Add default language for winery list
         $languageId= ($languageId!=null)?$languageId:'1';
 
-        // Load Wineries
-        $wineries = \App\Winery::list($languageId, $sorting, true,'');
+        $wineries = Winery::list($languageId, $sorting, true,'');
         $wineries->join('pins', function($query) {
             $query->on('pins.object_id', '=', 'wineries.id');
             $query->where('pins.object_type', (new \App\Winery)->flag);
