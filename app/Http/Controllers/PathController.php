@@ -58,7 +58,6 @@ class PathController extends BaseController
             'lat' => $req->lat,
             'lng' => $req->lng
         ];
-//        dd($wineries);
         // return $wineries;
 
         // total time in seconds
@@ -109,13 +108,11 @@ class PathController extends BaseController
         $response = $guzzle->get($route, [
             'query' => $params
         ]);
-//        dd(json_decode($response->getBody(),true)['status']);
 
         $json = json_decode($response->getBody(), true);
 
         if ( $response->getStatusCode() != 200 || $json['status']==='REQUEST_DENIED')
             return false;
-//            dd($json);
 
         return $json['rows'][0]['elements'][0];
     }

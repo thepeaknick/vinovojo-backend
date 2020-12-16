@@ -11,9 +11,6 @@
     {
         public function change(Request $r)
         {
-//             $instance=new \App\Highlight;
-
-//            dd($instance);
             return \App\Highlight::storeOrChange($r);
         }
         public function all()
@@ -52,7 +49,6 @@
                 $self=\App\Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
                 if(!$self) {
                     $highlighted=new \App\Highlight();
-                    //                    dd($request);
                     $highlighted->storeOrChange($request);
                 }
 
@@ -73,7 +69,6 @@
 
                 $request=new \Illuminate\Http\Request($data);
                 $self=\App\Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
-                \Log::info("Self: ",(array)($self));
                 if(!$self) {
                     $recommended=new \App\Highlight;
                      $recommended->storeOrChange($request);
@@ -82,7 +77,6 @@
                 $request['type']=HIGH;
                 $request['status']=$winery->highlighted;
                 $self=\App\Highlight::where('object_id',$request['object_id'])->where('object_type',$request['object_type'])->where('type',$request['type'])->first();
-                \Log::info("Self: ",(array)($self));
                 if(!$self) {
                     $highlighted=new \App\Highlight;
                     $highlighted->storeOrChange($request);
@@ -96,7 +90,6 @@
             if($r->has(['object_id','object_type','type']))
             {
                 $data=\App\Highlight::where('object_id',$r['object_id'])->where('object_type',$r['object_type'])->where('type',$r['type'])->get();
-//                 dd($r->all());
                 foreach ($data as $highlight)
                 {
                     $highlight->loadRelation();

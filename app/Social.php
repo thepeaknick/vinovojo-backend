@@ -19,6 +19,11 @@ use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Http\Request as Request;
 
+/**
+ * Social
+ * 
+ * Class is used for storing social keys
+ */
 class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
 
     use Authenticatable;
@@ -142,7 +147,16 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
 
 
     // Instantiation methods
-
+    
+    /**
+     * Method loadFromNetwork
+     *
+     * @param $type $type ['instagram', 'google', 'facebook']
+     * @param $key $key ['social_key from mobile device']
+     * @param Request $r [\Illuminate\Http\Request]
+     *
+     * @return void
+     */
     public static function loadFromNetwork($type, $key,Request $r) {
         return ($type == 'instagram') ? static::loadFromInstagram($key) : static::loadWithSocialite($type, $key,$r);
     }
@@ -168,8 +182,6 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
             }
 
             $body = json_decode( $response->getBody(), 1 );
-    //        $user = $body['user'];
-    //        dd($user);
 
             $s = static::instantiateSocialFromUser($user, 'instagram');
             $s->social_key = $key;
@@ -226,9 +238,6 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
     public static function loadFromFacebook(Request $r, $key){
         $user=\App\User::firstOrNew($r->only(['social_id,social_type']));
         $soc_user= \Socialite::driver( 'facebook' )->userFromToken($key);
-//        dd($soc_user);
-
-//        dd($soc_user);
 
         $user->social_id=$r->social_id;
         $user->email=(isset($soc_user->email))?$soc_user->email:'null';
@@ -252,10 +261,6 @@ class Social extends BaseModel implements JWTSubject, AuthenticatableContract {
         $definition['social_type'] = static::convertType( $type );
 
         $definition['social_id']=($type=='google')?$user->id : $ref_user->social_id;
-
-//        dd($user->user);
-
-//        dd($type);
 
 
         if($type=='instagram')

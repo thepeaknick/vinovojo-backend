@@ -63,11 +63,6 @@ class WineType extends BaseModel {
 
     }
 
-//    public function getNameAttribute()
-//    {
-//        return \App\TextField::where('object_id',$this->id)->where('object_type',$this->flag);
-//    }
-
     public function transliterate($languageId=null,$attributes=[]) {
         $transliterations= $this->transliterations()->where('text_fields.language_id',$languageId)->where('text_fields.object_id',$this->id)->get();
         foreach ($transliterations as $transliteration) {

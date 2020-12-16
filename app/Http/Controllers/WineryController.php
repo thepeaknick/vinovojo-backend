@@ -83,7 +83,6 @@ class WineryController extends BaseController
                 $query->where('transliteration.object_type', (new Area)->flag);
                 $query->where('transliteration.name', 'name');
                 $query->where('transliteration.language_id', $langId);
-//                        $query->select('transliteration.name','name');
                 return $query;
             })->get();
         foreach ($areas as $area){
@@ -128,7 +127,6 @@ class WineryController extends BaseController
 
         if ( $r->has('area_id') )
         {
-            \Log::info('Filtriranje vinarije po area_id',['area_id',$r->area_id]);
             $area_ids=[];
             $query="
                 SELECT
@@ -163,7 +161,6 @@ class WineryController extends BaseController
             $q->getQuery()->orders = null;
             $sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
 
-//			$q->orderBy('winery.name','DESC');
             $q->orderBy('rate', $sort);
         }
 
@@ -216,13 +213,6 @@ class WineryController extends BaseController
         if ( $r->has('min_rate') )
             $q->having( app('db')->raw( 'avg(rates.rate)' ), '>', $r->min_rate);
 
-//         if ( $r->has('sort') ) {
-//             $q->getQuery()->orders = null;
-//             $sort = ( $r->sort == 1 ) ? 'asc' : 'desc';
-
-// //			$q->orderBy('winery.name','DESC');
-//             $q->orderBy('rate', $sort);
-//        }
         return response()->json($q->get());
     }
 
@@ -320,7 +310,6 @@ class WineryController extends BaseController
             $join->on('rates.user_id','=','users.id');
         })->select(['wineryTransliteration.value as name', 'rates.*', 'rates.status'])
         ->orderBy('rates.status','asc');
-        // $q= Rate::with('user')->where('object_type',(new Winery)->flag)->orderBy('status','asc');
         ($paginate)?$q->paginate(10):$q;
     }
 

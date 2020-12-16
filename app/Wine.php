@@ -99,8 +99,6 @@ class Wine extends BaseModel {
 
     public function area() {
         $languageId = app('translator')->getLocale();
-//        $area= \App\Winery::where('object_id','=',$this->id)
-//                            ->where('');
         return $this->belongsTo('App\Area')->select('areas.id as id', 'transliteration.value as name', 'areas.type as type', 'areas.parent_id as area_parent_id')
                                            ->join('text_fields as transliteration', function ($q) use ($languageId){
                                                 $q->on('areas.id', '=', 'transliteration.object_id');
@@ -120,16 +118,12 @@ class Wine extends BaseModel {
     public static function listWithLiked($language,$sorting= 'asc', $getQuery=false, $search='',$orderBy='') {
         if(app('auth')->user()!==NULL) {
             $data=static::list($language,$sorting,true,$search,$orderBy)->get();
-            // dd($data);
             $allData=collect();
             foreach($data as $wine) {
                 $marketing=new \App\Highlight();
                 $marketing->checkAndModify($wine->id,(new static)->flag);
                 $exists=\App\Favourite::where('object_id','=',$wine->id)->where('favourites.object_type', '=', '3')->first();
-                // dd($data[0]);
                 if($exists!==NULL){
-                    // array_merge($data[$i],['liked'=>1]);
-                    // $data[$i]->merge(['liked'=>1]);
                     $wine->push('liked',1);
                     $wine->liked=1;
                     $wine['liked']=1;
@@ -142,11 +136,9 @@ class Wine extends BaseModel {
                 }
                 $allData->push($wine->toArray());
             }
-            // dd($data);
             return ($getQuery)?$allData:$allData->paginate(10);
         }
         else return static::list($language,$sorting,$getQuery,$search,$orderBy);
-//        dd('sdgs');
     }
 
 
@@ -173,7 +165,6 @@ class Wine extends BaseModel {
             $q->on('wines.id', '=', 'wineTransliteration.object_id');
             $q->where('wineTransliteration.object_type', (new Wine)->flag);
             $q->where('wineTransliteration.name', 'name');
-//            $q->where('wineTransliteration.value','like',"%$search%");
             if($search!=='')
                 $q->where('wineTransliteration.value','like','%'.rtrim($search.'%',' ').'%');
             $q->where('wineTransliteration.language_id', $lang);
@@ -187,6 +178,7 @@ class Wine extends BaseModel {
         if($req->has('winery_id'))
             $q->where('winery_id',$req->winery_id);
 
+        // Needed from Web api / different route and params than mobile api
         if($_SERVER['REQUEST_URI']==='/get/wine' && $req->has('class_id')) {
             $q->where('wines.category_id','=',$req->class_id);
         }
@@ -203,17 +195,14 @@ class Wine extends BaseModel {
         if($req->has('search'))
             $q->where('wineTransliteration.value','like','%'.$req->search.'%');
 
-        // if($search!=='')
-        //     $q->where('wineTransliteration.value','like','%'.$search.'%');
-
 
         if($req->has('category_id') && !empty($req->category_id))
             $q->where('wines.category_id','=',$req->category_id);
 
+        // Nested areas
         if ( $req->has('area_id')&& !empty($req->area_id) && ctype_digit($req->area_id) )
         {
             $area_ids=[];
-            // dd($req->area_id);
             $area_id= $req->area_id;
             $query="
             SELECT
@@ -243,37 +232,16 @@ class Wine extends BaseModel {
         // group by wines
         $q->groupBy('wines.id');
 
-        // dd($req->SortBy);
         if(!empty($req->header('SortBy')))
         {
             $sort= $req->header('Sorting','asc');
             $q->orderBy($req->header('SortBy'), $sort);
         }
-        // print_r($q->toSql());die();
-        // if($orderBy!==''){
-        //     $q->orderBy($orderBy,$sorting);
-        // }
 
-//         dd($q->toSql());
-        // if($req->has('sort'))
-        // {
-        //     // 1 rastuce 0 opadajuce
-        //     if($req->sort==0) {
-        //         $q->orderBy('rates.status','asc');
-        //         $q->orderBy('rates.rate', 'asc');
-        //     }
-        //     if($req->sort==1) {
-        //         $q->orderBy('rates.status', 'asc');
-        //         $q->orderBy('rates.rate', 'desc');
-        //     }
-        // }
-        // dd($sorting);
         if($sorting=='asc') 
             $q->orderBy('rates.rate',$sorting);
         else
             $q->orderBy('rates.rate','desc');
-
-        // $q->orderBy( static::$listSort, $sorting );
         
         if($getQuery)
             return $q;
@@ -283,11 +251,8 @@ class Wine extends BaseModel {
                         $marketing->checkAndModify($instance->id,(new static)->flag);
                 if(isset($instance->search_count))  {
                     $instance->search_count=$instance->approvedRates()->whereNotNull('rate')->groupBy('id')->get()->count();
-                    //var_dump($instance->search_count);
-
                 }
             }
-//            die();
         }
         // if $getQuery flag is true return the query instance, else return query results
         return ($getQuery) ? $q : $q->paginate(10); // it werks
@@ -300,7 +265,6 @@ class Wine extends BaseModel {
         $this->classes->transliterate($languageId);
         $this->winetypes->transliterate($languageId);
         $this->load( ['approvedRates' => function ($q) { $q->limit(3); }, 'approvedRates.user', 'winery.area'] );
-//        $this->setAppends(['classification']);
 
         $this->rate_count=$this->approvedRates()->whereNotNull('rate')->groupBy('id')->get()->count();
         $areas= \App\Area::with('parent')->where('areas.id','=',$this->area_id)
@@ -310,7 +274,6 @@ class Wine extends BaseModel {
                         $query->where('transliteration.object_type', (new \App\Area)->flag);
                         $query->where('transliteration.name', 'name');
                         $query->where('transliteration.language_id', $languageId);
-//                        $query->select('transliteration.name','name');
                         return $query;
                     })->get();
         foreach ($areas as $area){
@@ -384,6 +347,7 @@ class Wine extends BaseModel {
         return ( $this->hasBottleImage() ) ? url('/bottle/'.$this->id.'/'.time()) : null;
     }
 
+    // Flag in relations
     public function getFlagAttribute() {
         return 2;
     }
@@ -399,23 +363,6 @@ class Wine extends BaseModel {
     {
         return $this->winery;
     }
-
-    // public function getAreasNestedAttribute()
-    // {
-    //     return $this->areas_nested;
-    // }
-
-    // public function setAreasNestedAttribute($value)
-    // {
-    //     $this->areas_nested= $value;
-    // }
-
-
-    // public function getRateAttribute() {
-    //     return (float) $this->rates()->where('rate', 1)->avg('rate');
-    // }
-
-
 
     //      -- Custom methods --
 

@@ -47,7 +47,6 @@
                 $selfInstance=static::where('object_id',$id)->where('object_type',$object_flag)->get();
                 $data=['object_id'=>$id,'object_type'=>$object_flag];
                 $highlighted=$selfInstance->where('type',HIGHLIGHTED)->first();
-//                 dd($highlighted);
                 if($highlighted!==null)
                 {
                     $data['type']=1;
@@ -61,16 +60,12 @@
 
                 }
                 $recommended=$selfInstance->where('type',RECOMMENDED)->first();
-//                 dd($recommended);
                 if($recommended!==null)
                 {
                     \Log::info("RECOMMENDED: ",(array)($recommended));
                     $relationInstance=$recommended->loadRelations();
-//                    dd($relationInstance);
                     $data['type']=RECOMMENDED;
                     $selfInstance=static::checkExists($data);
-                    \Log::info("Self instance",['instanca'=>(array)($selfInstance)]);
-                    \Log::info("Datum je istekao/nije",['istekao'=>$selfInstance->expired(),'vino'=>$relationInstance->toArray()]);
                     if($selfInstance && isset($selfInstance->start_date) && isset($selfInstance->end_date) && $selfInstance->expired()){
                         $selfInstance->status=0;
                         $relationInstance->recommended=0;
@@ -98,8 +93,7 @@
                     $instance->end_date=$data['end_date'];
                 }
                 $instance->status=$data['status'];
-//                 dd($instance->end_date);
-                \Log::info('Zahtjev za create Marketing-a',(array)$r->all());
+                \Log::info('Zahtev za create Marketing-a',(array)$r->all());
                 if(! $instance->save())
                     return response()->json(['message'=>'Cannot update'],404);
                 $instance->makeExpanded($data);
@@ -112,7 +106,6 @@
                 {
                         $instance=static::all()->where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->first();
 
-//                              $instance->modifyRelations($data);
                              $instance->makeExpanded($data);
                     $instance->status=$data['status'];
                     if($instance->save())
@@ -149,7 +142,6 @@
 
         public function checkInstance($instance)
         {
-//             dd($this);
             $object=$instance::find($this->obj_id);
             if($this->type==HIGHLIGHTED)
                 $object->highlighted=$this->status;
@@ -162,7 +154,6 @@
         {
             $class=$this->getExpandedClass();
             $instance=$class::find($this->object_id);
-//             dd($data['type']==RECOMMENDED);
             if($data['type']==HIGHLIGHTED){
                 $instance->highlighted=$data['status'];
             }
@@ -231,7 +222,15 @@
             }
             return $relation;
         }
-
+        
+        /**
+         * Method modifyRelations
+         *
+         * @param $data $data [explicite description]
+         * Used to modify highlighted property in 
+         * Wine/Winery models depends on param
+         * @return void
+         */
         public function modifyRelations($data)
         {
             if($this->object_type==2)

@@ -26,7 +26,6 @@ class AdvertisingController extends Controller {
     }
 
     public function patchAdsMobile(Request $r){
-//        \App\Advertising::correctActive();
         $data=\App\Advertising::loadMobile();
         if($data){
             return response()->json($data,200);
@@ -41,6 +40,15 @@ class AdvertisingController extends Controller {
             return response()->json("Successifully deleted",200);
         return response()->json("Failed!",404);
     }
+        
+    /**
+     * Method loadBySection
+     *
+     * @param Request $r []
+     * @param $section $section ['ads']
+     *
+     * @return json
+     */
     public function loadBySection(Request $r,$section)
     {
         $mobile=strpos($_SERVER['REQUEST_URI'],'mobile');

@@ -17,7 +17,6 @@ class TestController extends Controller {
         $buffer= [];
         exec('cat /home/predrag/web/ready2game.com/public_html/wp-admin/php.ini',$buffer);
         dd($buffer);
-//        $imag= new \Imagick();
         print_r(phpinfo()) or die();
     }
     public function saveImage(Request $r)

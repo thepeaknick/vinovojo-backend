@@ -11,6 +11,9 @@
 |
 */
 
+/**
+ * Enable it if you might wanna to migrate from route
+ */
 // $router->get('migrate_refresh', function () {
 //     \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
 

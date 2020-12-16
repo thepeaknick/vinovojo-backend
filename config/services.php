@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Keys for Socialite driver
+ * facebook/google/instagram
+ * Key for Google maps
+ * 
+ */
 	return [
 
 		'facebook' => [

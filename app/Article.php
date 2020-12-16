@@ -55,6 +55,7 @@ class Article extends BaseModel
                             $q->where('textTransliteration.language_id', $lang);
                     });
         $req= app('request');
+        // Search
         if($req->has('search'))
             $q->where('nameTransliteration.value', 'like', '%'.$req->search.'%');
 

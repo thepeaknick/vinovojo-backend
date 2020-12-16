@@ -173,7 +173,6 @@ class WineController extends Controller {
         $wine_ids=[];
         foreach($wines as $wine)
             $wine_ids[]= $wine->id;
-        // dd($wine_ids);
         if($user->type=='winery_admin') 
             $q->whereIn('wines.id',$wine_ids);
         if($user->type=='admin')
@@ -229,7 +228,6 @@ class WineController extends Controller {
                 $query->where('transliteration.object_type', (new Area)->flag);
                 $query->where('transliteration.name', 'name');
                 $query->where('transliteration.language_id', $langId);
-//                        $query->select('transliteration.name','name');
                 return $query;
             })->get();
         foreach ($areas as $area){
@@ -245,10 +243,6 @@ class WineController extends Controller {
 	public function filter(Request $r, $paginate = true) {
 		$lang = $r->header('Accept-Language');
 
-		// if ( $r->has('sort') )
-		// 	$sort = ($r->sort_name == 1) ? 'asc' : 'desc';
-		// else
-        // 	$sort = 'asc';
         if($r->has('sort'))
             $sort= ($r->sort==1)?'asc':'desc';
         else $sort= 'asc';
@@ -272,12 +266,8 @@ class WineController extends Controller {
 
 		if ( $r->has('category_id') ) {
 		    $q->where('wines.category_id','=',$r->category_id);
-//		    $q->addSelect('wines.category_id as category_id');
-//            $q->where('wines.category_id', $r->category_id);
         }
 
-//		if ( $r->has('class_id') )
-//			$q->where('wines.classification_id', $r->class_id);
         if($r->has('class_id')) {
             $q->join('classes_wines as classes_w',function($join) use($r) {
                 $join->on('wines.id','=','classes_w.wine_id');

@@ -24,14 +24,23 @@ class BaseController extends Controller
     }
 
     //      -- Create --
-
+    
+    /**
+     * Method create
+     *
+     * @param Request $r [explicite description]
+     * @param string $resource [\App\Model::class]
+     *
+     * Create for every instance Model in App
+     * Resource can be every model to lower case eg. user,wine/winery...
+     * @return void
+     */
     public function create(Request $r, $resource)
     {
         if ($r->has('json')) {
             $r->replace(json_decode($r->json, 1));
         }
 
-//        dd($r->all());
         \Log::info('Zahtev za create ' . $resource, $r->all());
 
         $model = $this->resourceClass($resource);
@@ -67,13 +76,20 @@ class BaseController extends Controller
     }
 
     //      -- Read --
-
+    
+    /**
+     * Method loadAll
+     *
+     * @param string $resource ['wine', 'winery', ...]
+     * @param Request $r [explicite description]
+     *
+     * Read every resource depends on param
+     * @return void
+     */
     public function loadAll($resource, Request $r)
     {
 
-        /* $result = WineType::get();
-        var_dump($result->toArray());
-        die();*/
+        $result = WineType::get();
         //  $sorting = $r->header('Sorting', 'asc');
         $languageId = $r->header('Accept-Language');
 
@@ -151,9 +167,6 @@ class BaseController extends Controller
             $sorting = $r->header('Sorting', 'asc');
         }
 
-        // dd($r->search);
-        //  Search
-        //        if($model=='\App\PointOfIn')
         $sortBy = '';
         if ($r->header('Sort-By')) {
             $sortBy = $r->header('Sort-By');
@@ -181,9 +194,6 @@ class BaseController extends Controller
             $search = '';
             if ($model == '\App\Wine' || $model == '\App\Winery') {
                 $instances = $model::listWithLiked($languageId, $sorting, false, $search, $sortBy);
-                // if ($r->has('class_id')) {
-                //     $instances = $instances->where('class_id', '=', $r->class_id);
-                // }
                 return response()->json($instances->paginate(12));
             } else if ($model == '\App\User') {
                 $instances = $model::listWithSearch($languageId, $sorting, false, $search, $sortBy);
@@ -207,7 +217,6 @@ class BaseController extends Controller
 //        Manually sort  rates
         if ($model == '\App\Wine' || $model == '\App\Winery') {
             foreach ($instances as $instance) {
-//             var_dump($instance);
                 if (isset(((object) $instance)->rate_count)) {
                     $count = \App\Rate::where('object_id', $instance['id'])->where('rates.status', '=', 'approved')->whereNotNull('rates.rate')->get()->count();
                     $instance['rate_count'] = $count;
@@ -217,22 +226,25 @@ class BaseController extends Controller
         }
 
         if ($resource == 'winePath' || $model == '\App\WinePath') {
-//            print_r($instances->toSql());
-            //            dd();
-            //            dd($instances->toSql());
-            //            $instances=\App\WinePath::list($languageId,$sorting,false);
-            //            dd($instances->with('wines'));
             return $instances->paginate(50);
         }
 
-//        dd($instances);
         if ($instances instanceof Illuminate\Database\Eloquent\Builder) {
             return $instances->get()->paginate(10);
         }
 
         return $instances->get();
     }
-
+    
+    /**
+     * Method loadWithPagination
+     *
+     * @param $resource $resource ['wine', 'winery'...]
+     * @param Request $r [explicite description]
+     *
+     * Load Every resource depends on URL with pagination
+     * @return json
+     */
     public function loadWithPagination($resource, Request $r)
     {
         $sorting = $r->header('Sorting');
@@ -247,7 +259,6 @@ class BaseController extends Controller
         } else {
             $search = '';
         }
-//         dd($instances);
         if ($resource == 'winery') {
             $instances = $model::list($languageId, $sorting, true, $search);
             foreach ($instances as $winery) {
@@ -258,8 +269,6 @@ class BaseController extends Controller
             return $model::list($languageId, $sorting, true, $search)->paginate(50);
         }
         return $model::list($languageId, $sorting, true, $search)->paginate(10);
-//            dd($instances);
-        //         return $instances->paginate(10);
     }
 
     public function loadSingle($resource, $id, Request $r)
@@ -284,9 +293,7 @@ class BaseController extends Controller
     public function patchInitialize($resource, $id)
     {
         $area = \App\Area::dropdown(1);
-//         dd($area);
         $model = $this->resourceClass($resource);
-//         dd($model);
         $instance = $model::find($id);
 
         if ($resource == 'area' && $instance) {
@@ -296,16 +303,7 @@ class BaseController extends Controller
             return $instance->patchInitialize();
         }
         $return = $instance->patchInitialize();
-//        if($resource=='winery' && $instance)
-        //        {
-        //            foreach ($return as $winery) {
-        //                if ($winery->has('rate_count'))
-        //            }
-        //        }
 
-        // $lang=new \App\Language((array)$instance);
-        // var_dump($lang);
-        // die();
 
         if (!$instance) {
             return response()->json(['error' => ucfirst($resource) . ' not found'], 404);
@@ -313,7 +311,18 @@ class BaseController extends Controller
 
         return $instance->patchInitialize();
     }
-
+    
+    /**
+     * Method patch
+     *
+     * @param Request $r
+     * @param $resource $resource ['wine', 'winery',...]
+     * @param $id $id [Model id]
+     *
+     * Patch/Update single model depend on URL
+     * URL example: "/patch/user/1"
+     * @return void
+     */
     public function patch(Request $r, $resource, $id)
     {
         $model = $this->resourceClass($resource);
@@ -337,10 +346,6 @@ class BaseController extends Controller
             }
         }
 
-        // if($instance instanceof \App\Winery) {
-        //     if ($r->has(''))
-        // }
-
         if ($instance->update($r)) {
             return response()->json(['message' => 'Updated succefully'], 203);
         }
@@ -359,8 +364,6 @@ class BaseController extends Controller
             return response()->json(['error' => $resource . ' not found'], 404);
         }
 
-        // \Log::alert('Korisnik'.$model);
-        // dd($instance);
         if ($model == '\App\User') {
             if (!$instance->clear()) {
                 return response()->json(['message' => 'Something went wrong'], 500);
@@ -371,7 +374,6 @@ class BaseController extends Controller
                 $instance->delete();
             } catch (\Illuminate\Database\QueryException $e) {
                 $code = $e->errorInfo[1];
-                // dd($e->errorInfo);
                 if ($code == 1451) {
                     return response()->json(['error' => 'Constraint failed'], 409);
                 }
@@ -434,7 +436,6 @@ class BaseController extends Controller
 
     public function searchByParam($resource, Request $req)
     {
-        // dd($req->header('Accept-Language'));
         $model = $this->resourceClass($resource);
         $langId = ($req->header('Accept-Language')) ? $req->header('Accept-Language') : 1;
         $model = $this->resourceClass($resource);
@@ -469,7 +470,6 @@ class BaseController extends Controller
     public function removeFavourite($id, $flag)
     {
         $favourite = \App\Favourite::where('object_id', '=', $id)->where('object_type', '=', $flag)->first();
-        // dd($favourite);
         if ($favourite !== null && $favourite->delete()) {
             return response()->json(['message' => 'successifully deleted'], 204);
         }
@@ -495,6 +495,14 @@ class BaseController extends Controller
         dd(Socialite::driver('facebook')->userFromToken($s->social_key));
     }
 
+        
+    /**
+     * rsJson
+     *
+     * Resources for static strings
+     * This is fallback, if not exists in database
+     * @var string
+     */
     private $rsJson = '{
 
 	"app_name": "Vinovojo",

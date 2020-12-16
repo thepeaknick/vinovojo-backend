@@ -49,11 +49,7 @@ class FeedController extends Controller
     public function loadRecommendations(Request $r) {
         $languageId = $r->header('Accept-Language');
 
-        // app('db')->enableQueryLog();
-
         $wines = Wine::list($languageId, 'asc', true)->where('wines.recommended', 1)->get();
-
-        // dd( app('db')->getQueryLog() );
 
         $wineries = Winery::list($languageId, 'asc', true)->where('recommended', 1)->get();
         
@@ -71,7 +67,6 @@ class FeedController extends Controller
 
         $wines = Wine::list($languageId, 'asc', true)->whereIn('wines.id', $r->wines)->get();
         $wineries = Winery::list($languageId, 'asc', true)->whereIn('wineries.id', $r->wineries)->get();
-//        \Log::info('request favourites',$r->all());
         $json = $wines->toBase()->merge( $wineries->toBase() );
         $json = $json->sortBy('name')->values();
 

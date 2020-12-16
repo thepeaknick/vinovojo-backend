@@ -14,7 +14,6 @@ class UserController extends BaseController
 {
 
 	public function register(Request $req) {
-//	    dd($req->all());
 		\Log::info('Register zahtev', $req->all());
 		if ($req->social == 1) {
 			return (new SocialController)->register($req);

@@ -31,10 +31,9 @@ class Pin extends Model {
 	public function getLogoAttribute($value) {
         $data= \DB::table('text_fields')->where('value','like','%'.$this->name.'%')->where('object_type',3)->first();
         if($data!=null) {
-//            dd($data);
+            // Winery static::object_type 3 (Wine does'n have pin)
             if($this->type==3) {
                 $winery= \App\Winery::where('id',$data->object_id)->first();
-//                \Log::info('VINARIJA',(array)$winery);
                 if(isset($winery) && !empty($winery) && $winery!=null)
                 {
                     if($winery->logo_image)
@@ -47,13 +46,9 @@ class Pin extends Model {
 
     public function getWineryIdAttribute() {
         $data= \DB::table('text_fields')->where('value','like','%'.$this->name.'%')->where('object_type',3)->first();
-//        dd($data);
-////        dd($this);
-//        if(strpos($data->name,'Imperator'))
-//            dd($this);
         if($data!=null) {
+            // Winery static::object_type 3 
             if($data->object_type==3) {
-//                dd($data);
                 $winery= \App\Winery::where('id',$data->object_id)->first();
                 if($winery!==null)
                 {

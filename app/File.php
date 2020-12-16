@@ -104,7 +104,16 @@ class File extends BaseModel {
         $this->position = $newPosition;
         return $this->save();
     }
-
+    
+    /**
+     * Method shiftLeft
+     *
+     * @param $from $from [int|null]
+     * @param $to $to [int|null] :default null
+     *
+     * Reorder images,videos in gallery
+     * @return bool
+     */
     public static function shiftLeft($from, $to = null) {
         $query = static::where('position', '<=', $from);
         if (!is_null($to)) {

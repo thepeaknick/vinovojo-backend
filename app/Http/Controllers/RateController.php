@@ -19,7 +19,6 @@ class RateController extends BaseController
     
 	public function filter(Request $req, $object, $id, $status) {
 		$model = "App\\" . ucfirst($object);
-		// dd($id);
 		$is_not_id= $status==='all' || $status==='approved' || $status==='unaprooved' || $status==='hold';
 		if($model=='App\Winery' && $is_not_id) {
 			if($status=='all')
@@ -34,7 +33,7 @@ class RateController extends BaseController
 		}
 
 		$instance = $model::find($id);
-		// dd($instance);
+
 		if (!$instance)
 			return response()->json(['error' => 'Model not found'], 404);
 
