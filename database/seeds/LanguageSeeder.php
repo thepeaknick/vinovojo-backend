@@ -639,7 +639,7 @@ class LanguageSeeder extends Seeder
 
   "WINES_ADD_CARD_NAME": "Forma za dodavanje vina",
   "WINES_ADD_WINE_NAME": "Naziv vina",
-  "WINES_ADD_WINE_NAME_PLACEHOLDER": "Naziv", 
+  "WINES_ADD_WINE_NAME_PLACEHOLDER": "Naziv",
   "WINES_ADD_WINE_DESC": "Opis vina",
   "WINES_ADD_WINE_DESC_PLACEHOLDER": "Opis...",
   "WINES_ADD_WINE_REQUIREMENTS_MSG_BACKGROUND_IMAGE": "OBAVEŠTENJE! Odaberite da li želite da postavite pozadinu za sliku vina",
@@ -1218,7 +1218,7 @@ class LanguageSeeder extends Seeder
   "SIDEBAR_ADVERTISING_SUBMENU_3": "Marketing vina",
   "SIDEBAR_ADVERTISING_SUBMENU_4": "Google ads",
   "ADVERTISING_ADD_EVENT": "Dodaj reklamu",
-  
+
   "ADS_IMAGE": "Slika",
   "ADS TITLE": "Naziv",
   "ADS_START_DATE": "Pocetak",
@@ -1229,7 +1229,7 @@ class LanguageSeeder extends Seeder
   "ADS_SECTION": "Sekcija",
   "ADS_REPEATING": "Ponavljanje",
   "ADS_ADD_IMAGE": "Dodaj sliku (1080x1920)",
-  
+
   "ADS_WINERY_NAME": "Vinarija",
   "ADS_WINERY_SEARCH": "Pretraga vinarija",
   "ADS_WINERY_LANGUAGE": "Izaberite jezik",
@@ -1294,7 +1294,7 @@ class LanguageSeeder extends Seeder
   "ADS_DROPDOWN_ITEM_ROADS" : "Putevi",
   "ADS_DROPDOWN_ITEM_EVENTS" : "Dešavanja",
   "ADS_DROPDOWN_ITEM_ALWAYS" : "Stalno",
-  "ADS_DROPDOWN_ITEM_ONCE" : "Jednom",
+  "ADS_DROPDOWN_ITEM_ONCE" : "Jednom"
 }';
 
 }

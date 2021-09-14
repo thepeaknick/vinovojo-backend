@@ -17,6 +17,7 @@ class AreaController extends BaseController
 		if ( !$area )
 			return response()->json(['error' => 'Area not found'], 404);
 
+//		if( !empty($req->header('Accept-Language')) )
             $lang = $req->header('Accept-Language');
 
 		$area->transliterate( $lang );

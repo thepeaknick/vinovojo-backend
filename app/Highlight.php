@@ -62,7 +62,7 @@
                 $recommended=$selfInstance->where('type',RECOMMENDED)->first();
                 if($recommended!==null)
                 {
-                    //\Log::info("RECOMMENDED: ",(array)($recommended));
+                    \Log::info("RECOMMENDED: ",(array)($recommended));
                     $relationInstance=$recommended->loadRelations();
                     $data['type']=RECOMMENDED;
                     $selfInstance= static::checkExists($data);
@@ -97,7 +97,7 @@
                 }
                 $instance->status=$data['status'];
 //                 dd($instance->end_date);
-                //\Log::info('Zahtjev za create Marketing-a',(array)$r->all());
+                \Log::info('Zahtjev za create Marketing-a',(array)$r->all());
                 if(! $instance->save())
                     return response()->json(['message'=>'Cannot update'],404);
                 $instance->makeExpanded($data);
@@ -110,6 +110,7 @@
                 {
                         $instance=static::all()->where('object_id',$data['object_id'])->where('object_type',$data['object_type'])->first();
 
+//                              $instance->modifyRelations($data);
                              $instance->makeExpanded($data);
                     $instance->status=$data['status'];
                     if($instance->save())
@@ -159,6 +160,7 @@
 
         public function checkInstance($instance)
         {
+//             dd($this);
             $object=$instance::find($this->obj_id);
             if($this->type==HIGHLIGHTED)
                 $object->highlighted=$this->status;
@@ -171,6 +173,7 @@
         {
             $class=$this->getExpandedClass();
             $instance=$class::find($this->object_id);
+//             dd($data['type']==RECOMMENDED);
             if($data['type']==HIGHLIGHTED){
                 $instance->highlighted=$data['status'];
             }
@@ -239,15 +242,7 @@
             }
             return $relation;
         }
-        
-        /**
-         * Method modifyRelations
-         *
-         * @param $data $data [explicite description]
-         * Used to modify highlighted property in 
-         * Wine/Winery models depends on param
-         * @return void
-         */
+
         public function modifyRelations($data)
         {
             if($this->object_type== WINE_FLAG)

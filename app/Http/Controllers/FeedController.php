@@ -47,18 +47,22 @@ class FeedController extends Controller
     }
 
     public function loadSingleNews(Request $r, $id) {
-      $langId= $r->header('Accept-Language', 1);
+        $langId= $r->header('Accept-Language', 1);
 
-      $single_instance= Article::list($langId, 'asc', true)->where('articles.id',$id)->first();
-      if(empty($single_instance))
-        return response()->json(['message'=> 'not found'], 404);
-      else return response()->json($single_instance);
+        $single_instance= Article::list($langId, 'asc', true)->where('articles.id',$id)->first();
+        if(empty($single_instance))
+            return response()->json(['message'=> 'not found'], 404);
+        else return response()->json($single_instance);
     }
 
     public function loadRecommendations(Request $r) {
         $languageId = $r->header('Accept-Language');
 
+        // app('db')->enableQueryLog();
+
         $wines = Wine::list($languageId, 'asc', true)->where('wines.recommended', 1)->get();
+
+        // dd( app('db')->getQueryLog() );
 
         $wineries = Winery::list($languageId, 'asc', true)->where('recommended', 1)->get();
 
@@ -76,6 +80,7 @@ class FeedController extends Controller
 
         $wines = Wine::list($languageId, 'asc', true)->whereIn('wines.id', $r->wines)->get();
         $wineries = Winery::list($languageId, 'asc', true)->whereIn('wineries.id', $r->wineries)->get();
+//        \Log::info('request favourites',$r->all());
         $json = $wines->toBase()->merge( $wineries->toBase() );
         $json = $json->sortBy('name')->values();
 

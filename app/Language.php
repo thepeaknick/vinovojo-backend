@@ -71,23 +71,10 @@ class Language extends BaseModel {
         return $this->hasMany('\App\TextField')->where( 'object_type', (new static)->flag )->where( 'language_id', $this->id );
     }
 
-        
-    /**
-     * Method mobile
-     *
-     * object_type for mobile used is 17
-     * @return \Illuminate\Database\Eloquent\Relationships\HasMany
-     */
     public function mobile() {
         return $this->hasMany('\App\TextField')->where('object_type', $this->flag);
     }
 
-    /**
-     * Method web
-     *
-     * object_type for mobile used is 29
-     * @return \Illuminate\Database\Eloquent\Relationships\HasMany
-     */
     public function web() {
         return $this->hasMany('\App\TextField')->where('object_type', $this->web_flag);
     }
@@ -161,7 +148,7 @@ class Language extends BaseModel {
 
 
 
-    //      -- Validation CRUD OVERRIDE --
+    //      -- Validation --
 
     public function validatesBeforeCreation() {
         foreach ($this->fieldValidation as $field => $validation)
@@ -194,24 +181,12 @@ class Language extends BaseModel {
 
         return $this;
     }
-    
-    /**
-     * Method getMobileFields
-     *
-     * Loads staitic labels/strings for mobile
-     * @return static::only from \App\Model
-     */
+
     public function getMobileFields() {
         $this->loadMobileFields();
         return $this->only( array_keys( $this->fieldValidation ) );
     }
 
-    /**
-     * Method loadWebFields
-     *
-     * Loads staitic labels/strings for web
-     * @return static instance
-     */
     public function loadWebFields() {
         $fields = $this->web;
         foreach ($fields as $field) {
@@ -235,14 +210,7 @@ class Language extends BaseModel {
         return static::select(['id', 'name', 'code'])->get();
     }
 
-    
-    /**
-     * fieldValidation
-     *
-     * Used to generate required fields 
-     * during patch update translations
-     * @var array
-     */
+
     private $fieldValidation = [
         'app_name' => 'required|string',
         'internet_problem' => 'required|string',
@@ -1244,7 +1212,7 @@ class Language extends BaseModel {
         'ADS_DROPDOWN_ITEM_EVENTS'=> 'required|string',
         'ADS_DROPDOWN_ITEM_ALWAYS'=> 'required|string',
         'ADS_DROPDOWN_ITEM_ONCE'=> 'required|string',
-        'EVENTS_ACTIVE_LABEL' => 'required|string', 
+        'EVENTS_ACTIVE_LABEL' => 'required|string',
         'EVENTS_ACTIVE_HINT' => 'required|string',
         'WINES_ADD_TEMP_SERVING_START_LABEL' => 'required|string',
         'WINES_ADD_TEMP_SERVING_END_LABEL' => 'required|string',

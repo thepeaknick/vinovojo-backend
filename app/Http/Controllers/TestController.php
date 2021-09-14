@@ -33,6 +33,7 @@ class TestController extends Controller {
         $buffer= [];
         exec('cat /home/predrag/web/ready2game.com/public_html/wp-admin/php.ini',$buffer);
         dd($buffer);
+//        $imag= new \Imagick();
         print_r(phpinfo()) or die();
     }
     public function saveImage(Request $r)
@@ -202,10 +203,10 @@ class TestController extends Controller {
         $dupl= [];
         foreach(\App\Highlight::orderBy('id','asc')->get() as $highlight) {
             $duplicates= \App\Highlight::where('object_id',$highlight->object_id)
-                                    ->where('object_type',$highlight->object_type)
-                                    ->where('type',$highlight->type)
-                                    ->where('id','>',$highlight->id)
-                                    ->get();
+                ->where('object_type',$highlight->object_type)
+                ->where('type',$highlight->type)
+                ->where('id','>',$highlight->id)
+                ->get();
             foreach($duplicates as $duplicate) {
                 $dupl[]= $duplicate;
                 if($duplicate->id!==$highlight->id)
@@ -217,180 +218,180 @@ class TestController extends Controller {
 
     public function calculateRoute(Request $r)
     {
-      /*
-      | Override app real request
-      */
-      $req= app('request');
-      $langId= $r->header('Accept-Language', 1);
-      $limit= ($r->has('limit_points')) ? $r->limit_points : 5;
-      $max_dist= ($r->has('max_distance')) ? $r->max_distance : 50000;
-      $r='';
-      if(!$req->has('lng') || !$req->has('lat')) {
-        return response()->json(['message'=> 'incomplete data'], 422);
-      }
-      $start= [
-        'lng'=> $req->lng,
-        'lat'=> $req->lat
-      ];
-
-      /*
-      |----------------------------------------
-      | Find sort wines into wineries
-      |----------------------------------------
-      */
-
-
-      $q= Winery::list($langId, 'asc', true);
-      $q->join('pins', function($join) {
-        $join->on('pins.object_id', 'wineries.id');
-        $join->where('pins.object_type', (new Winery)->flag);
-      });
-      $q->addSelect('wineries.recommended as winery_recommended');
-      $q->addSelect('pins.lat as lat');
-      $q->addSelect('pins.lng as lng');
-
-      /*
-      |
-      |   FILTER WINE CLASSES
-      |     @parameter class_id:[]
-      |
-      */
-      if($req->has('class_id') && !empty($req->class_id))
-      {
-        $q->leftJoin('wines', function($join) {
-          $join->on('wines.winery_id','wineries.id');
-        });
-        $q->join('classes_wines', function($join) {
-            $join->on('wines.id','=','classes_wines.wine_id');
-        });
-        try {
-          $classes = json_decode($req->class_id);
-        } catch (\Exception $e) {
-          return response()->json(['message'=>'Field class_id must be array'], 422);
-        }
-        if(!is_array($classes))
-          return response()->json(['message'=>'Field class_id must be array'], 422); 
-        
-        $q->whereIn('classes_wines.class_id', $classes);
-        $q->addSelect('wines.recommended as w_rec');
-      }
-
-      $all_points= [];
-      $all_distances= [];
-      $wineries= $q->get();
-      $point_num=0;
-      foreach($wineries as $winery) {
-        $point= [
-          'point'=> $point_num++,
-          'id'=> $winery->id,
-          'lng'=> $winery->lng,
-          'lat'=> $winery->lat
-        ];
-        $distance= $this->CalculateDistance($point, $start);
-        if($distance<$max_dist) 
-          $all_points[]= $point;
-      }
-
-      $points=[];
-      /*
-      | Find the first nearest n node
-      */
-      usort($all_points, function($d1, $d2)use($start) {
-        return $this->CalculateDistance($start, $d1) - $this->CalculateDistance($start, $d2);
-      });
-
-      /*
-      | Nearest n points
-      */
-      $top_points = array_slice($all_points, 0, $limit, true);
-      $all = [];
-      /*
-      | Iterate over top (N) points to find (N) ways 
-      */
-      // dd($top_points);
-      while(count($top_points)>0)
-      {
-        $current_point_waypoints = [];
-        $path_sum = 0;
-        // currentPoint is one of (N) nearest points
-        // from start point
-        $currentPoint = array_shift($top_points);
-
-        // Sum between start point and current point
-        $path_sum += $this->CalculateDistance($currentPoint, $start);
-
-        $this->reorderWaypoints($currentPoint, $all_points);
-        /* 
-        | Here we neet to extract all_points array except current point,
-        | iterate him over (N-1) times and every time reorder array
-        | to find nearest point
+        /*
+        | Override app real request
         */
-        //  remove first element from array, because first element is current waypoint
-        // We not affecting global all_points array
-        $rest_waypoints = array_slice($all_points, 1, count($all_points), true);
-
-        for($x=0; $x< $limit -1 && count($rest_waypoints); $x++) {
-
-          // if count waypoints is larger than source count waypoints
-          //  then break 
-          // if(count($current_point_waypoints) > count($top_points))
-          //   break;
-          $current = null;
-          if(count($current_point_waypoints) == 0) {
-            $current = $currentPoint;
-          }else {
-            $current = $current_point_waypoints[count($current_point_waypoints)-1];
-          }
-
-          usort($rest_waypoints, function($x1, $x2) use($current) {
-            return $this->CalculateDistance($current, $x1) - $this->CalculateDistance($current, $x2);
-          });
-
-          // We must here include current_start_waypoint
-          $nearestWaypoint = array_shift($rest_waypoints);
-
-          // Calculate distance between point and last waypoint
-          if(count($current_point_waypoints) == 0)
-            $path_sum += $this->CalculateDistance($currentPoint, $nearestWaypoint);
-          else 
-            $path_sum += $this->CalculateDistance($current_point_waypoints[count($current_point_waypoints)-1], $nearestWaypoint);
-
-          $current_point_waypoints[] = $nearestWaypoint;
+        $req= app('request');
+        $langId= $r->header('Accept-Language', 1);
+        $limit= ($r->has('limit_points')) ? $r->limit_points : 5;
+        $max_dist= ($r->has('max_distance')) ? $r->max_distance : 50000;
+        $r='';
+        if(!$req->has('lng') || !$req->has('lat')) {
+            return response()->json(['message'=> 'incomplete data'], 422);
         }
-        $all[] = [
-          'sum' => $path_sum,
-          'waypoints' => array_merge([$currentPoint], $current_point_waypoints)
+        $start= [
+            'lng'=> $req->lng,
+            'lat'=> $req->lat
         ];
-      }
 
-      // First we need to check if all array is empty
-      // if(empty($all))
-      if(empty($all)) {
-        echo "{}";
-        die();
-      }
+        /*
+        |----------------------------------------
+        | Find sort wines into wineries
+        |----------------------------------------
+        */
 
-      usort($all, function($p1, $p2) {
-        return $p1['sum'] - $p2['sum'];
-      });
 
-      $shortest_path= array_shift($all);
-      
-      $winery_ids = array_column($shortest_path['waypoints'], 'id');
+        $q= Winery::list($langId, 'asc', true);
+        $q->join('pins', function($join) {
+            $join->on('pins.object_id', 'wineries.id');
+            $join->where('pins.object_type', (new Winery)->flag);
+        });
+        $q->addSelect('wineries.recommended as winery_recommended');
+        $q->addSelect('pins.lat as lat');
+        $q->addSelect('pins.lng as lng');
 
-      $order_string= implode(',',$winery_ids);
-      $q->whereIn('wineries.id', $winery_ids);
-      $q->orderByRaw(DB::raw("FIELD(wineries.id, $order_string)"));
-      $q->limit($limit);
-      return response()->json(['distance'=>$shortest_path['sum'], 'points'=>$q->get()]);
+        /*
+        |
+        |   FILTER WINE CLASSES
+        |     @parameter class_id:[]
+        |
+        */
+        if($req->has('class_id') && !empty($req->class_id))
+        {
+            $q->leftJoin('wines', function($join) {
+                $join->on('wines.winery_id','wineries.id');
+            });
+            $q->join('classes_wines', function($join) {
+                $join->on('wines.id','=','classes_wines.wine_id');
+            });
+            try {
+                $classes = json_decode($req->class_id);
+            } catch (\Exception $e) {
+                return response()->json(['message'=>'Field class_id must be array'], 422);
+            }
+            if(!is_array($classes))
+                return response()->json(['message'=>'Field class_id must be array'], 422);
+
+            $q->whereIn('classes_wines.class_id', $classes);
+            $q->addSelect('wines.recommended as w_rec');
+        }
+
+        $all_points= [];
+        $all_distances= [];
+        $wineries= $q->get();
+        $point_num=0;
+        foreach($wineries as $winery) {
+            $point= [
+                'point'=> $point_num++,
+                'id'=> $winery->id,
+                'lng'=> $winery->lng,
+                'lat'=> $winery->lat
+            ];
+            $distance= $this->CalculateDistance($point, $start);
+            if($distance<$max_dist)
+                $all_points[]= $point;
+        }
+
+        $points=[];
+        /*
+        | Find the first nearest n node
+        */
+        usort($all_points, function($d1, $d2)use($start) {
+            return $this->CalculateDistance($start, $d1) - $this->CalculateDistance($start, $d2);
+        });
+
+        /*
+        | Nearest n points
+        */
+        $top_points = array_slice($all_points, 0, $limit, true);
+        $all = [];
+        /*
+        | Iterate over top (N) points to find (N) ways
+        */
+        // dd($top_points);
+        while(count($top_points)>0)
+        {
+            $current_point_waypoints = [];
+            $path_sum = 0;
+            // currentPoint is one of (N) nearest points
+            // from start point
+            $currentPoint = array_shift($top_points);
+
+            // Sum between start point and current point
+            $path_sum += $this->CalculateDistance($currentPoint, $start);
+
+            $this->reorderWaypoints($currentPoint, $all_points);
+            /*
+            | Here we neet to extract all_points array except current point,
+            | iterate him over (N-1) times and every time reorder array
+            | to find nearest point
+            */
+            //  remove first element from array, because first element is current waypoint
+            // We not affecting global all_points array
+            $rest_waypoints = array_slice($all_points, 1, count($all_points), true);
+
+            for($x=0; $x< $limit -1 && count($rest_waypoints); $x++) {
+
+                // if count waypoints is larger than source count waypoints
+                //  then break
+                // if(count($current_point_waypoints) > count($top_points))
+                //   break;
+                $current = null;
+                if(count($current_point_waypoints) == 0) {
+                    $current = $currentPoint;
+                }else {
+                    $current = $current_point_waypoints[count($current_point_waypoints)-1];
+                }
+
+                usort($rest_waypoints, function($x1, $x2) use($current) {
+                    return $this->CalculateDistance($current, $x1) - $this->CalculateDistance($current, $x2);
+                });
+
+                // We must here include current_start_waypoint
+                $nearestWaypoint = array_shift($rest_waypoints);
+
+                // Calculate distance between point and last waypoint
+                if(count($current_point_waypoints) == 0)
+                    $path_sum += $this->CalculateDistance($currentPoint, $nearestWaypoint);
+                else
+                    $path_sum += $this->CalculateDistance($current_point_waypoints[count($current_point_waypoints)-1], $nearestWaypoint);
+
+                $current_point_waypoints[] = $nearestWaypoint;
+            }
+            $all[] = [
+                'sum' => $path_sum,
+                'waypoints' => array_merge([$currentPoint], $current_point_waypoints)
+            ];
+        }
+
+        // First we need to check if all array is empty
+        // if(empty($all))
+        if(empty($all)) {
+            echo "{}";
+            die();
+        }
+
+        usort($all, function($p1, $p2) {
+            return $p1['sum'] - $p2['sum'];
+        });
+
+        $shortest_path= array_shift($all);
+
+        $winery_ids = array_column($shortest_path['waypoints'], 'id');
+
+        $order_string= implode(',',$winery_ids);
+        $q->whereIn('wineries.id', $winery_ids);
+        $q->orderByRaw(DB::raw("FIELD(wineries.id, $order_string)"));
+        $q->limit($limit);
+        return response()->json(['distance'=>$shortest_path['sum'], 'points'=>$q->get()]);
 
     }
 
     public function reorderWaypoints($waypoint, array &$allWaypoints)
     {
-      return usort($allWaypoints, function($x1,$x2) use ($waypoint) {
-        return $this->calculateDistance($waypoint, $x1)- $this->calculateDistance($waypoint, $x2);
-      });
+        return usort($allWaypoints, function($x1,$x2) use ($waypoint) {
+            return $this->calculateDistance($waypoint, $x1)- $this->calculateDistance($waypoint, $x2);
+        });
     }
 
     // public function CalculateDistance(array $point1, array $point2)
@@ -428,11 +429,11 @@ class TestController extends Controller {
         }
         else if ($unit == "N")
         {
-        return ($miles * 0.8684);
+            return ($miles * 0.8684);
         }
         else
         {
-        return $miles;
+            return $miles;
         }
     }
 
@@ -445,29 +446,29 @@ class TestController extends Controller {
 
     public function testPointsDistance(Request $r)
     {
-      if(
-          !$r->has('lng1') ||
-          !$r->has('lng2') ||
-          !$r->has('lat1') ||
-          !$r->has('lat2')
-      )
-        return response()->json(['message'=>'Unprocessable'], 422);
+        if(
+            !$r->has('lng1') ||
+            !$r->has('lng2') ||
+            !$r->has('lat1') ||
+            !$r->has('lat2')
+        )
+            return response()->json(['message'=>'Unprocessable'], 422);
 
-      $p1 = [
-        'lng' => $r->lng1,
-        'lat' => $r->lat1
-      ];
+        $p1 = [
+            'lng' => $r->lng1,
+            'lat' => $r->lat1
+        ];
 
-      $p2 = [
-        'lng' => $r->lng2,
-        'lat' => $r->lat2
-      ];
+        $p2 = [
+            'lng' => $r->lng2,
+            'lat' => $r->lat2
+        ];
 
-      $distance = $this->CalculateDistance($p1, $p2);
-      return response()->json(['distance' => $distance], 200);
+        $distance = $this->CalculateDistance($p1, $p2);
+        return response()->json(['distance' => $distance], 200);
 
     }
- 
+
     public function CalculateDistance(array $point1, array $point2) {
         $latitude1 = $point1['lat'];
         $longitude1 = $point1['lng'];
@@ -477,16 +478,16 @@ class TestController extends Controller {
 
 
         $earth_radius = 6371;
-     
+
         $dLat = deg2rad($latitude2 - $latitude1);
         $dLon = deg2rad($longitude2 - $longitude1);
-     
+
         $a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad($latitude1)) * cos(deg2rad($latitude2)) * sin($dLon/2) * sin($dLon/2);
         $c = 2 * asin(sqrt($a));
         $d = $earth_radius * $c;
-     
+
         return $d;
-        
+
     }
 
     public function dijkstraAlgo(array $_distArr)
@@ -508,7 +509,7 @@ class TestController extends Controller {
                 if(!empty($Q[$key]) && $Q[$min] + $val < $Q[$key]) {
                     $Q[$key] = $Q[$min] + $val;
                     $S[$key] = array($min, $Q[$key]);
-            }
+                }
             unset($Q[$min]);
         }
 

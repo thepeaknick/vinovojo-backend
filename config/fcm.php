@@ -1,7 +1,5 @@
 <?php
-/**
- * Here are keys for Firebase FCM Push notifications
- */
+
 return [
     'driver' => env('FCM_PROTOCOL', 'http'),
     'log_enabled' => false,

@@ -52,15 +52,15 @@ class Area extends BaseModel {
     public function parent() {
         $languageId = app('translator')->getLocale();
         return $this->belongsTo(static::class, 'parent_id')
-                    ->select('areas.id as id', 'areas.type as type', 'areas.parent_id as parent_id', 'transliteration.value as name')
-                    ->join('text_fields as transliteration', function($q) use ($languageId) {
-                        $q->on('areas.id', '=', 'transliteration.object_id');
-                        $q->where('object_type', $this->flag);
-                        $q->where('transliteration.name', 'name');
-                        if ($languageId) {
-                            $q->where('language_id', $languageId);
-                        }
-                    });
+            ->select('areas.id as id', 'areas.type as type', 'areas.parent_id as parent_id', 'transliteration.value as name')
+            ->join('text_fields as transliteration', function($q) use ($languageId) {
+                $q->on('areas.id', '=', 'transliteration.object_id');
+                $q->where('object_type', $this->flag);
+                $q->where('transliteration.name', 'name');
+                if ($languageId) {
+                    $q->where('language_id', $languageId);
+                }
+            });
     }
 
     public function children() {
@@ -155,22 +155,22 @@ class Area extends BaseModel {
     public function storePoint($lat, $lng)
     {
 
-            $point = Pin::where('object_id', $this->id)
-                              ->where('object_type', $this->flag)
-                              ->where('lat','=',$lat)
-                              ->where('lng','=',$lng)
-                              ->first();
-            if ($point) {
-                $point->lat = $lat;
-                $point->lng = $lng;
-                $point->save();
-                return $point;
-            }
-            $point = new \App\Pin(['object_id' => $this->id, 'object_type' => $this->flag]);
+        $point = Pin::where('object_id', $this->id)
+            ->where('object_type', $this->flag)
+            ->where('lat','=',$lat)
+            ->where('lng','=',$lng)
+            ->first();
+        if ($point) {
             $point->lat = $lat;
             $point->lng = $lng;
-            $success=$point->save();
-            return true;
+            $point->save();
+            return $point;
+        }
+        $point = new \App\Pin(['object_id' => $this->id, 'object_type' => $this->flag]);
+        $point->lat = $lat;
+        $point->lng = $lng;
+        $success=$point->save();
+        return true;
 
     }
 

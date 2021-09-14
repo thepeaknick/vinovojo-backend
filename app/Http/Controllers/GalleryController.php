@@ -14,6 +14,9 @@ class GalleryController extends Controller {
         if ( !$winery )
             return response()->json(['error' => 'Winery does not exist'], 404);
 
+        // if ( !$winery->galleryHas($image) )
+        //     return response()->json(['error' => 'Image does not exist'], 404);
+
         return response()->download( $winery->galleryImage($id) );
     }
 
@@ -52,7 +55,6 @@ class GalleryController extends Controller {
         return response(null, 204);
     }
 
-    // -- Reorder files in gallery --
     public function repositionFileInGallery($wineryId, $fileId, $newPosition) {
         $winery = Winery::find($wineryId);
 

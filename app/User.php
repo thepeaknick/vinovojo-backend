@@ -145,6 +145,8 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
             \Log::info((array)$e);
             return false;
         }
+//        if($this->profileExists());
+//        dd($this->profileFullPath(true));
         if(file_exists($this->profileFullPath(true))) {
             try {
                 unlink($this->profileFullPath(true));
@@ -207,14 +209,18 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
 
     public function clear(){
         $rates=\App\Rate::where('user_id',$this->id)->get();
+        // var_dump(count($rates));
+        // dd($rates);
         if(count($rates)!==0){
             foreach($rates as $rate){
+                // dd($rate);
                 $instance=\App\Rate::findOrFail($rate->id);
                 $instance->delete();
             }
         }
 
         $userInstance=$this;
+        // dd($userInstance);
         if($userInstance->destroy($this->id))
             return true;
         return false;

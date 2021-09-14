@@ -29,8 +29,6 @@ $app->configure('filesystems');
 $app->configure('services');
 $app->configure('view');
 
-$app->configure('debug');
-
 $app->withFacades();
 
 class_alias('Illuminate\Support\Facades\Storage', 'Storage');

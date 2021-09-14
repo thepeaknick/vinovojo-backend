@@ -11,16 +11,14 @@
 |
 */
 
-$app = require __DIR__.'/../bootstrap/app.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-/**
- * DEBUG LEVEL ## DO NOT CHANGE IT HERE
- * CHANGE IN .env OR config/debug.php
- */
-ini_set('display_errors', config('debug.DISPLAY_ERRORS'));
-ini_set('display_startup_errors', config('debug.DISPLAY_STARTUP_ERRORS'));
-error_reporting(config('debug.ERROR_REPORTING'));
-ini_set('display_errors', config('debug.DISPLAY_ERRORS'));
+// phpinfo();
+// die();
+
+$app = require __DIR__.'/../bootstrap/app.php';
 
 /*
 |--------------------------------------------------------------------------

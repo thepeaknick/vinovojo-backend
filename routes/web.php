@@ -11,9 +11,6 @@
 |
 */
 
-/**
- * Enable it if you might wanna to migrate from route
- */
 // $router->get('migrate_refresh', function () {
 //     \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
 
@@ -335,8 +332,6 @@ $router->post('push/critical', 'SocialController@criticalNotification');
 
 $router->post('route/auto', 'PathController@generatePath');
 
-$router->post('route/autogenerate', 'PathController@calculateRoute');
-
 $router->post('poi/range', 'PathController@inRange');
 
 
@@ -378,16 +373,15 @@ $router->get('testStorage', 'TestController@testDB');
 
 $router->get('getUserByType/{userType}','TestController@loadByType');
 
-$router->post('testWineryRoute', 'TestController@calculateRoute');
-$router->post('testPointsDistances', 'TestController@testPointsDistance');
+$router->get('log/download', 'TestController@logDownload');
 
-$router->get('insertTextFields','TestController@textFieldsInsert');
-// $router->get('log/download', 'TestController@logDownload');
+$router->post('testWineryRoute', 'TestController@calculateRoute');
 // $router->get('test','TestController@index');
 // $router->post('testImage','TestController@saveImage');
-// $router->get('textSeeder', 'TestController@textFieldsSeeder');
-// $router->get('insertTable', 'TestController@insertTable');
-// $router->get('consoleCheck', 'TestController@consoleindex');
-// $router->get('pathCheck', 'TestController@checkPath');
-// $router->get('remove/duplicates', 'TestController@removeDuplicates');
-// $router->get('carbon/check', 'TestController@carbonCheck');
+//$router->get('insertTextFields','TestController@textFieldsInsert');
+//$router->get('textSeeder', 'TestController@textFieldsSeeder');
+//$router->get('insertTable', 'TestController@insertTable');
+//$router->get('consoleCheck', 'TestController@consoleindex');
+//$router->get('pathCheck', 'TestController@checkPath');
+//$router->get('remove/duplicates', 'TestController@removeDuplicates');
+//$router->get('carbon/check', 'TestController@carbonCheck');

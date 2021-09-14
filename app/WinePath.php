@@ -80,6 +80,8 @@ class WinePath extends BaseModel {
     //      -- CRUD override --
 
     public static function list($languageId, $sorting = 'asc', $getQuery = false) {
+//        dd($languageId);
+//        dd(parent::list($languageId,$sorting,true,''));
         $q = parent::list($languageId, $sorting, true,'')
                     ->join('text_fields as nameTransliteration', function ($q) use ($languageId) {
                             $q->on('nameTransliteration.object_id', '=', 'routes.id');
@@ -89,18 +91,20 @@ class WinePath extends BaseModel {
                         })
                     ->join('pins',function ($q) {
                         $q->on('routes.id','=','pins.object_id');
-                        // Object type is object_type flag for WinePath in \App\Pin::class
                         $q->where('pins.object_type','=','12');
+//                        $q->where('pins.object_id','routes.id','');
                     });
         $q->groupBy('routes.id');
+////        dd($q->toSql());
         $q->addSelect('pins.lat','pins.lng');
 
         if ($getQuery)
             return $q;
 
         $data = $q->paginate(10);
+//        dd($data);
 
-        // Hide start and end point
+
         $data->get()->getCollection()->makeHidden(['start', 'end']);
 
         return $data;
@@ -175,18 +179,19 @@ class WinePath extends BaseModel {
             }
         }
 
-        if ( $req->hasFile('cover') )
-            $this->storeCover($req->cover);
+    if ( $req->hasFile('cover') )
+        $this->storeCover($req->cover);
 
-        if ( $req->has('start') )
-            if ( !$this->start->update($req->start) )
-                return false;
+    if ( $req->has('start') )
+        if ( !$this->start->update($req->start) )
+            return false;
 
-        if ( $req->has('end') )
-            if ( !$this->end->update($req->end) )
-                return false;
+    if ( $req->has('end') )
+        if ( !$this->end->update($req->end) )
+            return false;
 
-        return true;
+    return true;
+
     }
 
 }

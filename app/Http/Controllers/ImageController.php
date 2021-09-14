@@ -26,16 +26,7 @@ class ImageController extends Controller
         //
     }
 
-        
-    /**
-     * Method loadCover
-     *
-     * @param $object $object ['wine', 'winery', ...]
-     * @param $id $id [Object id]
-     * @param $antiCache $antiCache
-     *
-     * @return file
-     */
+    
     public function loadCover($object, $id, $antiCache = null) {
         $class = '\App\\' . ucfirst($object);
         $instance = $class::find($id);
@@ -45,18 +36,8 @@ class ImageController extends Controller
 
         return response()->download( $instance->coverFullPath() );
     }
-    
-    /**
-     * Method loadLogo
-     *
-     * @param $object $object ['wine', 'winery']
-     * @param $id $id [object id]
-     * @param $antiCache $antiCache [explicite description]
-     *
-     * @return file
-     */
+
     public function loadLogo($object, $id, $antiCache = null) {
-        // Dynamically make object \App\Winery
         $class = '\App\\' . ucfirst($object);
         $instance = $class::find($id);
 
@@ -80,6 +61,7 @@ class ImageController extends Controller
         if(!$instance)
             return response()->json("Not found",404);
 
+//         dd($instance);
         $path = $instance->imagePath();
         \Log::error('Putanja '.$path);
         

@@ -24,17 +24,7 @@ class BaseController extends Controller
     }
 
     //      -- Create --
-    
-    /**
-     * Method create
-     *
-     * @param Request $r [explicite description]
-     * @param string $resource [\App\Model::class]
-     *
-     * Create for every instance Model in App
-     * Resource can be every model to lower case eg. user,wine/winery...
-     * @return void
-     */
+
     public function create(Request $r, $resource)
     {
         if ($r->has('json')) {
@@ -76,16 +66,7 @@ class BaseController extends Controller
     }
 
     //      -- Read --
-    
-    /**
-     * Method loadAll
-     *
-     * @param string $resource ['wine', 'winery', ...]
-     * @param Request $r [explicite description]
-     *
-     * Read every resource depends on param
-     * @return void
-     */
+
     public function loadAll($resource, Request $r)
     {
         $languageId = $r->header('Accept-Language');
@@ -97,12 +78,12 @@ class BaseController extends Controller
         if ($r->header('Sort-By')) {
             $sortBy = $r->header('Sort-By');
         }
-		switch ($model) 
+		switch ($model)
 		{
             case '\App\Wine':
 			{
 				$search= '';
-				if ($r->has('search')) 
+				if ($r->has('search'))
 					$search= $r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
                 return $instances->paginate(10);
@@ -129,20 +110,20 @@ class BaseController extends Controller
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
                 return $instances->get();
             break;
-            }			
+            }
             case '\App\WinePath':
             {
                 $instances = $model::list($languageId, $sorting, true);
                 return $instances->paginate(50);
-            break;	
+            break;
             }
             case '\App\Category':
             {
                 $search= (!$r->has('search'))?'':$r->search;
                 $instances = $model::list($languageId, $sorting, true, $search, $sortBy);
-                return $instances->get(10);   
+                return $instances->get(10);
             break;
-            }		
+            }
             case '\App\PointOfInterest':
 			{
                 $search= (!$r->has('search'))?'':$r->search;
@@ -160,16 +141,7 @@ class BaseController extends Controller
 			return $instances;
         }
     }
-    
-    /**
-     * Method loadWithPagination
-     *
-     * @param $resource $resource ['wine', 'winery'...]
-     * @param Request $r [explicite description]
-     *
-     * Load Every resource depends on URL with pagination
-     * @return json
-     */
+
     public function loadWithPagination($resource, Request $r)
     {
         $sorting = $r->header('Sorting');
@@ -184,6 +156,7 @@ class BaseController extends Controller
         } else {
             $search = '';
         }
+//         dd($instances);
         if ($resource == 'winery') {
             $instances = $model::list($languageId, $sorting, true, $search);
             foreach ($instances as $winery) {
@@ -194,6 +167,8 @@ class BaseController extends Controller
             return $model::list($languageId, $sorting, true, $search)->paginate(50);
         }
         return $model::list($languageId, $sorting, true, $search)->paginate(10);
+//            dd($instances);
+        //         return $instances->paginate(10);
     }
 
     public function loadSingle($resource, $id, Request $r)
@@ -218,7 +193,9 @@ class BaseController extends Controller
     public function patchInitialize($resource, $id)
     {
         $area = \App\Area::dropdown(1);
+//         dd($area);
         $model = $this->resourceClass($resource);
+//         dd($model);
         $instance = $model::find($id);
 
         if ($resource == 'area' && $instance) {
@@ -228,7 +205,16 @@ class BaseController extends Controller
             return $instance->patchInitialize();
         }
         $return = $instance->patchInitialize();
+//        if($resource=='winery' && $instance)
+        //        {
+        //            foreach ($return as $winery) {
+        //                if ($winery->has('rate_count'))
+        //            }
+        //        }
 
+        // $lang=new \App\Language((array)$instance);
+        // var_dump($lang);
+        // die();
 
         if (!$instance) {
             return response()->json(['error' => ucfirst($resource) . ' not found'], 404);
@@ -236,18 +222,7 @@ class BaseController extends Controller
 
         return $instance->patchInitialize();
     }
-    
-    /**
-     * Method patch
-     *
-     * @param Request $r
-     * @param $resource $resource ['wine', 'winery',...]
-     * @param $id $id [Model id]
-     *
-     * Patch/Update single model depend on URL
-     * URL example: "/patch/user/1"
-     * @return void
-     */
+
     public function patch(Request $r, $resource, $id)
     {
         $model = $this->resourceClass($resource);
@@ -310,6 +285,7 @@ class BaseController extends Controller
                 $instance->delete();
             } catch (\Illuminate\Database\QueryException $e) {
                 $code = $e->errorInfo[1];
+                // dd($e->errorInfo);
                 if ($code == 1451) {
                     return response()->json(['error' => 'Constraint failed'], 409);
                 }
@@ -372,7 +348,7 @@ class BaseController extends Controller
 
     public function loadPois($resource, Request $r)
     {
-        $model = $this->resourceClass($resource);  
+        $model = $this->resourceClass($resource);
         $language= $r->header('language_id','1');
         $pois= $model::list($language,'',true);
         return response()->json($pois->paginate(10));
@@ -380,6 +356,7 @@ class BaseController extends Controller
 
     public function searchByParam($resource, Request $req)
     {
+        // dd($req->header('Accept-Language'));
         $model = $this->resourceClass($resource);
         $langId = ($req->header('Accept-Language')) ? $req->header('Accept-Language') : 1;
         $model = $this->resourceClass($resource);
@@ -414,6 +391,7 @@ class BaseController extends Controller
     public function removeFavourite($id, $flag)
     {
         $favourite = \App\Favourite::where('object_id', '=', $id)->where('object_type', '=', $flag)->first();
+        // dd($favourite);
         if ($favourite !== null && $favourite->delete()) {
             return response()->json(['message' => 'successifully deleted'], 204);
         }
@@ -439,14 +417,6 @@ class BaseController extends Controller
         dd(Socialite::driver('facebook')->userFromToken($s->social_key));
     }
 
-        
-    /**
-     * rsJson
-     *
-     * Resources for static strings
-     * This is fallback, if not exists in database
-     * @var string
-     */
     private $rsJson = '{
 
 	"app_name": "Vinovojo",
@@ -910,17 +880,17 @@ class BaseController extends Controller
 	"TABLES_ARTICLE_SEARCH_FIELD_LABEL": "Pretraga vesti",
 
     "TABLES_EVENTS_SEARCH_FIELD_LABEL": "Pretraga dešavanja",
-    
+
     "RATE_WINERY_TABLE_NAME": "Naziv vinarije",
-    
+
     "RATE_WINE_TABLE_NAME": "Naziv vina",
 
     "TABLES_ADS_STATUS_ACTIVATED": "Aktivno",
-    
+
     "TABLES_ADS_STATUS_DEACTIVATED": "Neaktivno",
 
     "TABLES_ADS_IMAGE": "Slika",
-    
+
     "TABLES_ADS_NAME": "Naziv",
 
     "TABLES_ADS_START_DATE": "Datum početka",
@@ -932,7 +902,7 @@ class BaseController extends Controller
     "WINE_PATH_ADD_SEARCH_WINERY_LABEL": "Pretraži vinarije iz baze",
 
     "SETTINGS_CREATE_CARD_NAME": "Kreiranje",
-    
+
     "SETTINGS_EDIT_CARD_NAME": "Uređivanje",
 
     "FILES_ALERT_MAX_IMAGE_SIZE_OVERFLOW" : "Veličina slike je prekoračena. Maksimalna dozvoljena veličina slike je 2MB.",
@@ -967,7 +937,7 @@ class BaseController extends Controller
 
     "ADS_DROPDOWN_ITEM_ONCE" : "Jednom",
 
-    "EVENTS_ACTIVE_LABEL" : "Aktivno", 
+    "EVENTS_ACTIVE_LABEL" : "Aktivno",
 
     "EVENTS_ACTIVE_HINT" : "Nakon isteka datuma završetka, dešavanje će se automatski deaktivirati",
 

@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 class Category extends BaseModel {
 
-	protected $table = 'wine_categories';
+    protected $table = 'wine_categories';
 
     protected static $listData = [
         'wine_categories.id as id', 'transliteration.value as name'
@@ -23,7 +23,7 @@ class Category extends BaseModel {
     ];
 
     protected $appends = [
-    	'cover_image', 'wine_count'
+        'cover_image', 'wine_count'
     ];
 
     protected $hidden = [

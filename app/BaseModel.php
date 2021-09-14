@@ -27,18 +27,6 @@ class BaseModel extends Model
 
     //      -- Base methods --
 
-    /** 
-    *
-    *   Main method for listing all data 
-    *   about one model/table
-    *   Loads all relations and translations
-    * @param string lang string ['sr','de']
-    * @param string sorting ['asc', 'desc']
-    * @param bool getQuery ['true', 'false'] 
-    *
-    * @param \Illuminate\Pagination\LengthAwarePaginator | \Illuminate\Support\Collection
-    *
-    **/
     public static function list($lang, $sorting = 'asc', $getQuery = false) {
     	$q = static::select( static::$listData )->with( static::$listRelationships );
         //$q->orderBy( static::$listSort, $sorting );
@@ -52,16 +40,7 @@ class BaseModel extends Model
 
         return $data;
     }
-    
-    /**
-     * Method search
-     *
-     * @param $param $param [explicite description]
-     * @param $languageId $languageId [explicite description]
-     * @param $getQuery $getQuery ['true', 'false']
-     *
-     * @return \Illuminate\Pagination\LengthAwarePaginator | \Illuminate\Support\Collection
-     */
+
     public static function search($param, $languageId, $getQuery = false) {
         $i = new static;
         $selects = [
@@ -85,14 +64,7 @@ class BaseModel extends Model
         $data->setVisible('id', 'name');
         return $data;
     }
-    
-    /**
-     * Method dropdown
-     *
-     * @param $langId $langId ['en', 'sr']
-     *
-     * @return \Illuminate\Support\Collection
-     */
+
     public static function dropdown($langId = null) {
         if ( static::$transliteratesLists ) {
             $i = new static;
@@ -111,6 +83,7 @@ class BaseModel extends Model
             $data->setVisible(['id', 'name']);
             return $data;
         }
+
         return static::select('name', 'id')->orderBy('name', 'asc')->get();
     }
 
@@ -118,6 +91,7 @@ class BaseModel extends Model
         if ( property_exists($this, 'relationships') )
             $this->load($this->relationships);
 
+//        dd($this->relationships);
 //        if( property_exists($this, 'logo'))
 //            $this->setAppends(['logo']);
         return $this;
@@ -163,14 +137,6 @@ class BaseModel extends Model
 
     //      -- Transliteration --
 
-        
-    /**
-     * Method updateTransliterations
-     *
-     * @param \Illuminate\Http\Request $r
-     *
-     * @return bool
-     */
     public function updateTransliterations( $r ) {
         $langs = $r->languages;
 
@@ -191,25 +157,18 @@ class BaseModel extends Model
         return true;
     }
 
-        
-    /**
-     * Method transliterate
-     *
-     * @param $languageId $languageId ['en', 'sr']
-     * @param $attributes $attributes static::attributes
-     *
-     * @return $this
-     */
     public function transliterate($languageId = null, $attributes = []) {
         if ( is_null($languageId) )
             $languageId = \App\Language::getLanguageFromLocale();
 
         if ( $this->languageLoaded($languageId) ) {
+
             $fields = $this->transliterations->where('language_id', $languageId);
+
         }
 
         else {
-            // multi where in translations eg. name/value
+
             $query = $this->transliterations()->where('language_id', $languageId)->select('name', 'value', 'language_id');
             $query->where(function ($q) use ($attributes) {
                 foreach ($attributes as $attr)
@@ -217,6 +176,7 @@ class BaseModel extends Model
             });
 
             $fields = $query->get();
+
         }
 
         if ($fields->isEmpty())
@@ -235,14 +195,6 @@ class BaseModel extends Model
         return $this->transliterations->where('language_id', $languageId)->count() > 0;
     }
 
-        
-    /**
-     * Method saveLanguages
-     *
-     * @param $languages $languages ['en', 'sr']
-     *
-     * @return bool
-     */
     public function saveLanguages( $languages ) {
         $fields = [];
         foreach ($languages as $field) {
@@ -260,14 +212,6 @@ class BaseModel extends Model
         return true;
     }
 
-        
-    /**
-     * Method For deleting language deleteLanguage
-     *
-     * @param $languageId $languageId
-     *
-     * @return bool
-     */
     public function deleteLanguage( $languageId ) {
         $languageId = ( $languageId instanceof \App\Language ) ? $languageId->id : $languageId;
 
@@ -282,12 +226,7 @@ class BaseModel extends Model
 
 
     //      -- Relationships --
-    
-    /**
-     * Method transliterations 
-     *
-     * @return \Illuminate\Eloquent\Relations::HasMany
-     */
+
     public function transliterations() {
         return $this->hasMany('App\TextField', 'object_id')->where('object_type', $this->flag);
     }
@@ -303,74 +242,27 @@ class BaseModel extends Model
 
 
     //      -- Validation methods --
-    
-    /**
-     * Method validatesBeforeUpdate
-     *  Called before update on every model
-     * Overriden in every model separately
-     * @return bool
-     */
+
     public function validatesBeforeUpdate() {
     	return false;
     }
-    
-    /**
-     * Method validatesBeforeCreation
-     * 
-     * Hook called before validation in \Illuminate\Http\Controllers\Controller
-     * Overriden in every Model
-     * 
-     * @return bool
-     */
+
     public function validatesBeforeCreation() {
         return false;
     }
-    
-    /**
-     * Returns rules for validation
-     *
-     * @return array|mixed
-     */
+
     public function getRules() {
         return $this->rules;
     }
-    
-    /**
-     * Method preCreate
-     * 
-     *  Hook for every model instance in \Illuminate\Http\Controllers\Controller
-     *  called directly before save() method
-     * @param $req $req [\Illuminate\Http\Request]
-     *
-     * @return void
-     */
+
     public function preCreate($req) {
         return true;
     }
-    
-    /**
-     * Method postCreation
-     *
-     * Hook for every model instance in \Illuminate\Http\Controllers\Controller
-     * called directly after save() method
-     * @param $req $req [\Illuminate\Http\Request]
-     *
-     * @return bool
-     */
+
     public function postCreation($req = null) {
         return true;
     }
 
-    /**
-     * Method postCreation
-     *
-     * Hook for every model instance in \Illuminate\Http\Controllers\Controller
-     * called directly after delete() method
-     * removes cover image for specified model
-     * @param $req $req [\Illuminate\Http\Request]
-     *
-     * @return bool
-     */
     public function postDelete() {
         if ( $this->hasCoverImage() )
             return $this->deleteCoverImage();
@@ -385,14 +277,7 @@ class BaseModel extends Model
 
 
     //      -- Images --
-    
-    /**
-     * Method hasCoverImage
-     * 
-     *  Determine if current model instance has cover image
-     * 
-     * @return bool
-     */
+
     public function hasCoverImage() {
         return Storage::disk($this->storageDisk)->exists( $this->coverDiskPath() );
     }
@@ -400,24 +285,11 @@ class BaseModel extends Model
     protected function coverDiskPath() {
         return 'covers/' . $this->id;
     }
-    
-    /**
-     * Method coverFullPath
-     *
-     * @return string
-     */
+
     public function coverFullPath() {
         return Storage::disk( $this->storageDisk )->path( $this->coverDiskPath() );
     }
-    
-    /**
-     * Method storeCover
-     *
-     * @param $image $image [\Illuminate\Http\UploadedFile]
-     * Method saves image for every model instance
-     *
-     * @return void
-     */
+
     public function storeCover( $image ) {
 
         if($image==null)
@@ -442,16 +314,7 @@ class BaseModel extends Model
 
 
     //      -- Location --
-    
-    /**
-     * Method storePoint
-     *
-     * @param $lat $lat [string]
-     * @param $lng $lng [string]
-     * Store point for \App\Pin,\App\Winery instance
-     *
-     * @return bool
-     */
+
     public function storePoint($lat, $lng) {
         $point = Pin::where('object_id', $this->id)
                           ->where('object_type', $this->flag)
@@ -483,15 +346,7 @@ class BaseModel extends Model
 
         return collect( $return );
     }
-    
-    /**
-     * Method incrementSearch
-     *
-     * @param $save $save | bool
-     * Increment search for every model in app
-     *
-     * @return bool
-     */
+
     public function incrementSearch($save = true) {
         $this->search_count++;
         return !$save ?: $this->query()

@@ -77,7 +77,7 @@ class PointOfInterest extends BaseModel {
 
 
     //      -- CRUD override --
-    //      -- Update pin --
+
     public function postCreation($req = null) {
         $point = new Pin($req->only(['lat', 'lng']));
         $point->object_id = $this->id;
@@ -123,7 +123,7 @@ class PointOfInterest extends BaseModel {
         if ($getQuery)
             return $q;
 
- 
+
         // dd($q->toSql());
 
         $pois = $q->get();
@@ -135,9 +135,9 @@ class PointOfInterest extends BaseModel {
         $wineries->join('pins', function($query) {
             $query->on('pins.object_id', '=', 'wineries.id');
             $query->where('pins.object_type', (new \App\Winery)->flag);
+//            $query->where('pins.object_type','!=', (new \App\Pin)->flag);
         });
 
-        // Winery translations
         $wineries = $wineries->select('wineries.id as id', 'transliteration.value as name', 'pins.lat as lat', 'pins.lng as lng', 'wineries.address as address')->get();
         $wineries->transform( function($w) {
             $w->type = $w->flag;
@@ -152,16 +152,7 @@ class PointOfInterest extends BaseModel {
 
         return $data->values();
     }
-    
-    /**
-     * Method update
-     *
-     * @param $req $req [explicite description]
-     * @param $options $options -- We don't use this here,
-     * but method is overriden from \App\Model
-     *
-     * @return bool
-     */
+
     public function update($req = [], $options = []) {
         if ( !parent::update($req) )
             return false;

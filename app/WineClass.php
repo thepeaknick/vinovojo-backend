@@ -32,7 +32,7 @@ class WineClass extends BaseModel {
     // 		-- Relationships--
 
     public function wines() {
-    	return $this->belongsToMany('App\Wine', 'classes_wines', 'class_id', 'wine_id');
+        return $this->belongsToMany('App\Wine', 'classes_wines', 'class_id', 'wine_id');
     }
 
 
@@ -40,7 +40,7 @@ class WineClass extends BaseModel {
     // 		-- Accessors --
 
     public function getFlagAttribute() {
-    	return 4;
+        return 4;
     }
 
     //      -- Wine properties
